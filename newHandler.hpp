@@ -1,3 +1,6 @@
+//GlowCurveAnalysis
+//Writen by Jack Yu
+
 #ifndef newHandler_hpp
 #define newHandler_hpp
 #include <iostream>

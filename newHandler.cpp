@@ -1,3 +1,6 @@
+//GlowCurveAnalysis
+//Writen by Jack Yu
+
 #include "newHandler.hpp"
 
 using namespace std;
