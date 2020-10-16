@@ -8,11 +8,8 @@ using namespace std;
 namespace fs = std::filesystem;
 
 //open up the input dir directory and find all csv files
+//return a vector of string that contains all the paths to csv files
 vector<string> handle_dir(string dir) {
-	//this is the path for my machine
-	//string pathing = "C:/Users/Wenji/Desktop/GlowCurveAnalsys-master_new/GlowCurveAnalsys-master_new/";
-    //string pathing = "/Users/rhellab/Desktop/GlowCurveAnalysis-master_new/GlowCurveAnalsys-master_new/";
-	//dir = pathing + dir;
 
 	int numDir = 0;
 	int numCSV = 0;
@@ -43,7 +40,7 @@ vector<string> handle_dir(string dir) {
 		if (fs::is_directory(entry)) {
 			numDir++;
 		}
-		//if it's csv file then add to the output vector and increment number of csv found
+		//if it's csv/xlsx file then add to the output vector and increment number of csv found
 		else {
 			string path = entry.path().string();
 			unsigned long dot = path.find_last_of('.');
@@ -54,6 +51,7 @@ vector<string> handle_dir(string dir) {
 			}
 		}
 	}
+    //output the detail about the directory readed in
 	cout << "Directories found: " << numDir << endl;
 	cout << "CSV files found: " << numCSV << endl;
 	cout << "Output Directory created: " << output << endl;
