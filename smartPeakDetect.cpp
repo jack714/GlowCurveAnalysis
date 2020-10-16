@@ -274,15 +274,16 @@ void findPeaks( std::vector<double>& x, std::vector<double>& y,
         minimum.push_back( peakParams[j][3] );
         minimum.push_back( peakParams[j][5] );
     }
+    //change to local path need fix!
     printFindings( xNew, yNew, minimum, maximums, inflections,
-                "/Users/raymondlu/Downloads/GlowCurveAnalsys-master_new/GlowCurveAnalysis" );
+                "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/" );
     for( auto i = peakParams.begin( ) ; i != peakParams.end( ) ; i++ )
     {
         std::vector<double> peak( x.size( ), 0.0 );
         FOKModel( xNew, peak, i->at( 1 ), i->at( 2 ), i->at( 0 ) );
         peaks.push_back( peak );
     }
-    write( peaks, yNew, xNew, "/Users/raymondlu/Downloads/GlowCurveAnalsys-master_new/GlowCurveAnalysis/" );
+    write( peaks, yNew, xNew, "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/" );
 }
 
 // Calculate First Derivatives
@@ -465,7 +466,8 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
                   std::vector<std::vector<double>>& peakParams )
 {
     std::vector<double> yTemp = y;
-    std::string dir = "/Users/jeremyhepker/Documents/NERS499/GlowCurveAnalsys/GlowCurveAnalsys/GlowCurveAnalysis/";
+    //changed to local path
+    std::string dir = "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/";
     
     // *************** //
     // int iteration = 0;
