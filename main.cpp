@@ -46,7 +46,13 @@ int main() {
     vector<vector<double>> stats(files.size(), vector<double>(0,0.0));
     int count = 0;
     auto i = files.begin();
-    string output_dir = *i++;
+    
+    //output to the folder created in newHandler
+    //string output_dir = *i++;
+    unsigned long index = i->find_last_of('/');
+    string output_dir = i->substr(0, index);
+    output_dir += "_output";
+    
     for(; i != files.end(); ++i){
         vector<vector<double>> peakParams;
         double integral= 0;
@@ -56,7 +62,8 @@ int main() {
         }
         cout<<"----------------------------"<<endl<<"Processing: ";
         string filename = i->substr((i->find_last_of("/\\"))+1);
-        cout<<filename<<" ("<<count+1<<" of "<<files.size()-1<<")"<<endl<<"Reading in File  .";
+        //cout<<filename<<" ("<<count+1<<" of "<<files.size()-1<<")"<<endl<<"Reading in File  .";
+        cout<<filename<<" ("<<count+1<<" of "<<files.size()<<")"<<endl<<"Reading in File  .";
         cout.flush();
         File_Manager fileManager = *new File_Manager(*i);
         cout<<".";
@@ -67,14 +74,20 @@ int main() {
             files.erase(i);
             continue;
         }
-        //remove( dir + "/temp.csv" );
+        
+        //need cast to cstr for remove in stdio.h
+        remove( (dir + "/temp.csv").c_str() );
+        
         cout<<"."<<endl<<"Finding Peaks  ..";
         cout.flush();
         findPeaks(data.first,data.second, peakParams);
         cout<<".";
         cout.flush();
         stats[count].push_back(fileManager.barcode());
-        //remove( dir + "/temp.csv" );
+        
+        //need cast to cstr for remove in stdio.h
+        remove( (dir + "/temp.csv").c_str() );
+        
         cout.flush();
         cout<<endl<<"Deconvoluting Glow Peak  .";
         cout.flush();
@@ -88,6 +101,8 @@ int main() {
         }
         vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
         filenames.push_back(filename);
+        cout<<"the filename is: " << filename << endl;
+        cout<<"the output dir is: " << output_dir << endl;
         filename = output_dir +"/"+ filename;
         fileManager.write(returnedPeaks, filename);
         cout<<"----------------------------"<<endl;

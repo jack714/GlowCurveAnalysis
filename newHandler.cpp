@@ -27,11 +27,8 @@ vector<string> handle_dir(string dir) {
 		//return -1;
 	}
 
-	//create the output folder, in Visual Studio the folder is created at the same folder with the code
-	//improvement can be setting the new directory to be placed in the main folder
-	unsigned long last = dir.find_last_of('/');
-	string folder = dir.substr(last + 1);
-	string output = folder + "_output";
+	//create the output folder
+    string output = dir + "_output";
 	fs::create_directories(output);
 
 	//iteratively read in all the files/sub-directories in the "dir" directory
