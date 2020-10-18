@@ -29,13 +29,13 @@ void pointsParams(std::vector<double>& x, std::vector<double>& y, std::vector<in
 
 double activation(double TL, double TR, double TM);
 
-void findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::vector<double>>& peakPrams);//, std::string output_dir);
+void findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::vector<double>>& peakPrams, std::string output_dir);
 
 //double average(std::vector<double>::iterator first, std::vector<double>::iterator last, int size);
 
 void firstDeriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative);
 
-void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<double> secDerivative, std::vector<int>& maxima, std::vector<int>& minima, std::vector<std::vector<double>>& peakParams);
+void nonMaxPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<double> secDerivative, std::vector<int>& maxima, std::vector<int>& minima, std::vector<std::vector<double>>& peakParams, std::string output_dir);
 
 void secDeriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative);
 

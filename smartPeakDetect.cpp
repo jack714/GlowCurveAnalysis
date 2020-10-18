@@ -249,7 +249,7 @@ double activation( double TL, double TR, double TM )
 
 // Sudo Main function for smartPeakDetect
 void findPeaks( std::vector<double>& x, std::vector<double>& y,
-                std::vector<std::vector<double>>& peakParams )
+                std::vector<std::vector<double>>& peakParams, std::string output_dir )
 {
     std::vector<double> xNew = x, yNew= y;
     std::vector<std::vector<double>> peaks;
@@ -265,7 +265,7 @@ void findPeaks( std::vector<double>& x, std::vector<double>& y,
     {
         peakParams[i][2] = yNew[peakParams[i][4]];
     }
-    nonMaxPeaks( xNew, yNew, secDir,maximums, minimum, peakParams );
+    nonMaxPeaks( xNew, yNew, secDir,maximums, minimum, peakParams, output_dir );
     
     /*THIS IS USED FOR OUTPUTING PEAK DETECTION STATS JUST UNCOMMENT*/
     minimum.clear( );
@@ -275,15 +275,17 @@ void findPeaks( std::vector<double>& x, std::vector<double>& y,
         minimum.push_back( peakParams[j][5] );
     }
     //change to local path need fix!
-    printFindings( xNew, yNew, minimum, maximums, inflections,
-                "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/" );
+    //printFindings( xNew, yNew, minimum, maximums, inflections,
+    //            "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/" );
+    printFindings( xNew, yNew, minimum, maximums, inflections,output_dir);
     for( auto i = peakParams.begin( ) ; i != peakParams.end( ) ; i++ )
     {
         std::vector<double> peak( x.size( ), 0.0 );
         FOKModel( xNew, peak, i->at( 1 ), i->at( 2 ), i->at( 0 ) );
         peaks.push_back( peak );
     }
-    write( peaks, yNew, xNew, "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/" );
+    //write( peaks, yNew, xNew, "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/" );
+    write( peaks, yNew, xNew, output_dir);
 }
 
 // Calculate First Derivatives
@@ -435,7 +437,7 @@ void write( std::vector<std::vector<double>> glow_curves,
             std::string output_name )
 {
     std::ofstream file;
-    output_name += "_output.csv";
+    output_name += "/output.csv";
     file.open(output_name);
     if(!file.is_open()){
         exit(1);
@@ -463,11 +465,13 @@ void write( std::vector<std::vector<double>> glow_curves,
 void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
                   std::vector<double> secDerivative,
                   std::vector<int>& maxima, std::vector<int>& minima,
-                  std::vector<std::vector<double>>& peakParams )
+                  std::vector<std::vector<double>>& peakParams,
+                  std::string output_dir)
 {
     std::vector<double> yTemp = y;
     //changed to local path
-    std::string dir = "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/";
+    //std::string dir = "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/";
+    std::string dir = output_dir;
     
     // *************** //
     // int iteration = 0;

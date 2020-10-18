@@ -32,6 +32,7 @@ using namespace std;
 int main() {
     string dir,start ="n";
     vector<string> filenames,files;
+    string output_dir = "";
     while(start =="n" || start =="N"){
         cout<<"Please enter the full path to directory containing csv formatted emission spectra:"<<endl;
         cin>>dir;
@@ -39,7 +40,7 @@ int main() {
         if(dir.back() == '/') 
             dir.pop_back();
         //files = batch_handler(dir);
-        files = handle_dir(dir);
+        files = handle_dir(dir, output_dir);
         cout<<"Is this correct and would you like to start processing (y/n)?"<<endl;
         cin>>start;
     }
@@ -49,9 +50,9 @@ int main() {
     
     //output to the folder created in newHandler
     //string output_dir = *i++;
-    unsigned long index = i->find_last_of('/');
-    string output_dir = i->substr(0, index);
-    output_dir += "_output";
+    //unsigned long index = i->find_last_of('/');
+    //string output_dir = i->substr(0, index);
+    //output_dir += "_output";
     
     for(; i != files.end(); ++i){
         vector<vector<double>> peakParams;
@@ -80,7 +81,7 @@ int main() {
         
         cout<<"."<<endl<<"Finding Peaks  ..";
         cout.flush();
-        findPeaks(data.first,data.second, peakParams);
+        findPeaks(data.first,data.second, peakParams, output_dir);
         cout<<".";
         cout.flush();
         stats[count].push_back(fileManager.barcode());

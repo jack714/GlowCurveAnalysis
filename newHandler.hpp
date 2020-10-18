@@ -9,7 +9,7 @@
 #include <vector>
 #include <filesystem>
 using namespace std;
-std::vector<std::string> handle_dir(std::string dir);
+std::vector<std::string> handle_dir(std::string dir, std::string& output_dir);
 #endif /* newHandler_hpp */
 
 

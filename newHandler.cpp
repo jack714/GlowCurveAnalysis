@@ -9,7 +9,7 @@ namespace fs = std::filesystem;
 
 //open up the input dir directory and find all csv files
 //return a vector of string that contains all the paths to csv files
-vector<string> handle_dir(string dir) {
+vector<string> handle_dir(string dir, string& output_dir) {
 
 	int numDir = 0;
 	int numCSV = 0;
@@ -28,8 +28,10 @@ vector<string> handle_dir(string dir) {
 	}
 
 	//create the output folder
-    string output = dir + "_output";
-	fs::create_directories(output);
+    //string output = dir + "_output";
+	//fs::create_directories(output);
+    output_dir = dir + "_output";
+    fs::create_directories(output_dir);
 
 	//iteratively read in all the files/sub-directories in the "dir" directory
 	for (const auto& entry : fs::recursive_directory_iterator(dir)) {
@@ -51,7 +53,7 @@ vector<string> handle_dir(string dir) {
     //output the detail about the directory readed in
 	cout << "Directories found: " << numDir << endl;
 	cout << "CSV files found: " << numCSV << endl;
-	cout << "Output Directory created: " << output << endl;
+	cout << "Output Directory created: " << output_dir << endl;
 	cout << "CSV details: " << endl;
 	for (string s : csv) {
 		cout << s << endl;
