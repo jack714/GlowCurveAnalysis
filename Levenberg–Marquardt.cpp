@@ -111,7 +111,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
             vector<vector<double>> H;
             double lambda = 0.01;
             double updateJ = 1;
-            double e = 0.0;
+            //double e = 0.0;
             int i = 0;
             int inner_hold = 0;
             while(FOM > .02 && i < 300){
@@ -140,7 +140,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     vector<vector<double>> Jf(Jf_T[0].size(), vector<double>(Jf_T.size(),0.0));
                     transpose(Jf_T,Jf,int(Jf_T.size()), int(Jf_T[0].size()));
                     H = multiply(Jf_T,Jf);
-                    e = dotProduct(error, error);
+                    //e = dotProduct(error, error);
                 }
 
                 //apply the damping factor to the hessian matrix
@@ -180,11 +180,11 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 for(int z = 0; z < int(curve.size()); ++z){
                     temp_FOM += abs(curve[z] - temp_output[z])/integral;
                 }
-                double temp_e = dotProduct(temp_error, temp_error);
+                //double temp_e = dotProduct(temp_error, temp_error);
                 if(temp_FOM < FOM){
                     lambda /= 10;
                     temp_params = t_params;
-                    e = temp_e;
+                    //e = temp_e;
                     updateJ = 1;
                     inner_hold = 0;
                 }else{
