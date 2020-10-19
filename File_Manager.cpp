@@ -105,27 +105,27 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     // *************** //
     // *************** //
     
-    int n1 = 0, n2 = 100;
-    double x1 = 0.0, x2 = 0.0, y1 = 0.0, y2 = 0.0;
-    x1 = raw_count_data[n1];
-    y1 = raw_temp_data[n1];
-    x2 = raw_count_data[n2];
-    y2 = raw_temp_data[n2];
-    double m = ( y2 - y1 ) / ( x2 - x1 ), b = y1 - ( m * x1 );
-    double linear_approximation = 0.0;
+    //int n1 = 0, n2 = 100;
+    //double x1 = 0.0, x2 = 0.0, y1 = 0.0, y2 = 0.0;
+    //x1 = raw_count_data[n1];
+    //y1 = raw_temp_data[n1];
+    //x2 = raw_count_data[n2];
+    //y2 = raw_temp_data[n2];
+    //double m = ( y2 - y1 ) / ( x2 - x1 ), b = y1 - ( m * x1 );
+    //double linear_approximation = 0.0;
     
-    for ( int i = 0 ; i < int( raw_temp_data.size( ) ) ; i++ )
-    {
-        linear_approximation = m * raw_count_data[i] + b;
-        if ( raw_temp_data[i] < linear_approximation )
-        {
-            raw_temp_data[i] = 0;
-        }
-        else
-        {
-            raw_temp_data[i] -= linear_approximation;
-        }
-    }
+    //for ( int i = 0 ; i < int( raw_temp_data.size( ) ) ; i++ )
+    //{
+    //    linear_approximation = m * raw_count_data[i] + b;
+    //    if ( raw_temp_data[i] < linear_approximation )
+    //    {
+    //        raw_temp_data[i] = 0;
+    //    }
+    //    else
+    //    {
+    //        raw_temp_data[i] -= linear_approximation;
+    //    }
+    //}
     
     for(int i = 0; i < 5; ++i) dataSmooth(raw_temp_data, raw_count_data);
     

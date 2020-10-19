@@ -57,7 +57,7 @@ void smartPoints( std::vector<double>& x,
     // Original Value = 5
     int near_point_height = 5;
     // Original Value = 10
-    // int low_threshold = 0;
+    //int low_threshold = 10;
     
     // loop through maximas
     for( int i = 1 ; i < int( maxima.size( ) ) - 1 ; i++ )
@@ -89,26 +89,12 @@ void smartPoints( std::vector<double>& x,
         } // if
     } // for
     
-    /*
     // loop through all peaks
     for( int i = 0 ; i < int( maxima.size( ) ) ; i++ )
     {
         // if a peak is not as tall as a previous peak or is less than a certain threshold
-        if( ( y[maxima[i]] < y[maxima[i] - near_point_height] ) ||
-              y[maxima[i]] < low_threshold )
-        {
-            maxima.erase( maxima.begin( ) + i );
-            i--;
-            continue;
-        }
-    }
-    */
-    
-    // loop through all peaks
-    for( int i = 0 ; i < int( maxima.size( ) ) ; i++ )
-    {
-        // if a peak is not as tall as a previous peak or is less than a certain threshold
-        if( ( y[maxima[i]] < y[maxima[i] - near_point_height] ) )
+        //|| y[maxima[i]] < low_threshold
+        if( ( y[maxima[i]] < y[maxima[i] - near_point_height] ))
         {
             maxima.erase( maxima.begin( ) + i );
             i--;
@@ -617,7 +603,8 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
         // Finds half max points
         double half_intensity = *TM / 2.0;
         TL = lower_bound( TL + minLeft, TM, half_intensity, std::less<double>( ) );
-        TR = lower_bound( TM, TR + minRight, half_intensity, std::greater<double>( ) );
+        //TR = lower_bound( TM, TR + minRight, half_intensity, std::greater<double>( ) );
+        TR = lower_bound(TM, TR, half_intensity, std::greater<double>());
         // Calculates half width half max
         int diff1 = int( TM - TL );
         int diff2 = int( TR - TM );
