@@ -5,6 +5,8 @@
 //  Created by jeremy hepker on 1/27/19.
 //  Copyright © 2019 Jeremy Hepker. All rights reserved.
 //
+//  Modified and re-organized by Jack Yu UROP 2020 Fall
+//
 
 #include "File_Manager.hpp"
 #include "CSV_iterator.cpp"
@@ -14,7 +16,7 @@ File_Manager::File_Manager(std::string given_filename):filename(given_filename){
 //This function reads in the .csv file and parses the data into std::vector of coordinate pairs.
 pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     //Open and test the user input file.
-    std::string line, catagories;
+    std::string line;
     vector<double> tempData, countData;
     size_t path = filename.find_last_of("/\\");
     std::string temp_path = filename.substr(0,path+1);
@@ -88,66 +90,8 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
         raw_count_data.pop_back();
     }
     
-    // *************** //
-    // *************** //
-    // *************** //
-    /*
-    // average first 500 points
-    double total = 0;
-    int num = int( raw_temp_data.size( ) );
-    for ( int i = 0 ; i < num ; i++ )
-    {
-        total += raw_temp_data[i];
-    }
-    double average = total / num;
-    */
-    // *************** //
-    // *************** //
-    // *************** //
-    
-    //int n1 = 0, n2 = 100;
-    //double x1 = 0.0, x2 = 0.0, y1 = 0.0, y2 = 0.0;
-    //x1 = raw_count_data[n1];
-    //y1 = raw_temp_data[n1];
-    //x2 = raw_count_data[n2];
-    //y2 = raw_temp_data[n2];
-    //double m = ( y2 - y1 ) / ( x2 - x1 ), b = y1 - ( m * x1 );
-    //double linear_approximation = 0.0;
-    
-    //for ( int i = 0 ; i < int( raw_temp_data.size( ) ) ; i++ )
-    //{
-    //    linear_approximation = m * raw_count_data[i] + b;
-    //    if ( raw_temp_data[i] < linear_approximation )
-    //    {
-    //        raw_temp_data[i] = 0;
-    //    }
-    //    else
-    //    {
-    //        raw_temp_data[i] -= linear_approximation;
-    //    }
-    //}
-    
-    for(int i = 0; i < 5; ++i) dataSmooth(raw_temp_data, raw_count_data);
-    
-    // *************** //
-    // *************** //
-    // *************** //
-    /*
-    for ( int i = 0 ; i < num ; i++ )
-    {
-        if ( raw_temp_data[i] < average )
-        {
-            raw_temp_data[i] = 0;
-        }
-        else
-        {
-            raw_temp_data[i] -= average;
-        }
-     }
-     */
-    // *************** //
-    // *************** //
-    // *************** //
+    for(int i = 0; i < 5; ++i)
+        dataSmooth(raw_temp_data, raw_count_data);
     
     return make_pair(raw_temp_data, raw_count_data);
 }
