@@ -37,7 +37,7 @@ public:
     File_Manager(std::string filename);
     File_Manager();
     
-    //This function reads in the .csv file and parses the data into vector of coordinate pairs.
+    //This function reads in the .csv file and parses the raw data into vector of coordinate pairs.
     std::pair<std::vector<double>,std::vector<double>> read();
     void statistics(std::vector<std::vector<double>> stats, std::vector<std::string> filenames, std::string dir);
     //This is a function to write the output to a new CSV file.

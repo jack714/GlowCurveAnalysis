@@ -26,9 +26,9 @@ void pointsParams(std::vector<double>& x, std::vector<double>& y, std::vector<in
 
 
 //void dataSmooth(std::vector<double>& x, std::vector<double>& y, std::vector<double>& xNew, std::vector<double>& yNew);
-
 double activation(double TL, double TR, double TM);
 
+// Sudo Main function for smartPeakDetect, take in temperature and count data then record peaks in peakParams
 void findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::vector<double>>& peakPrams, std::string output_dir);
 
 //double average(std::vector<double>::iterator first, std::vector<double>::iterator last, int size);

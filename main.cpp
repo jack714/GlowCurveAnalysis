@@ -72,23 +72,32 @@ int main() {
         string filename = i->substr((i->find_last_of("/\\"))+1);
         cout << filename << " (" << count+1 << " of " << files.size() << ")" << endl << "Reading in File  .";
         cout.flush();
+        
         //create a fileManager object that takes in the i/csv path
         File_Manager fileManager = *new File_Manager(*i);
         cout<<".";
         cout.flush();
+        //create a pair of two vector data which has first to be temperature data and second to be count data
         pair<vector<double>, vector<double>> data = fileManager.read();
+        
+        //use dataSmooth from dataSmoothing.cpp to process raw data
+        for(int i = 0; i < 5; ++i)
+            dataSmooth(data.first, data.second);
+        //calculate the curve area by adding the count data
         const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
+        //if the curve area is less 2000 then it's not enough for further analysis
         if(curveArea < 2000){
             files.erase(i);
             continue;
         }
         
-        //remove the temp.csv created in fileManager
+        //remove the temp.csv created in fileManager since already read them in data
         remove( (dir + "/temp.csv").c_str() );
-        
         cout<<"."<<endl<<"Finding Peaks  ..";
         cout.flush();
-        findPeaks(data.first,data.second, peakParams, output_dir);
+        
+        //call findPeaks from smartPeakDetect.cpp
+        findPeaks(data.first, data.second, peakParams, output_dir);
         cout<<".";
         cout.flush();
         stats[count].push_back(fileManager.barcode());
@@ -99,7 +108,7 @@ int main() {
         cout.flush();
         cout<<endl<<"Deconvoluting Glow Peak  .";
         cout.flush();
-        First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data,peakParams);
+        First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peakParams);
         stats[count].push_back(FOK_Model.glow_curve());
         stats[count].push_back(integral);
         stats[count].push_back(fileManager.temp_rate(filename));

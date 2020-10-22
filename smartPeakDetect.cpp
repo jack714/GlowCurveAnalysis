@@ -8,7 +8,152 @@
 
 #include "smartPeakDetect.hpp"
 
-// Curve Fitting and Vetting
+// Sudo Main function for smartPeakDetect, take in temperature and count data then record peaks in peakParams
+void findPeaks( std::vector<double>& x, std::vector<double>& y,
+                std::vector<std::vector<double>>& peakParams, std::string output_dir )
+{
+    std::vector<double> xNew = x, yNew= y;
+    std::vector<std::vector<double>> peaks;
+    std::vector<int> maximums, minimum, inflections;
+    std::vector<double> firstDir( x.size( ), 0.0 );
+    std::vector<double> secDir( x.size( ), 0.0 );
+    //call firstDeriv function from this file and populate firstDir vector with first derivative data
+    firstDeriv( xNew, yNew, firstDir );
+    //call secDeriv function from this file and populate secDir vector with second derivative data
+    secDeriv( xNew, yNew, secDir );
+    //call smartPoints from this file and populate maximum, minimum, inflections, further process the peaks in maximum
+    smartPoints( xNew, yNew, minimum, maximums,firstDir, secDir, inflections );
+    //call pointsParams from this file and populate peakParams with temperature, half left, middle, right max index
+    pointsParams( xNew, yNew, maximums, minimum, peakParams );
+    // assign peakParams[i][2] to be half max middle count
+    for( int i = 0 ; i < int( peakParams.size( ) ) ; i++ )
+    {
+        peakParams[i][2] = yNew[peakParams[i][4]];
+    }
+    nonMaxPeaks( xNew, yNew, secDir, maximums, minimum, peakParams, output_dir );
+    
+    minimum.clear( );
+    for( int j = 0 ; j < int( peakParams.size( ) ) ; j++ )
+    {
+        minimum.push_back( peakParams[j][3] );
+        minimum.push_back( peakParams[j][5] );
+    }
+    printFindings( xNew, yNew, minimum, maximums, inflections, output_dir);
+    for( auto i = peakParams.begin( ) ; i != peakParams.end( ) ; i++ )
+    {
+        std::vector<double> peak( x.size( ), 0.0 );
+        FOKModel( xNew, peak, i->at( 1 ), i->at( 2 ), i->at( 0 ) );
+        peaks.push_back( peak );
+    }
+    write( peaks, yNew, xNew, output_dir);
+}
+
+// Calculate First Derivatives with temperature and data input
+void firstDeriv( std::vector<double>& x, std::vector<double>& y,
+                 std::vector<double>& derivative )
+{
+    int size = int( x.size( ) ) - 2;
+    // Five Point Stencil Method
+    for( int i = 2 ; i < size ; i++ )
+    {
+        derivative[i-2] = ( -y[i+2] + 8.0 * y[i+1] - 8.0 * y[i-1] + y[i-2] ) / 12.0;
+    }
+    size = int( derivative.size( ) ) - 1;
+    int sign = 4, lastSign = 0;
+    bool positive = true;
+    for( int i = 0 ; i < size ; i++ )
+    {
+        if( derivative[i] < 0.0 && positive && sign >= 4 )
+        {
+            positive = false;
+            lastSign = sign;
+            sign = 1;
+        }
+        else if( derivative[i] < 0.0 && positive && sign < 4 )
+        {
+            for( int j = 1 ; j <= sign ; j++ )
+            {
+                derivative[i - j] = -( derivative[i - j] );
+                positive = false;
+            }
+            sign = lastSign + sign;
+        }
+        else if( derivative[i] > 0.0 && !positive && sign < 4 )
+        {
+            for( int j = 1 ; j <= sign ; j++ )
+            {
+                derivative[i - j] = abs( derivative[i - j] );
+                positive = true;
+            }
+            sign = lastSign + sign;
+        }
+        else if( derivative[i] > 0.0 && !positive && sign >= 4 )
+        {
+            positive = true;
+            lastSign = sign;
+            sign = 1;
+        }
+        else
+        {
+            sign++;
+        }
+    }
+}
+
+// Calculate Second Derivatives with temperature and data input
+void secDeriv( std::vector<double>& x, std::vector<double>& y,
+               std::vector<double>& derivative )
+{
+    int size = int( x.size( ) ) - 2;
+    // Five Point Stencil Method
+    for( int i = 2 ; i < size; i++ )
+    {
+        derivative[i-2] = ( -y[i+2] + 16.0 * y[i+1] - 30.0 *
+                            y[i] + 16.0 * y[i-1] - y[i-2] ) / 12.0;
+    }
+    size = int( derivative.size( ) ) - 1;
+    int sign = 3, lastSign = 0;
+    bool positive = true;
+    for( int i = 0 ; i < size ; i++ )
+    {
+        if( derivative[i] < 0.0 && positive && sign >= 3 )
+        {
+            positive = false;
+            lastSign = sign;
+            sign = 1;
+        }
+        else if( derivative[i] < 0.0 && positive && sign < 3 )
+        {
+            for( int j = 1 ; j <= sign ; j++ )
+            {
+                derivative[i - j] = -( derivative[i - j] );
+                positive = false;
+            }
+            sign = lastSign + sign;
+        }
+        else if( derivative[i] > 0.0 && !positive && sign < 3 )
+        {
+            for( int j = 1 ; j <= sign ; j++ )
+            {
+                derivative[i - j] = abs( derivative[i - j] );
+                positive = true;
+            }
+            sign = lastSign + sign;
+        }
+        else if( derivative[i] > 0.0 && !positive && sign >= 3 )
+        {
+            positive = true;
+            lastSign = sign;
+            sign = 1;
+        }
+        else
+        {
+            sign++;
+        }
+    }
+}
+
+// Curve Fitting and Vetting, populate minimum, maxima, and inflecPnt vectors
 void smartPoints( std::vector<double>& x,
                   std::vector<double>& y,
                   std::vector<int>& minimum,
@@ -20,13 +165,15 @@ void smartPoints( std::vector<double>& x,
     int size = int( derivative.size( ) );
     minimum.push_back( 0 );
     
-    // Pushes all current Maxes and Mins into vector
+    // Pushes all current Maxes and Mins indexes into vector
     for( int i = 1 ; i < size ; i++ )
     {
+        //maxima is recorded as first derivative change from positive to negative
         if( derivative[i] < 0.0 && derivative[i - 1] > 0.0 )
         {
             maxima.push_back( i );
         }
+        //minimum is recorded as first derivative change from negative to positive
         if( derivative[i] > 0.0 && derivative[i - 1] < 0.0 )
         {
             minimum.push_back( i );
@@ -35,7 +182,7 @@ void smartPoints( std::vector<double>& x,
     minimum.push_back( int( x.size( ) ) - 1 );
     
     size = int( secDerivative.size( ) );
-    // Pushes inflection points into vector
+    // Pushes inflection points into vector, where second derivative changes sign
     for( int i = 1 ; i < size ; i++ )
     {
         if( secDerivative[i] < 0.0 && secDerivative[i - 1] > 0.0 )
@@ -48,10 +195,6 @@ void smartPoints( std::vector<double>& x,
         }
     }
     
-    // *************** //
-    // TODO::
-    // *************** //
-    
     // Original Value = 10
     int adj_peak_distance = 10;
     // Original Value = 5
@@ -59,10 +202,10 @@ void smartPoints( std::vector<double>& x,
     // Original Value = 10
     //int low_threshold = 10;
     
-    // loop through maximas
+    // loop through maximas and refine peaks
     for( int i = 1 ; i < int( maxima.size( ) ) - 1 ; i++ )
     {
-        // if peak is not as tall as adjacent peaks
+        // if peak is not as tall as adjacent peaks then remove that peak
         if( y[maxima[i]] < y[maxima[i + 1]] && y[maxima[i]] < y[maxima[i - 1]] )
         {
             maxima.erase( maxima.begin( ) + i );
@@ -70,9 +213,10 @@ void smartPoints( std::vector<double>& x,
             continue;
         }
         
-        // if adjacent peaks are not far enough from each other
+        // if left adjacent peak is not far enough from current peak
         if( abs( x[maxima[i]] - x[maxima[i - 1]] ) <= adj_peak_distance )
         {
+            //if right adjacent peak is not far enough from current peak then remove peaks before and after
             if( abs( x[maxima[i]] - x[maxima[i + 1]] ) <= adj_peak_distance )
             {
                 maxima.erase( maxima.begin( ) + i + 1 );
@@ -80,6 +224,7 @@ void smartPoints( std::vector<double>& x,
                 i--;
                 continue;
             }
+            //if right adjacent peak is far enough then remove the current peak
             else
             {
                 maxima.erase( maxima.begin( ) + i );
@@ -89,7 +234,7 @@ void smartPoints( std::vector<double>& x,
         } // if
     } // for
     
-    // loop through all peaks
+    // loop through all peaks and further check height
     for( int i = 0 ; i < int( maxima.size( ) ) ; i++ )
     {
         // if a peak is not as tall as a previous peak or is less than a certain threshold
@@ -101,13 +246,9 @@ void smartPoints( std::vector<double>& x,
             continue;
         }
     }
-    
-    // *************** //
-    // *************** //
-    // *************** //
 }
 
-// Full Width Half Max
+// Poplate peakParams with activation data, temperature, half max left, middle, and right index
 void pointsParams( std::vector<double>& x,
                    std::vector<double>& y,
                    std::vector<int>& maxima,
@@ -124,6 +265,7 @@ void pointsParams( std::vector<double>& x,
         // Look for left adjacent min
         for( int k = *i ; k > 0 ; k-- )
         {
+            //iterate through minima and try to find min to the left
             for( auto m = minima.begin( ) ; m != minima.end( ) ; m++ )
             {
                 if( k == *m )
@@ -141,6 +283,7 @@ void pointsParams( std::vector<double>& x,
         // Look for right adjacent min
         for( int k = *i ; k < int( x.size( ) ) ; k++ )
         {
+            //iterate through minima and try to find min to the right
             for( auto m = minima.begin( ) ; m != minima.end( ) ; m++ )
             {
                 if( k == *m )
@@ -196,7 +339,7 @@ void pointsParams( std::vector<double>& x,
         peakParams.back( )[5] = TR_index;
     }
     
-    // loop through peaks, applies formula
+    // loop through peaks, applies activation formula
     for( int i = 0 ; i < int( peakParams.size( ) ) ; i++ )
     {
         peakParams[i][0] = activation( x[peakParams[i][3]], x[peakParams[i][5]],
@@ -204,7 +347,7 @@ void pointsParams( std::vector<double>& x,
     }
 }
 
-// Formula
+// activation formula used in pointsparam
 double activation( double TL, double TR, double TM )
 {
     double m_g = 0.0, E = 0.0, C = 0.0, K = .000086173303;
@@ -231,152 +374,6 @@ double activation( double TL, double TR, double TM )
         E = 3;
     }
     return E;
-}
-
-// Sudo Main function for smartPeakDetect
-void findPeaks( std::vector<double>& x, std::vector<double>& y,
-                std::vector<std::vector<double>>& peakParams, std::string output_dir )
-{
-    std::vector<double> xNew = x, yNew= y;
-    std::vector<std::vector<double>> peaks;
-    std::vector<int> maximums, minimum, inflections;
-    std::vector<double> firstDir( x.size( ), 0.0 );
-    std::vector<double> secDir( x.size( ), 0.0 );
-    firstDeriv( xNew, yNew, firstDir );
-    secDeriv( xNew, yNew, secDir );
-    smartPoints( xNew, yNew, minimum, maximums,firstDir, secDir, inflections );
-    pointsParams( xNew, yNew, maximums, minimum, peakParams );
-    // Copy result into peakParams
-    for( int i = 0 ; i < int( peakParams.size( ) ) ; i++ )
-    {
-        peakParams[i][2] = yNew[peakParams[i][4]];
-    }
-    nonMaxPeaks( xNew, yNew, secDir,maximums, minimum, peakParams, output_dir );
-    
-    /*THIS IS USED FOR OUTPUTING PEAK DETECTION STATS JUST UNCOMMENT*/
-    minimum.clear( );
-    for( int j = 0 ; j < int( peakParams.size( ) ) ; j++ )
-    {
-        minimum.push_back( peakParams[j][3] );
-        minimum.push_back( peakParams[j][5] );
-    }
-    //change to local path need fix!
-    //printFindings( xNew, yNew, minimum, maximums, inflections,
-    //            "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/" );
-    printFindings( xNew, yNew, minimum, maximums, inflections,output_dir);
-    for( auto i = peakParams.begin( ) ; i != peakParams.end( ) ; i++ )
-    {
-        std::vector<double> peak( x.size( ), 0.0 );
-        FOKModel( xNew, peak, i->at( 1 ), i->at( 2 ), i->at( 0 ) );
-        peaks.push_back( peak );
-    }
-    //write( peaks, yNew, xNew, "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/" );
-    write( peaks, yNew, xNew, output_dir);
-}
-
-// Calculate First Derivatives
-void firstDeriv( std::vector<double>& x, std::vector<double>& y,
-                 std::vector<double>& derivative )
-{
-    int size = int( x.size( ) ) - 2;
-    // Five Point Stencil Method
-    for( int i = 2 ; i < size ; i++ )
-    {
-        derivative[i-2] = ( -y[i+2] + 8.0 * y[i+1] - 8.0 * y[i-1] + y[i-2] ) / 12.0;
-    }
-    size = int( derivative.size( ) ) - 1;
-    int sign = 4, lastSign = 0;
-    bool positive = true;
-    for( int i = 0 ; i < size ; i++ )
-    {
-        if( derivative[i] < 0.0 && positive && sign >= 4 )
-        {
-            positive = false;
-            lastSign = sign;
-            sign = 1;
-        }
-        else if( derivative[i] < 0.0 && positive && sign < 4 )
-        {
-            for( int j = 1 ; j <= sign ; j++ )
-            {
-                derivative[i - j] = -( derivative[i - j] );
-                positive = false;
-            }
-            sign = lastSign + sign;
-        }
-        else if( derivative[i] > 0.0 && !positive && sign < 4 )
-        {
-            for( int j = 1 ; j <= sign ; j++ )
-            {
-                derivative[i - j] = abs( derivative[i - j] );
-                positive = true;
-            }
-            sign = lastSign + sign;
-        }
-        else if( derivative[i] > 0.0 && !positive && sign >= 4 )
-        {
-            positive = true;
-            lastSign = sign;
-            sign = 1;
-        }
-        else
-        {
-            sign++;
-        }
-    }
-}
-
-// Calculate Second Derivatives
-void secDeriv( std::vector<double>& x, std::vector<double>& y,
-               std::vector<double>& derivative )
-{
-    int size = int( x.size( ) ) - 2;
-    // Five Point Stencil Method
-    for( int i = 2 ; i < size; i++ )
-    {
-        derivative[i-2] = ( -y[i+2] + 16.0 * y[i+1] - 30.0 *
-                            y[i] + 16.0 * y[i-1] - y[i-2] ) / 12.0;
-    }
-    size = int( derivative.size( ) ) - 1;
-    int sign = 3, lastSign = 0;
-    bool positive = true;
-    for( int i = 0 ; i < size ; i++ )
-    {
-        if( derivative[i] < 0.0 && positive && sign >= 3 )
-        {
-            positive = false;
-            lastSign = sign;
-            sign = 1;
-        }
-        else if( derivative[i] < 0.0 && positive && sign < 3 )
-        {
-            for( int j = 1 ; j <= sign ; j++ )
-            {
-                derivative[i - j] = -( derivative[i - j] );
-                positive = false;
-            }
-            sign = lastSign + sign;
-        }
-        else if( derivative[i] > 0.0 && !positive && sign < 3 )
-        {
-            for( int j = 1 ; j <= sign ; j++ )
-            {
-                derivative[i - j] = abs( derivative[i - j] );
-                positive = true;
-            }
-            sign = lastSign + sign;
-        }
-        else if( derivative[i] > 0.0 && !positive && sign >= 3 )
-        {
-            positive = true;
-            lastSign = sign;
-            sign = 1;
-        }
-        else
-        {
-            sign++;
-        }
-    }
 }
 
 void printFindings( std::vector<double>& x, std::vector<double>& y,
@@ -455,13 +452,7 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
                   std::string output_dir)
 {
     std::vector<double> yTemp = y;
-    //changed to local path
-    //std::string dir = "/Users/rhellab/Desktop/GCA/GlowCurveAnalysis/";
     std::string dir = output_dir;
-    
-    // *************** //
-    // int iteration = 0;
-    // *************** //
     
     // "line sum" of whole curve
     const double origPeakArea = std::accumulate( yTemp.begin( ), yTemp.end( ), 0.0 );
@@ -471,52 +462,12 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
     for( int i = 0 ; i < int( peakParams.size( ) ) ; i++ )
     {
         std::vector<double> peak( x.size( ), 0.0 );
-        FOKModel( x, peak,peakParams[i][1], peakParams[i][2], peakParams[i][0] );
-        
-        /*
-        // *************** //
-        // *************** //
-        // *************** //
-        
-        std::ofstream out;
-        std::stringstream sstream;
-        std::string out_name = "/Users/raymondlu/Downloads/GlowCurveAnalsys-master_new/GlowCurveAnalysis/nonMaxPeak_";
-        
-        sstream << iteration;
-        out_name += sstream.str( );
-        out_name += "_output.csv";
-        
-        
-        out.open(out_name);
-        if(!out.is_open()){
-            exit(1);
-        }
-        
-        out << "yTemp,peak";
-        out <<",\n";
-        for(int j = 0; j<int(x.size());++j){
-            out << yTemp[j] << ",";
-            out << peak[j];
-            out <<",\n";
-        }
-        out.setf(std::ios_base::fixed);
-        out<<std::setprecision(5);
-        
-        std::cout << "Output File : "<< out_name << "\n";
-        
-        out.close();
-        
-        iteration++;
-        
-        // *************** //
-        // *************** //
-        // *************** //
-        */
-        
-        transform( peak.begin( ), peak.end( ), sum.begin( ), sum.begin( ),
-                   std::plus<double>( ) );
-        transform( yTemp.begin( ), yTemp.end( ), sum.begin( ), yTemp.begin( ),
-                   std::minus<double>( ) );
+        //call FOKModel from FOKMOdel.cpp and populate peak data
+        FOKModel( x, peak, peakParams[i][1], peakParams[i][2], peakParams[i][0] );
+        //apply plus to all data in peak and store in sum
+        transform( peak.begin(), peak.end(), sum.begin(), sum.begin(), std::plus<double>() );
+        //substract data in sum sequantially from all sequential yTemp data 
+        transform( yTemp.begin(), yTemp.end(), sum.begin(), yTemp.begin(), std::minus<double>() );
     }
     for( int j = 0 ; j < int( yTemp.size( ) ) ; j++ )
     {

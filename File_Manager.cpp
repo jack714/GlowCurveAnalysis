@@ -13,85 +13,112 @@
 
 File_Manager::File_Manager(std::string given_filename):filename(given_filename){};
 
-//This function reads in the .csv file and parses the data into std::vector of coordinate pairs.
+//This function reads in the .csv file and parses the raw data into std::vector of coordinate pairs.
 pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     //Open and test the user input file.
     std::string line;
     vector<double> tempData, countData;
+    //create a temporary csv file to store data
     size_t path = filename.find_last_of("/\\");
     std::string temp_path = filename.substr(0,path+1);
     temp_path += "temp.csv";
-    //check if filename is a valid path
+    //open and check if filename is a valid path
     ifstream file(filename);
     if(!file.is_open()){
         cerr<<"Error opening file: "<<filename<<endl;
         exit(1);
     }
-    //get rid of the title content
+    //get rid of the title content, this will also get rid of the first line of the actual data
     while(true){
         if(line.find("Time (") != std::string::npos) time =true;
-        if(line.find("Count")==std::string::npos){
+        if(line.find("Count") == std::string::npos){
             getline(file, line,'\n');
         }else{
             getline(file, line,'\n');
             break;
         }
     }
+    //open the temp.csv file
     ofstream temp_file;
     temp_file.open(temp_path);
     if(!temp_file.is_open()){
-        cerr<<"Error opening file: "<<filename<<endl;
+        cerr<< "Error opening file: " << filename << endl;
         exit(1);
     }
+    //reading in each line of data to vector temps
     std::vector<std::string> temps;
     while(getline(file, line,'\n')){
-        if(line.find('\r') != std::string::npos) line.pop_back();
-        if(line.back() != ',') temps.push_back(line + ",\n");
-        else temps.push_back(line+ "\n");
+        if(line.find('\r') != std::string::npos)
+            line.pop_back();
+        if(line.back() != ',')
+            temps.push_back(line + ",\n");
+        else
+            temps.push_back(line + "\n");
     }
     temps.back().pop_back();
     temps.back().pop_back();
+    //copy each line in temp to the temp.csv file
     for(auto j = temps.begin(); j != temps.end(); ++j){
-        temp_file<<*j;
+        temp_file << *j;
     }
     temp_file.close();
     file.close();
+    
+    //open the temporary csv file and process data
     file.open(temp_path);
     getline(file, line);
     getline(file, line);
     std::stringstream ss;
     ss << line;
     int count = 0;
+    //process the first line of data, for each time reading in until ','
+    //use count to record the number of ',' until temperature data
     while(getline(ss, line, ',')){
         count++;
+        //if there's a column for barcode, this would get executed and barcodeNum would record the barcode
         if(line.find('N') != std::string::npos){
             line.erase(0,1);
             barcodeNum = stoi(line);
         }
     }
+    //construct an csv_iterator object from csv_iterator.cpp to read in data from temp.csv
     auto i = csv_iterator<std::string>( file );
+    /*
+     I feel this can be improved by getting rid of two
+     */
     bool two = false;
     while(file){
-        for(int j=0;j<(count-2);++j) ++i;
+        //skip the first count-2 sets of data separtaed by ',' so the next data read in is temperature
+        for(int j = 0; j < (count - 2); ++j)
+            ++i;
+        //push the temperature data to raw_temp_data
         raw_temp_data.push_back(stod(*i));
+        //read in data until next ','
         ++i;
+        //push count data to raw_count_data vector
         raw_count_data.push_back(stod(*i));
-        if(!two && raw_count_data.back() >2)two = true;
+        //if(raw_count_data.back() <= 2) {
+        //    raw_temp_data.pop_back();
+        //    raw_count_data.pop_back();
+        //}
+        if(!two && raw_count_data.back() > 2)
+            two = true;
+        //go to next line by increment i again
         ++i;
-        if(file.eof()) break;
+        if(file.eof())
+            break;
+        //get rid of the data with count smaller or equal to 2
         if(!two){
             raw_temp_data.pop_back();
             raw_count_data.pop_back();
         }
     }
     file.close();
-    if((raw_temp_data.size()%2) == 0){
+    //if the size of the two vector is even then remove the last data to make the size odd
+    if((raw_temp_data.size() % 2) == 0){
         raw_temp_data.pop_back();
         raw_count_data.pop_back();
     }
-    
-    for(int i = 0; i < 5; ++i)
-        dataSmooth(raw_temp_data, raw_count_data);
     
     return make_pair(raw_temp_data, raw_count_data);
 }
