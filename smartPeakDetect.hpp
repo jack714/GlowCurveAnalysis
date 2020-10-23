@@ -22,6 +22,8 @@
 
 void smartPoints(std::vector<double>& x, std::vector<double>& y, std::vector<int>& minimum,std::vector<int>& maxima,std::vector<double> derivative,std::vector<double> secDerivative,std::vector<int>& inflectPnt);
 
+//half width half max method, populate peakParams with activation data,
+// and temperature, count of half width half max, along with its left, middle, and right index
 void pointsParams(std::vector<double>& x, std::vector<double>& y, std::vector<int>&maxima, std::vector<int>& minima, std::vector<std::vector<double>>& peakParams);
     
 //void dataSmooth(std::vector<double>& x, std::vector<double>& y, std::vector<double>& xNew, std::vector<double>& yNew);

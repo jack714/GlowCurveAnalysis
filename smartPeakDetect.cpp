@@ -340,7 +340,7 @@ int find_half_max (int index,
 }
 
 // half width half max method, populate peakParams with activation data,
-// and temperatur, count of half width half max, along with its left, middle, and right index
+// and temperature, count of half width half max, along with its left, middle, and right index
 void pointsParams( std::vector<double>& x,
                    std::vector<double>& y,
                    std::vector<int>& maxima,
