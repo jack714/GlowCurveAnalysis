@@ -23,13 +23,11 @@ void findPeaks( std::vector<double>& x, std::vector<double>& y,
     secDeriv( xNew, yNew, secDir );
     //call smartPoints from this file and populate maximum, minimum, inflections, further process the peaks in maximum
     smartPoints( xNew, yNew, minimum, maximums,firstDir, secDir, inflections );
-    //call pointsParams from this file and populate peakParams with temperature, half left, middle, right max index
+    
+    //call pointsParams from this file, populate peakParams with activation, temperature,
+    //full width half max TL TM TR's index for first fitting
     pointsParams( xNew, yNew, maximums, minimum, peakParams );
-    // assign peakParams[i][2] to be half max middle count
-    for( int i = 0 ; i < int( peakParams.size( ) ) ; i++ )
-    {
-        peakParams[i][2] = yNew[peakParams[i][4]];
-    }
+    //substract fitted curve from the orignal and continue to fit if the remaining area is large
     nonMaxPeaks( xNew, yNew, secDir, maximums, minimum, peakParams, output_dir );
     
     minimum.clear( );
@@ -248,102 +246,111 @@ void smartPoints( std::vector<double>& x,
     }
 }
 
-// Poplate peakParams with activation data, temperature, half max left, middle, and right index
+//helper function that runs half width half max method once and returns TM_index
+int find_half_max (int index,
+                   std::vector<double>& x,
+                   std::vector<double>& y,
+                   std::vector<int>& maxima,
+                   std::vector<int>& minima,
+                   std::vector<std::vector<double>>& peakParams)
+{
+    int TM_index = 0, TR_index = 0, TL_index = 0;
+    double half_intensity = 0;
+    int minLeft = 0, minRight = int( x.size( ) );
+    // Look for left adjacent min in terms of index
+    for( int k = index ; k > 0 ; k-- )
+    {
+        //iterate through minima and try to find min to the left
+        for( auto m = minima.begin( ) ; m != minima.end( ) ; m++ )
+        {
+            if( k == *m )
+            {
+                minLeft = k;
+                break;
+            }
+        }
+        // breaks if a min was found
+        if ( minLeft != 0 )
+        {
+            break;
+        }
+    }
+    // Look for right adjacent min in terms of index
+    for( int k = index ; k < int( x.size( ) ) ; k++ )
+    {
+        //iterate through minima and try to find min to the right
+        for( auto m = minima.begin( ) ; m != minima.end( ) ; m++ )
+        {
+            if( k == *m )
+            {
+                minRight = k;
+                break;
+            }
+        }
+        if ( minRight != int( x.size( ) ) )
+        {
+            break;
+        }
+    }
+    peakParams.push_back( std::vector<double>( 6, 0.0 ) );
+    auto TL = y.begin( );
+    auto TR = y.begin( );
+    auto TM = TL + index;
+    half_intensity = *TM / 2.0;
+    // Finds half max points
+    //TL is the first iterator (minleft to TM) that has value greater or equal to half_intensity
+    TL = lower_bound( TL + minLeft, TM, half_intensity, std::less<double>( ) );
+    //TR is the first iterator (TM to minright) that has value smaller or equal to half_intensity
+    TR = lower_bound( TM, TR + minRight, half_intensity, std::greater<double>( ) );
+    // Calculates half width half max
+    int diff1 = int( TM - TL );
+    int diff2 = int( TR - TM );
+    if( TR == y.end( ) )
+    {
+        diff2 += diff1;
+    }
+    TM_index = int( TM - y.begin( ) );
+    
+    // Centering, finds smaller out of left and right side and adjust accordingly
+    if( diff1 <= diff2 )
+    {
+        TL_index = int( TL - y.begin( ) );
+        TR_index = int( TM_index + ( TM_index - TL_index ) );
+    }
+    else
+    {
+        TR_index = int( TR - y.begin( ) );
+        TL_index = int( TM_index - ( TR_index - TM_index ) );
+    }
+    if( TR_index > int( y.size( ) ) )
+    {
+        TR_index = int( y.size( ) ) - 1;
+    }
+    if( TL_index < 0 )
+    {
+        TL_index = 0;
+    }
+    peakParams.back( )[0] = activation( x[TL_index], x[TR_index], x[TM_index] );
+    peakParams.back( )[1] = x[TM_index];
+    peakParams.back( )[2] = y[TM_index];
+    peakParams.back( )[3] = TL_index;
+    peakParams.back( )[4] = TM_index;
+    peakParams.back( )[5] = TR_index;
+    return TM_index;
+}
+
+// half width half max method, populate peakParams with activation data,
+// and temperatur, count of half width half max, along with its left, middle, and right index
 void pointsParams( std::vector<double>& x,
                    std::vector<double>& y,
                    std::vector<int>& maxima,
                    std::vector<int>& minima,
                    std::vector<std::vector<double>>& peakParams )
 {
-    int TM_index = 0, TR_index = 0, TL_index = 0;
-    double half_intensity = 0;
-    
-    // Find the range of the curve
+    //for every peak find full width half max TL TM TR
     for( auto i = maxima.begin( ) ; i != maxima.end( ) ; i++ )
     {
-        int minLeft = 0, minRight = int( x.size( ) );
-        // Look for left adjacent min
-        for( int k = *i ; k > 0 ; k-- )
-        {
-            //iterate through minima and try to find min to the left
-            for( auto m = minima.begin( ) ; m != minima.end( ) ; m++ )
-            {
-                if( k == *m )
-                {
-                    minLeft = k;
-                    break;
-                }
-            }
-            // breaks if a min was found
-            if ( minLeft != 0 )
-            {
-                break;
-            }
-        }
-        // Look for right adjacent min
-        for( int k = *i ; k < int( x.size( ) ) ; k++ )
-        {
-            //iterate through minima and try to find min to the right
-            for( auto m = minima.begin( ) ; m != minima.end( ) ; m++ )
-            {
-                if( k == *m )
-                {
-                    minRight = k;
-                    break;
-                }
-            }
-            if ( minRight != int( x.size( ) ) )
-            {
-                break;
-            }
-        }
-        peakParams.push_back( std::vector<double>( 6, 0.0 ) );
-        auto TL = y.begin( );
-        auto TR = y.begin( );
-        auto TM = TL + *i;
-        half_intensity = *TM / 2.0;
-        // Finds half max points
-        TL = lower_bound( TL + minLeft, TM, half_intensity, std::less<double>( ) );
-        TR = lower_bound( TM, TR + minRight, half_intensity, std::greater<double>( ) );
-        // Calculates half width half max
-        int diff1 = int( TM - TL );
-        int diff2 = int( TR - TM );
-        if( TR == y.end( ) )
-        {
-            diff2 += diff1;
-        }
-        TM_index = int( TM - y.begin( ) );
-        
-        // Centering, finds smaller out of left and right side and adjust accordingly
-        if( diff1 <= diff2 )
-        {
-            TL_index = int( TL - y.begin( ) );
-            TR_index = int( TM_index + ( TM_index - TL_index ) );
-        }
-        else
-        {
-            TR_index = int( TR - y.begin( ) );
-            TL_index = int( TM_index - ( TR_index - TM_index ) );
-        }
-        if( TR_index > int( y.size( ) ) )
-        {
-            TR_index = int( y.size( ) ) - 1;
-        }
-        if( TL_index < 0 )
-        {
-            TL_index = 0;
-        }
-        peakParams.back( )[1] = x[TM_index];
-        peakParams.back( )[3] = TL_index;
-        peakParams.back( )[4] = TM_index;
-        peakParams.back( )[5] = TR_index;
-    }
-    
-    // loop through peaks, applies activation formula
-    for( int i = 0 ; i < int( peakParams.size( ) ) ; i++ )
-    {
-        peakParams[i][0] = activation( x[peakParams[i][3]], x[peakParams[i][5]],
-                                       x[peakParams[i][4]] );
+        find_half_max(*i, x, y, maxima, minima, peakParams);
     }
 }
 
@@ -462,13 +469,14 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
     for( int i = 0 ; i < int( peakParams.size( ) ) ; i++ )
     {
         std::vector<double> peak( x.size( ), 0.0 );
-        //call FOKModel from FOKMOdel.cpp and populate peak data
+        //call FOKModel from FOKMOdel.cpp and populate peak vector
         FOKModel( x, peak, peakParams[i][1], peakParams[i][2], peakParams[i][0] );
-        //apply plus to all data in peak and store in sum
+        //add sequential peak data to sum sequentially
         transform( peak.begin(), peak.end(), sum.begin(), sum.begin(), std::plus<double>() );
-        //substract data in sum sequantially from all sequential yTemp data 
+        //substract data in sum sequantially from all sequential yTemp data
         transform( yTemp.begin(), yTemp.end(), sum.begin(), yTemp.begin(), std::minus<double>() );
     }
+    //adjust negative and out of range yTemp data to 0
     for( int j = 0 ; j < int( yTemp.size( ) ) ; j++ )
     {
         if( yTemp[j] < 0.0 || j > maxima.back( ) )
@@ -480,6 +488,8 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
     
     // add the Riemann "Bars" (Integration) over entire curve
     double curPeakArea = std::accumulate( yTemp.begin( ), yTemp.end( ), 0.0 );
+    //if the remaining area is bigger than 0.2 of the original area then continue to find peaks and
+    //fit the new curve until remaining area is smaller than 0.2*origPeakArea
     while( curPeakArea > ( 0.2 * origPeakArea ) )
     {
         std::vector<int> remainInflects;
@@ -488,6 +498,7 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
         {
             int max = 0;
             double maxVal = 0.0;
+            //find the maximum yTemp value and assign that index to max
             for( int i = 0 ; i < int( yTemp.size( ) ) ; i++ )
             {
                 if( yTemp[i] > maxVal )
@@ -504,6 +515,7 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
         {
             double min = 10;
             int minIndex = 0;
+            //for points in remainInflects find the minimum and assign index to minIndex
             for ( int i = 0 ; i < int( remainInflects.size( ) ) ; i++ )
             {
                 if( abs( secDerivative[remainInflects[i]] ) < min )
@@ -515,93 +527,18 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
             TM = y.begin( ) + minIndex;
         }
         int minIndex = int( TM - y.begin( ) );
-        int minLeft = 0, minRight = int( x.size( ) );
-        // Look for left adjacent min
-        for(int k = minIndex ; k > 0 ; k-- )
-        {
-            for( auto m = minima.begin( ) ; m != minima.end( ) ; m++ )
-            {
-                if( k == *m )
-                {
-                    minLeft = k;
-                    break;
-                }
-            }
-            if ( minLeft != 0 )
-            {
-                break;
-            }
-        }
-        // Look for right adjacent min
-        for( int k = minIndex ; k < int( x.size( ) ); k++ )
-        {
-            for( auto m = minima.begin( ) ; m != minima.end( ) ; m++ )
-            {
-                if( k == *m )
-                {
-                    minRight = k;
-                    break;
-                }
-            }
-            if ( minRight != int( x.size( ) ) )
-            {
-                break;
-            }
-        }
-        peakParams.push_back( std::vector<double>( 6, 0.0 ) );
-        auto TL = y.begin( );
-        auto TR = y.end( );
-        // Finds half max points
-        double half_intensity = *TM / 2.0;
-        TL = lower_bound( TL + minLeft, TM, half_intensity, std::less<double>( ) );
-        //TR = lower_bound( TM, TR + minRight, half_intensity, std::greater<double>( ) );
-        TR = lower_bound(TM, TR, half_intensity, std::greater<double>());
-        // Calculates half width half max
-        int diff1 = int( TM - TL );
-        int diff2 = int( TR - TM );
-        if( TR == y.end( ) )
-        {
-            diff2 += diff1;
-        }
-        int TM_index = int( TM - y.begin( ) );
-        int TL_index, TR_index;
-        // Centering, finds smaller out of left and right side and adjust accordingly
-        if( diff1 <= diff2 || *TR > *TM )
-        {
-            TL_index = int( TL - y.begin( ) );
-            TR_index = int( TM_index + ( TM_index - TL_index ) );
-        }
-        else if( *TL > *TM )
-        {
-            TR_index = int( TR - y.begin( ) );
-            TL_index = int( TM_index - ( TR_index - TM_index ) );
-        }
-        else
-        {
-            TR_index = int( TR - y.begin( ) );
-            TL_index = int( TM_index - ( TR_index - TM_index ) );
-        }
-        if( TR_index > int( y.size( ) ) )
-        {
-            TR_index = int( y.size( ) ) - 1;
-        }
-        if( TL_index < 0 )
-        {
-            TL_index = 0;
-        }
-        peakParams.back( )[1] = x[TM_index];
-        peakParams.back( )[2] = y[TM_index];
-        peakParams.back( )[3] = TL_index;
-        peakParams.back( )[4] = TM_index;
-        peakParams.back( )[5] = TR_index;
-        peakParams.back( )[0] = activation( x[TL_index], x[TR_index], x[TM_index] );
+        //call find_half_max to fit another curve with half width half max method
+        int TM_index = find_half_max(minIndex, x, y, maxima, minima, peakParams);
         
+        //use FOKModel to fit the curve
         std::vector<double> peak( x.size( ), 0.0 );
         FOKModel( x, peak, x[TM_index], y[TM_index], peakParams.back( )[0] );
+        //substract the newly fit curve area from the orignal curve area
         transform( peak.begin( ), peak.end( ), sum.begin() , sum.begin( ),
                    std::plus<double>( ) );
         transform( yTemp.begin( ), yTemp.end( ), sum.begin( ), yTemp.begin( ),
                    std::minus<double>( ) );
+        //recalculate curPeakArea to prepare for next comparison
         curPeakArea = std::accumulate( yTemp.begin( ), yTemp.end( ), 0.0 );
     }
 }
