@@ -28,6 +28,7 @@ private:
     std::vector<std::vector<double>> glow_curves, peakParams;
     const int MAX_ITER = 1000;
     double k = .000086173303;
+    double totalArea;
 public:
     First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>>, std::vector<std::vector<double>>);
     //double activation_energy(int TL_index,int TM_index,int TR_index);
@@ -57,6 +58,9 @@ public:
     }
     std::vector<double> return_curve_areas(){
         return curve_areas;
+    }
+    double area() {
+        return totalArea;
     }
 };
 
