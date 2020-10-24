@@ -5,10 +5,12 @@
 //  Created by jeremy hepker on 7/9/19.
 //  Copyright © 2019 Jeremy Hepker. All rights reserved.
 //
+//  Modified and re-organized by Jack Yu UROP 2020 Fall
+//
 
 #include "smartPeakDetect.hpp"
 
-// Sudo Main function for smartPeakDetect, take in temperature and count data then record peaks in peakParams
+// Sudo Main function for smartPeakDetect, take in temperature and count data then record peaks data in peakParams
 void findPeaks( std::vector<double>& x, std::vector<double>& y,
                 std::vector<std::vector<double>>& peakParams, std::string output_dir )
 {
@@ -25,7 +27,7 @@ void findPeaks( std::vector<double>& x, std::vector<double>& y,
     smartPoints( xNew, yNew, minimum, maximums,firstDir, secDir, inflections );
     
     //call pointsParams from this file, populate peakParams with activation, temperature,
-    //full width half max TL TM TR's index for first fitting
+    //full width half max TL TM TR's index for peak fitting
     pointsParams( xNew, yNew, maximums, minimum, peakParams );
     //substract fitted curve from the orignal and continue to fit if the remaining area is large
     nonMaxPeaks( xNew, yNew, secDir, maximums, minimum, peakParams, output_dir );
@@ -360,7 +362,7 @@ void pointsParams( std::vector<double>& x,
     }
 }
 
-// activation formula used in pointsparam
+// activation formula used in find_half_max helper function
 double activation( double TL, double TR, double TM )
 {
     double m_g = 0.0, E = 0.0, C = 0.0, K = .000086173303;
@@ -482,14 +484,16 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
     std::vector<double> sum( x.size( ), 0.0 );
     std::vector<std::vector<double>> peaks;
     // Individual Riemann "Bars" (Integration) for entire curve)
+    //for each peak identified, find the fitted curve and substract the fitted curve's count values from previous count values
     for( int i = 0 ; i < int( peakParams.size( ) ) ; i++ )
     {
         std::vector<double> peak( x.size( ), 0.0 );
-        //call FOKModel from FOKMOdel.cpp and populate peak vector
+        //call FOKModel from FOKMOdel.cpp and populate peak vector with fitted count value
         FOKModel( x, peak, peakParams[i][1], peakParams[i][2], peakParams[i][0] );
         //add sequential peak data to sum sequentially
         transform( peak.begin(), peak.end(), sum.begin(), sum.begin(), std::plus<double>() );
-        //substract data in sum sequantially from all sequential yTemp data
+        //substract data in sum sequantially from all sequential yTemp data, yTemp is now the new count after substracting
+        //a peak's fitted curve count value from previous count value 
         transform( yTemp.begin(), yTemp.end(), sum.begin(), yTemp.begin(), std::minus<double>() );
     }
     //adjust negative and out of range yTemp data to 0
@@ -504,8 +508,8 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
     
     // add the Riemann "Bars" (Integration) over entire curve
     double curPeakArea = std::accumulate( yTemp.begin( ), yTemp.end( ), 0.0 );
-    //if the remaining area is bigger than 0.2 of the original area then continue to find peaks and
-    //fit until remaining area is smaller than 0.2*origPeakArea
+    //if the remaining area is bigger than 0.2 of the original area then continue to find peaks,
+    //fit the curve, and substract the new area until remaining area is smaller than 0.2*origPeakArea
     while( curPeakArea > ( 0.2 * origPeakArea ) )
     {
         std::vector<int> remainInflects;

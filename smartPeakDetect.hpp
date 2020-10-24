@@ -5,6 +5,8 @@
 //  Created by jeremy hepker on 7/9/19.
 //  Copyright © 2019 Jeremy Hepker. All rights reserved.
 //
+//  Modified and re-organized by Jack Yu UROP 2020 Fall
+//
 
 #ifndef smartPeakDetect_hpp
 #define smartPeakDetect_hpp
