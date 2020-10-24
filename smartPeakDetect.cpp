@@ -31,18 +31,24 @@ void findPeaks( std::vector<double>& x, std::vector<double>& y,
     nonMaxPeaks( xNew, yNew, secDir, maximums, minimum, peakParams, output_dir );
     
     minimum.clear( );
+    //repopulate minimum with TL_index and TR_index for every peak since these are the new min after
+    //half width hald max method
     for( int j = 0 ; j < int( peakParams.size( ) ) ; j++ )
     {
         minimum.push_back( peakParams[j][3] );
         minimum.push_back( peakParams[j][5] );
     }
+    //call printFindings from this file and output processed data to different csv files
     printFindings( xNew, yNew, minimum, maximums, inflections, output_dir);
+    //for every identified peak calculate FOKModel data and store in the peak vector,
+    //store all peak vectors in the peaks 2d vector
     for( auto i = peakParams.begin( ) ; i != peakParams.end( ) ; i++ )
     {
         std::vector<double> peak( x.size( ), 0.0 );
         FOKModel( xNew, peak, i->at( 1 ), i->at( 2 ), i->at( 0 ) );
         peaks.push_back( peak );
     }
+    //call write function from this file and output all FOK data to output.csv
     write( peaks, yNew, xNew, output_dir);
 }
 
@@ -383,47 +389,54 @@ double activation( double TL, double TR, double TM )
     return E;
 }
 
+//print out fit data to different csv files
 void printFindings( std::vector<double>& x, std::vector<double>& y,
                     std::vector<int>& minimum, std::vector<int>& maxima,
                     std::vector<int>& inflectPnt, std::string dir )
 {
     std::ofstream myfile;
-    myfile.open(dir+"/maxima.csv");
+    myfile.open(dir + "/maxima.csv");
     if(!myfile.is_open()){
         exit(1);
     }
+    //output maximum data in the maxima.csv in format temperature, count
     for(auto i = maxima.begin(); i != maxima.end();++i){
-        myfile<<x[*i]<<","<<y[*i]<<"\n";
+        myfile << x[*i] << "," << y[*i] << "\n";
     }
     myfile.close();
-    myfile.open(dir+"/minimum.csv");
+    myfile.open(dir + "/minimum.csv");
     if(!myfile.is_open()){
         exit(1);
     }
+    //output minimum points data to minimum.csv in format temperature, count
     for(auto i = minimum.begin(); i != minimum.end();++i){
-        myfile<<x[*i]<<","<<y[*i]<<"\n";
+        myfile << x[*i] << "," << y[*i]<<"\n";
     }
     myfile.close();
-    myfile.open(dir+"/inflection.csv");
+    myfile.open(dir + "/inflection.csv");
     if(!myfile.is_open()){
         exit(1);
     }
+    //output inflection points data to inflection.csv in format temperature, count
     for(auto i = inflectPnt.begin(); i != inflectPnt.end();++i){
-        myfile<<x[*i]<<","<<y[*i]<<"\n";
+        myfile << x[*i] << "," << y[*i] << "\n";
     }
     myfile.close();
-    myfile.open(dir+"/curve.csv");
+    myfile.open(dir + "/curve.csv");
     if(!myfile.is_open()){
         exit(1);
     }
+    //output the smoothed temperature and count data to curve.csv
     for(int i = 0; i < int(x.size());++i){
-        myfile<<x[i]<<","<<y[i]<<"\n";
+        myfile << x[i] << "," << y[i] << "\n";
     }
     myfile.close();
     
 }
+
+//output all FOK data to the output.csv file
 void write( std::vector<std::vector<double>> glow_curves,
-            std::vector<double> y,std::vector<double> x,
+            std::vector<double> y, std::vector<double> x,
             std::string output_name )
 {
     std::ofstream file;
@@ -432,21 +445,24 @@ void write( std::vector<std::vector<double>> glow_curves,
     if(!file.is_open()){
         exit(1);
     }
-    file<<"temp,";
-    for(int j = 0; j<int(glow_curves.size());++j){
+    file << "temp,";
+    //write the titles for number of peaks
+    for(int j = 0; j < int(glow_curves.size()); ++j){
         std::string ster = "count_" + std::to_string(j);
         file<<","<<ster;
     }
-    file<<",\n";
+    file << ",\n";
+    //set the format flags to be fixed notation
     file.setf(std::ios_base::fixed);
     //file<<std::setprecision(5);
-    for(int i = 0; i<int(y.size());++i){
-        file << x[i]<<",";
+    //output every data's temperature and its FOK count data in each peak fit
+    for(int i = 0; i < int(y.size());++i){
+        file << x[i] << ",";
         //file << y[i];
-        for(int j = 0; j<int(glow_curves.size());++j){
-            file<<","<<double(glow_curves[j][i]);
+        for(int j = 0; j < int(glow_curves.size()); ++j){
+            file << "," << double(glow_curves[j][i]);
         }
-        file<<",\n";
+        file << ",\n";
     }
     file.close();
 }
@@ -465,7 +481,7 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
     const double origPeakArea = std::accumulate( yTemp.begin( ), yTemp.end( ), 0.0 );
     std::vector<double> sum( x.size( ), 0.0 );
     std::vector<std::vector<double>> peaks;
-    // Individual Riemann "Bars" (Integration) for entire curve
+    // Individual Riemann "Bars" (Integration) for entire curve)
     for( int i = 0 ; i < int( peakParams.size( ) ) ; i++ )
     {
         std::vector<double> peak( x.size( ), 0.0 );
@@ -489,7 +505,7 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
     // add the Riemann "Bars" (Integration) over entire curve
     double curPeakArea = std::accumulate( yTemp.begin( ), yTemp.end( ), 0.0 );
     //if the remaining area is bigger than 0.2 of the original area then continue to find peaks and
-    //fit the new curve until remaining area is smaller than 0.2*origPeakArea
+    //fit until remaining area is smaller than 0.2*origPeakArea
     while( curPeakArea > ( 0.2 * origPeakArea ) )
     {
         std::vector<int> remainInflects;
@@ -527,7 +543,7 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
             TM = y.begin( ) + minIndex;
         }
         int minIndex = int( TM - y.begin( ) );
-        //call find_half_max to fit another curve with half width half max method
+        //call find_half_max to fit half width half max data for minIndex
         int TM_index = find_half_max(minIndex, x, y, maxima, minima, peakParams);
         
         //use FOKModel to fit the curve
