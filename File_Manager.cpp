@@ -103,7 +103,7 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
         //}
         if(!two && raw_count_data.back() > 2)
             two = true;
-        //go to next line by increment i again
+        //go to next data by increment i again
         ++i;
         if(file.eof())
             break;
@@ -129,30 +129,34 @@ void File_Manager::write(std::vector<std::vector<double>> glow_curves, std::stri
     output_name += "_output.csv";
     file.open(output_name);
     if(!file.is_open()){
-        cerr<<"Could not open output file : "<<output_name<<endl;
+        cerr << "Could not open output file : "<<output_name<<endl;
         exit(1);
     }
-    file<<"temp,count_original";
-    for(int j = 0; j<int(glow_curves.size());++j){
+    //output the titles including temp, original count, and new counts for peak fitting
+    file << "temp,count_original";
+    for(int j = 0; j < int(glow_curves.size()); ++j){
         std::string ster = "count_" + std::to_string(j);
-        file<<","<<ster;
+        file << ","<<ster;
     }
-    file<<",\n";
+    file << ",\n";
     file.setf(ios_base::fixed);
-    file<<setprecision(5);
-    for(int i = 0; i<int(raw_temp_data.size());++i){
-        file << raw_temp_data[i]<<",";
+    file << setprecision(5);
+    //output every temperature, original count, and FOK count value under each peak curve fit
+    for(int i = 0; i < int(raw_temp_data.size()); ++i){
+        file << raw_temp_data[i] << ",";
         file << raw_count_data[i];
         for(int j = 0; j<int(glow_curves.size());++j){
-            file<<","<<double(glow_curves[j][i]);
+            file << "," << double(glow_curves[j][i]);
         }
-        file<<",\n";
+        file << ",\n";
     }
-    cout<<"Output File : "<<output_name<<endl;
+    //output the file name to make sure the address is correct
+    cout << "Output File : " << output_name << endl;
     file.close();
 }
 
 double File_Manager::temp_rate(std::string name){
+    //cast the name and assign the numeric portion which is temperature rate to temp
     if(isdigit(name[0])){
         int j = 0;
         while(isdigit(name[j])){
@@ -162,11 +166,13 @@ double File_Manager::temp_rate(std::string name){
         std::string temp = name.substr(0,j);
         return(stod(temp));
     }
+    //a way to compute a temperature rate if the file name doesn't contain the rate
     auto max = max_element(raw_temp_data.begin(), raw_temp_data.end());
     int pos = int(max - raw_temp_data.begin());
-    return (raw_temp_data[pos]-raw_temp_data[8])/(int(max - raw_temp_data.begin())/2);
+    return (raw_temp_data[pos] - raw_temp_data[8]) / (int(max - raw_temp_data.begin()) / 2);
 }
 
+//output an overview of all processed fittings 
 void File_Manager::statistics(std::vector<std::vector<double>> stats, std::vector<std::string> filenames, std::string dir){
     std::ofstream myfile;
     dir += "/statistics.csv";
@@ -178,9 +184,9 @@ void File_Manager::statistics(std::vector<std::vector<double>> stats, std::vecto
     myfile<<"Filename, Barcode, Figure of Merit, Total Curve Area, Heating Rate (C/s), Peak Area(s)\n";
     int count = 0; 
     for(auto i = stats.begin(); i != stats.end();++i){
-        myfile<<filenames[count++]<<",";
+        myfile << filenames[count++] << ",";
         for(auto j = i->begin(); j != i->end();++j){
-            myfile<<*j<<",";
+            myfile << *j << ",";
         }
         myfile<<"\n";
     }

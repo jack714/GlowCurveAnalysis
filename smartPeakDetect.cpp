@@ -243,7 +243,7 @@ void smartPoints( std::vector<double>& x,
     // loop through all peaks and further check height
     for( int i = 0 ; i < int( maxima.size( ) ) ; i++ )
     {
-        // if a peak is not as tall as a previous peak or is less than a certain threshold
+        // if a peak is not as tall as a previous peak or is less than a certain threshold then remove peak
         //|| y[maxima[i]] < low_threshold
         if( ( y[maxima[i]] < y[maxima[i] - near_point_height] ))
         {
@@ -513,7 +513,10 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
     while( curPeakArea > ( 0.2 * origPeakArea ) )
     {
         std::vector<int> remainInflects;
-        std::vector<double>::iterator TM = y.begin( );
+        std::vector<double>::iterator TM = y.begin();
+        /*
+         remainInflects will always be empty
+         */
         if( remainInflects.empty( ) )
         {
             int max = 0;
@@ -551,14 +554,14 @@ void nonMaxPeaks( std::vector<double>& x, std::vector<double>& y,
         int TM_index = find_half_max(minIndex, x, y, maxima, minima, peakParams);
         
         //use FOKModel to fit the curve
-        std::vector<double> peak( x.size( ), 0.0 );
-        FOKModel( x, peak, x[TM_index], y[TM_index], peakParams.back( )[0] );
+        std::vector<double> peak( x.size(), 0.0 );
+        FOKModel( x, peak, x[TM_index], y[TM_index], peakParams.back()[0] );
         //substract the newly fit curve area from the orignal curve area
-        transform( peak.begin( ), peak.end( ), sum.begin() , sum.begin( ),
-                   std::plus<double>( ) );
-        transform( yTemp.begin( ), yTemp.end( ), sum.begin( ), yTemp.begin( ),
-                   std::minus<double>( ) );
+        transform( peak.begin(), peak.end(), sum.begin() , sum.begin(),
+                   std::plus<double>());
+        transform( yTemp.begin(), yTemp.end(), sum.begin(), yTemp.begin(),
+                   std::minus<double>());
         //recalculate curPeakArea to prepare for next comparison
-        curPeakArea = std::accumulate( yTemp.begin( ), yTemp.end( ), 0.0 );
+        curPeakArea = std::accumulate( yTemp.begin(), yTemp.end(), 0.0 );
     }
 }

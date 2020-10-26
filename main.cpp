@@ -35,24 +35,23 @@ int main() {
     //string to store the input directory path
     string dir;
     //functional string that will be used in the while loop to read in path
-    string start ="n";
+    string start = "n";
     //vector to store the processed files, will be used in the statistic function call
     vector<string> filenames;
-    //vector of strings that will store all the csv files in the "dir" directory
+    //vector of strings that will store all the csv file names in the "dir" directory
     vector<string> files;
     string output_dir = "";
     
     //read in the path that contains all the input data
-    while(start =="n" || start =="N"){
+    while(start == "n" || start =="N"){
         cout<< "Please enter the full path to directory containing csv formatted emission spectra:" << endl;
         cin >> dir;
         //cast dir in the right format to be opened
         if(dir.back() == '/') 
             dir.pop_back();
-        //call the handle_dir function from FileHandler.cpp
-        //store all csv files in dir to the files vector
+        //call the handle_dir function from FileHandler.cpp, store all csv files in dir to the files vector
         files = handle_dir(dir, output_dir);
-        cout << "Is this correct and would you like to start processing (y/n)?"<<endl;
+        cout << "Is this correct and would you like to start processing (y/n)?" << endl;
         cin >> start;
     }
     //2d vector to store processed data of each input file
