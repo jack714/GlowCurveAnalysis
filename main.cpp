@@ -49,7 +49,7 @@ int main() {
         //cast dir in the right format to be opened
         if(dir.back() == '/') 
             dir.pop_back();
-        //call the handle_dir function from FileHandler cpp
+        //call the handle_dir function from FileHandler.cpp
         //store all csv files in dir to the files vector
         files = handle_dir(dir, output_dir);
         cout << "Is this correct and would you like to start processing (y/n)?"<<endl;
@@ -62,7 +62,6 @@ int main() {
     //iterate all the csv files in files and process them
     for(; i != files.end(); ++i){
         vector<vector<double>> peakParams;
-        double integral= 0;
         //erase the previous temp.csv file to read in new data
         if(i->find("temp.csv") != string::npos){
             files.erase(i);
@@ -98,31 +97,39 @@ int main() {
         
         //call findPeaks from smartPeakDetect.cpp
         findPeaks(data.first, data.second, peakParams, output_dir);
-        cout<<".";
+        cout << ".";
         cout.flush();
         stats[count].push_back(fileManager.barcode());
         
         //need cast to cstr for remove in stdio.h
         remove( (dir + "/temp.csv").c_str() );
+        cout.flush();
+        cout << endl << "Deconvoluting Glow Peak  .";
+        cout.flush();
         
-        cout.flush();
-        cout<<endl<<"Deconvoluting Glow Peak  .";
-        cout.flush();
+        //calling Levenberg-Marquardt.cpp and create a First_Order_Kinetics object
         First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peakParams);
+        //calculate FOM and the area under each curve fit
         stats[count].push_back(FOK_Model.glow_curve());
-        stats[count].push_back(integral);
+        stats[count].push_back(FOK_Model.area());
+        //push fileManager's heating rate to back of stats
         stats[count].push_back(fileManager.temp_rate(filename));
+        //copy FOK_Model's curve_area vector which contains area under curve for each peak to peak_integral
         vector<double> peak_integral = FOK_Model.return_curve_areas();
         for(auto i = peak_integral.begin(); i != peak_integral.end();++i){
             stats[count].push_back(*i);
         }
+        //copy glow_curve which is a 2d vector that for each peak identified contains FOK value
+        //for each temperature to returnedPeaks
         vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
         filenames.push_back(filename);
-        filename = output_dir +"/"+ filename;
+        filename = output_dir + "/" + filename;
         fileManager.write(returnedPeaks, filename);
-        cout<<"----------------------------"<<endl;
+        cout << "----------------------------" << endl;
         count++;
-        if(count == int(files.size()))fileManager.statistics(stats,filenames,output_dir);
+        //when all files are read, output statistic file for an overview of all fittings
+        if(count == int(files.size()))
+            fileManager.statistics(stats,filenames,output_dir);
     }
     return 0;
 }
