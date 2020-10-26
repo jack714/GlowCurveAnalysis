@@ -38,7 +38,7 @@ double First_Order_Kinetics::glow_curve(){
     for(int i = 0;i < int(peakParams.size()); ++i){
         glow_curves.push_back(vector<double>(temp_data.size(),0.0));
     }
-    //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak fit in
+    //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak in
     //peak_areas and accumulate same temperature's FOK values in all fits to sum
     for(int i = 0; i < int(temp_data.size()); ++i ){
         double output = 0.0;
@@ -63,7 +63,7 @@ double First_Order_Kinetics::glow_curve(){
     glow_curves.push_back(sum);
     //output the area under each peak
     for(int i = 0; i < int(peakParams.size()); ++i){
-        cout << "----- Area Under Curve #" << i+1 << " :"<<peak_areas[i] << " -----" << endl;
+        cout << "----- Area Under Curve #" << i+1 << " :" << peak_areas[i] << " -----" << endl;
     }
     curve_areas = peak_areas;
     totalArea = integral;

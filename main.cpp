@@ -91,7 +91,7 @@ int main() {
         
         //remove the temp.csv created in fileManager since already read them in data
         remove( (dir + "/temp.csv").c_str() );
-        cout<<"."<<endl<<"Finding Peaks  ..";
+        cout << "." << endl << "Finding Peaks  ..";
         cout.flush();
         
         //call findPeaks from smartPeakDetect.cpp
