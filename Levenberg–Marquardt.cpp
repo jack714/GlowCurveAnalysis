@@ -88,6 +88,7 @@ double First_Order_Kinetics::Func2(const double input, const vector<double> para
 //-------------------------Levenburg Marquardt METHOD----------------------------------------//
 // use Levenberg-Marquardt method to further fit the curve and calculate figure of merit for the curve fitting
 void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vector<vector<double>> &params, double &FOM){
+    //create singlePeak vector that is same size as curve
     vector<double> singlePeak(curve.size(), 0.0);
     int curveSize = int(curve.size());
     int curentCurve = int(params.size());
