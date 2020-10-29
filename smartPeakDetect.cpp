@@ -202,6 +202,7 @@ void smartPoints( std::vector<double>& x,
     }
     
     // Original Value = 10
+    // allowed temperature difference 
     int adj_peak_distance = 10;
     // Original Value = 5
     int near_point_height = 5;
@@ -219,7 +220,7 @@ void smartPoints( std::vector<double>& x,
             continue;
         }
         
-        // if left adjacent peak is not far enough from current peak
+        // if left adjacent peak is not far enough from current peak in terms of temperature
         if( abs( x[maxima[i]] - x[maxima[i - 1]] ) <= adj_peak_distance )
         {
             //if right adjacent peak is not far enough from current peak then remove peaks before and after
@@ -243,9 +244,9 @@ void smartPoints( std::vector<double>& x,
     // loop through all peaks and further check height
     for( int i = 0 ; i < int( maxima.size( ) ) ; i++ )
     {
-        // if a peak is not as tall as a previous peak or is less than a certain threshold then remove peak
+        // if a peak height is shorter than the previous near_point_height
         //|| y[maxima[i]] < low_threshold
-        if( ( y[maxima[i]] < y[maxima[i] - near_point_height] ))
+        if( (y[maxima[i]] < y[maxima[i] - near_point_height]) || y[maxima[i]] < low_threshold)
         {
             maxima.erase( maxima.begin( ) + i );
             i--;

@@ -13,7 +13,12 @@
 
 using namespace std;
 
-First_Order_Kinetics::First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>> data, std::vector<std::vector<double>> peakParams):count_data(data.second),temp_data(data.first), peakParams(peakParams){};
+First_Order_Kinetics::First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>> data, std::vector<std::vector<double>> peakParams)
+    :count_data(data.second),temp_data(data.first), peakParams(peakParams){
+       /*
+       populate vector called orig_sig_deriv, derivative from data using central difference/5 point stencil
+       */
+    };
 
 /*---------------------------------Main Deconvolution---------------------------------------*/
 //calculate FOM and the area under each curve fit
@@ -88,6 +93,7 @@ double First_Order_Kinetics::Func2(const double input, const vector<double> para
 //-------------------------Levenburg Marquardt METHOD----------------------------------------//
 // use Levenberg-Marquardt method to further fit the curve and calculate figure of merit for the curve fitting
 void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vector<vector<double>> &params, double &FOM){
+    //create singlePeak vector that is same size as curve
     vector<double> singlePeak(curve.size(), 0.0);
     int curveSize = int(curve.size());
     int curentCurve = int(params.size());
@@ -144,6 +150,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                         error[j] = curve[j] - output;
                         integral += output;
                     }
+                    //this is where the figure of merit is calculated before each step
                     FOM = 0.0;
                     for(int z = 0; z < int(curve.size()); ++z){
                         FOM += abs(curve[z] - temp_output[z])/integral;
@@ -188,6 +195,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     temp_error[j] = curve[j] - output;
                 }
                 //glow_curves.push_back(temp_output);
+                //calculate figure of merit after the step
                 double temp_FOM = 0.0;
                 for(int z = 0; z < int(curve.size()); ++z){
                     temp_FOM += abs(curve[z] - temp_output[z])/integral;
