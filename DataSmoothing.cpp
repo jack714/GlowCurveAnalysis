@@ -18,7 +18,7 @@ void dataSmooth(std::vector<double>& x, std::vector<double>& y){
             ++sec;
         }else{
             xNew.push_back(x[i]);
-            yNew.push_back(average(y.begin()+first, y.begin()+sec, (sec - first)));
+            yNew.push_back(average(y.begin() + first, y.begin() + sec, (sec - first)));
             first = i;
             sec = i+1;
         }

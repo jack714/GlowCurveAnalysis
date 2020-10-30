@@ -19,13 +19,13 @@
 #include "FileHandler.hpp"
 #include "smartPeakDetect.hpp"
 #include "DataSmoothing.hpp"
-#include "Levenberg–Marquardt.hpp"
+#include "Levenberg-Marquardt.hpp"
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
 //if unistd.h can't be included then comment out the else clause
-#else
-#include <unistd.h>
+//#else
+//#include <unistd.h>
 #define GetCurrentDir getcwd
 #endif
 

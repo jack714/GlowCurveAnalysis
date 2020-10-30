@@ -8,7 +8,7 @@
 //  Modified and re-organized by Jack Yu UROP 2020 Fall
 //
 
-#include "Levenberg–Marquardt.hpp"
+#include "Levenberg-Marquardt.hpp"
 //#include "smartPeakDetect.hpp"
 
 using namespace std;

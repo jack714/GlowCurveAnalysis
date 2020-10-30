@@ -142,7 +142,8 @@ void File_Manager::write(std::vector<std::vector<double>> glow_curves, std::stri
     file.setf(ios_base::fixed);
     file << setprecision(5);
     //output every temperature, original count, and FOK count value under each peak curve fit
-    for(int i = 0; i < int(raw_temp_data.size()); ++i){
+    //for(int i = 0; i < int(raw_temp_data.size()); ++i){
+    for (int i = 0; i < int(glow_curves[0].size()); ++i) {
         file << raw_temp_data[i] << ",";
         file << raw_count_data[i];
         for(int j = 0; j<int(glow_curves.size());++j){

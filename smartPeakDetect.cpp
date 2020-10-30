@@ -170,14 +170,34 @@ void smartPoints( std::vector<double>& x,
 {
     int size = int( derivative.size( ) );
     minimum.push_back( 0 );
+    //double std = 0;
+    double avg = 0;
+    int count = 0;
     
+    // allowed temperature difference 
+    int adj_peak_distance = 10;
+
     // Pushes all current Maxes and Mins indexes into vector
     for( int i = 1 ; i < size ; i++ )
     {
+        //store the total count values > 2 to avg
+        if (y[i] > 2) {
+            avg += y[i];
+            count++;
+        }
         //maxima is recorded as first derivative change from positive to negative
-        if( derivative[i] < 0.0 && derivative[i - 1] > 0.0 )
+        //additionally only record maxima with count > 2
+        if( derivative[i] < 0.0 && derivative[i - 1] > 0.0 && y[i] > 2)
         {
-            maxima.push_back( i );
+            //only push to maxima if the point within 10 degrees after current peak has negative derivative
+            int index = i;
+            while (x[index] < (x[i] + adj_peak_distance) && index < size - 1) {
+                if (derivative[index] > 0)
+                    break;
+                index++;
+            }
+            if(derivative[index] < 0)
+                maxima.push_back( i );
         }
         //minimum is recorded as first derivative change from negative to positive
         if( derivative[i] > 0.0 && derivative[i - 1] < 0.0 )
@@ -185,12 +205,19 @@ void smartPoints( std::vector<double>& x,
             minimum.push_back( i );
         }
     }
+    //compute the average count data for all count > 2
+    avg /= count;
+    //cout << "avg = " << avg << endl;
+
     minimum.push_back( int( x.size( ) ) - 1 );
-    
     size = int( secDerivative.size( ) );
     // Pushes inflection points into vector, where second derivative changes sign
     for( int i = 1 ; i < size ; i++ )
-    {
+    {   
+        //first step to compute standard deviation
+        //if (y[i] > 2) {
+        //    std += (y[i] - avg) * (y[i] - avg);
+        //}
         if( secDerivative[i] < 0.0 && secDerivative[i - 1] > 0.0 )
         {
             inflectPnt.push_back( i );
@@ -200,26 +227,40 @@ void smartPoints( std::vector<double>& x,
             inflectPnt.push_back( i );
         }
     }
-    
-    // Original Value = 10
-    // allowed temperature difference 
-    int adj_peak_distance = 10;
-    // Original Value = 5
-    int near_point_height = 5;
-    // Original Value = 10
-    //int low_threshold = 10;
+    //calculate the standard deviation
+    //std /= count;
+    //std = sqrt(std);
+    //cout << "std = " << std << endl;
+    //std::cout << "avg - 3 std = " << avg - 3 * std << std::endl;
     
     // loop through maximas and refine peaks
     for( int i = 1 ; i < int( maxima.size( ) ) - 1 ; i++ )
     {
-        // if peak is not as tall as adjacent peaks then remove that peak
-        if( y[maxima[i]] < y[maxima[i + 1]] && y[maxima[i]] < y[maxima[i - 1]] )
+        // if peak is not as tall as adjacent peaks and any distance between the peaks is less than adj_peak_distance then remove that peak
+        if( y[maxima[i]] < y[maxima[i + 1]] && y[maxima[i]] < y[maxima[i - 1]] 
+            && (abs(x[maxima[i]] - x[maxima[i - 1]]) < adj_peak_distance
+            || abs(x[maxima[i]] - x[maxima[i + 1]]) < adj_peak_distance))
         {
             maxima.erase( maxima.begin( ) + i );
             i--;
             continue;
         }
         
+        //if two peaks are close and the height difference is less than 10%
+        if (abs(x[maxima[i - 1]] - x[maxima[i]]) <= adj_peak_distance
+            && abs(y[maxima[i - 1]] - y[maxima[i]]) <= 0.1 * std::max(y[maxima[i - 1]], y[maxima[i]])) {
+            if (y[maxima[i - 1]] < y[maxima[i]]) {
+                maxima.erase(maxima.begin() + i - 1);
+                i--;
+                continue;
+            }
+            else {
+                maxima.erase(maxima.begin() + i);
+                i--;
+                continue;
+            }
+        }
+
         // if left adjacent peak is not far enough from current peak in terms of temperature
         if( abs( x[maxima[i]] - x[maxima[i - 1]] ) <= adj_peak_distance )
         {
@@ -244,9 +285,8 @@ void smartPoints( std::vector<double>& x,
     // loop through all peaks and further check height
     for( int i = 0 ; i < int( maxima.size( ) ) ; i++ )
     {
-        // if a peak height is shorter than the previous near_point_height
-        //|| y[maxima[i]] < low_threshold
-        if( (y[maxima[i]] < y[maxima[i] - near_point_height]) || y[maxima[i]] < low_threshold)
+        // if a peak height is less than 3 standard deviation away from the average height
+        if(y[maxima[i]] < (avg * 0.3))
         {
             maxima.erase( maxima.begin( ) + i );
             i--;
