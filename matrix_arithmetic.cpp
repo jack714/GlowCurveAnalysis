@@ -201,3 +201,55 @@ vector<vector<double>> First_Order_Kinetics::Identity(int num, double lambda){
     }
     return I;
 }
+
+// Calculate First Derivatives with temperature and data input
+void First_Order_Kinetics::deriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative)
+{
+    derivative.resize(x.size());
+    int size = int(x.size()) - 2;
+    // Five Point Stencil Method
+    for (int i = 2; i < size; i++)
+    {
+        derivative[i - 2] = (-y[i + 2] + 8.0 * y[i + 1] - 8.0 * y[i - 1] + y[i - 2]) / 12.0;
+    }
+    size = int(derivative.size()) - 1;
+    int sign = 4, lastSign = 0;
+    bool positive = true;
+    for (int i = 0; i < size; i++)
+    {
+        if (derivative[i] < 0.0 && positive && sign >= 4)
+        {
+            positive = false;
+            lastSign = sign;
+            sign = 1;
+        }
+        else if (derivative[i] < 0.0 && positive && sign < 4)
+        {
+            for (int j = 1; j <= sign; j++)
+            {
+                derivative[i - j] = -(derivative[i - j]);
+                positive = false;
+            }
+            sign = lastSign + sign;
+        }
+        else if (derivative[i] > 0.0 && !positive && sign < 4)
+        {
+            for (int j = 1; j <= sign; j++)
+            {
+                derivative[i - j] = abs(derivative[i - j]);
+                positive = true;
+            }
+            sign = lastSign + sign;
+        }
+        else if (derivative[i] > 0.0 && !positive && sign >= 4)
+        {
+            positive = true;
+            lastSign = sign;
+            sign = 1;
+        }
+        else
+        {
+            sign++;
+        }
+    }
+}

@@ -1,0 +1,9 @@
+﻿  matrix_arithmetic.cpp
+C:\Users\wenji\Desktop\GlowCurveAnalysis\matrix_arithmetic.cpp(166,29): warning C4244: 'argument': conversion from 'double' to 'const unsigned int', possible loss of data
+C:\Users\wenji\Desktop\GlowCurveAnalysis\matrix_arithmetic.cpp(166,32): warning C4244: 'argument': conversion from 'double' to 'const unsigned int', possible loss of data
+C:\Users\wenji\Desktop\GlowCurveAnalysis\matrix_arithmetic.cpp(168,33): warning C4244: 'argument': conversion from 'double' to 'const unsigned int', possible loss of data
+C:\Users\wenji\Desktop\GlowCurveAnalysis\matrix_arithmetic.cpp(168,36): warning C4244: 'argument': conversion from 'double' to 'const unsigned int', possible loss of data
+C:\Users\wenji\Desktop\GlowCurveAnalysis\matrix_arithmetic.cpp(168,41): warning C4244: 'argument': conversion from 'double' to 'const unsigned int', possible loss of data
+C:\Users\wenji\Desktop\GlowCurveAnalysis\matrix_arithmetic.cpp(168,44): warning C4244: 'argument': conversion from 'double' to 'const unsigned int', possible loss of data
+C:\Users\wenji\Desktop\GlowCurveAnalysis\matrix_arithmetic.cpp(177,33): warning C4244: 'argument': conversion from 'double' to 'const unsigned int', possible loss of data
+  GCA_new.vcxproj -> C:\Users\wenji\Desktop\GlowCurveAnalysis\Debug\GCA_new.exe

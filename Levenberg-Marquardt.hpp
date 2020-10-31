@@ -5,6 +5,7 @@
 //  Created by jeremy hepker on 1/27/19.
 //  Copyright © 2019 Jeremy Hepker. All rights reserved.
 //
+//  Modified and re-organized by Jack Yu UROP 2020 Fall
 
 #ifndef First_Order_kinetics_hpp
 #define First_Order_kinetics_hpp
@@ -24,7 +25,7 @@
 
 class First_Order_Kinetics{
 private:
-    std::vector<double> count_data, curve, curve_areas, temp_data;
+    std::vector<double> count_data, curve, curve_areas, temp_data, orig_sig_deriv;
     std::vector<std::vector<double>> glow_curves, peakParams;
     const int MAX_ITER = 1000;
     double k = .000086173303;
@@ -62,6 +63,8 @@ public:
     double area() {
         return totalArea;
     }
+    //calculate first derivative
+    void deriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative);
 };
 
 #endif

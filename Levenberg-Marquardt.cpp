@@ -15,9 +15,8 @@ using namespace std;
 
 First_Order_Kinetics::First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>> data, std::vector<std::vector<double>> peakParams)
     :count_data(data.second),temp_data(data.first), peakParams(peakParams){
-       /*
-       populate vector called orig_sig_deriv, derivative from data using central difference/5 point stencil
-       */
+    //populate vector called orig_sig_deriv, derivative from data using central difference/5 point stencil
+    deriv(temp_data, count_data, orig_sig_deriv);
     };
 
 /*---------------------------------Main Deconvolution---------------------------------------*/
