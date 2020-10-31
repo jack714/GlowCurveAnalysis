@@ -73,14 +73,14 @@ int main() {
         //ask user to input single set of peaks data for all files
         if(repeat == "all") {
             vector<vector<double>> peakParam;
-            double temp, count;
+            double temp, count, energy;
             char delim;
             cout << "Please type in data in the format: tmeperature,count,activation energy separated by space." << endl;
             int index = 0;
             //push back temperature, count data to peakParam
-            while(cin >> temp >> delim >> count) {
+            while(cin >> temp >> delim >> count >> delim >> energy) {
                 //push in place holder for activation energy
-                peakParam[index].push_back(0.0);
+                peakParam[index].push_back(energy);
                 peakParam[index].push_back(temp);
                 peakParam[index].push_back(count);
             }

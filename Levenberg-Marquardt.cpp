@@ -131,6 +131,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
             //double e = 0.0;
             int i = 0;
             int inner_hold = 0;
+            //the FOM gets better or it stops at 300 iteration
             while(FOM > .02 && i < 300){
                 if(updateJ == 1){
                     //Evaluate the jacobian matrix at the current paramater.

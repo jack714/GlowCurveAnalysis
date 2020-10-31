@@ -25,7 +25,7 @@
 
 class First_Order_Kinetics{
 private:
-    std::vector<double> count_data, curve, curve_areas, temp_data, orig_sig_deriv;
+    std::vector<double> count_data, curve, curve_areas, temp_data, orig_sig_deriv, decon_sig_deriv;
     std::vector<std::vector<double>> glow_curves, peakParams;
     const int MAX_ITER = 1000;
     double k = .000086173303;
@@ -65,6 +65,11 @@ public:
     }
     //calculate first derivative
     void deriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative);
+
+    //populate decon_sig_deriv for the sum of the deconvolute curve
+
+    //use orig_sig_deriv and decon_sig_deriv
+    //(osd[i] - dsd[i]) / (sum of osd) * 100 ----> FOM in %
 };
 
 #endif
