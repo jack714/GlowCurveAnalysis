@@ -69,24 +69,58 @@ int main() {
         string repeat;
         cout << "Do you want the same input for all files or different input for each file (all/each)?" << endl;
         cin >> repeat;
-        //ask user to input peaks data for all files
+        //ask user to input single set of peaks data for all files
         if(repeat == "all") {
             vector<vector<double>> peakParam;
             double temp, count;
             char delim;
-            cout << "Please type in data in the format: tmeperature,count separated by space." << endl;
+            cout << "Please type in data in the format: tmeperature,count,activation energy separated by space." << endl;
             int index = 0;
+            //push back temperature, count data to peakParam
             while(cin >> temp >> delim >> count) {
+                //push in place holder for activation energy
+                peakParam[index].push_back(0.0);
                 peakParam[index].push_back(temp);
                 peakParam[index].push_back(count);
             }
             auto i = files.begin();
             for(; i != files.end(); ++i){
+                //make a coopy of peakParam and then customize the copy accoding to the data read in
+                vector<vector<double>> peakParams = peakParam;
+                //erase the previous temp.csv file to read in new data
+                if (i->find("temp.csv") != string::npos) {
+                    files.erase(i);
+                    continue;
+                }
                 cout << "----------------------------" << endl << "Processing: ";
                 string filename = i->substr((i->find_last_of("/\\"))+1);
                 cout << filename << " (" << count+1 << " of " << files.size() << ")" << endl << "Reading in File  .";
                 cout.flush();
-                //process data
+
+                //FILE_MANAGER created
+                //create a fileManager object that takes in the i/csv path
+                File_Manager fileManager = *new File_Manager(*i);
+                cout << ".";
+                cout.flush();
+                //create a pair of two vector data which has first to be temperature data and second to be count data
+                pair<vector<double>, vector<double>> data = fileManager.read();
+
+                //DATA_SMOOTHING call
+                //use dataSmooth from dataSmoothing.cpp to process raw data
+                for (int i = 0; i < 5; ++i)
+                    dataSmooth(data.first, data.second);
+                //calculate the curve area by adding the count data
+                const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
+                //if the curve area is less 2000 then it's not enough for further analysis
+                if (curveArea < 2000) {
+                    files.erase(i);
+                    continue;
+                }
+                //remove the temp.csv created in fileManager since already read them in data
+                remove((dir + "/temp.csv").c_str());
+
+                //populate peakParams with full width half max indexes
+
             }
         }
         //ask user to input peaks data for each file
