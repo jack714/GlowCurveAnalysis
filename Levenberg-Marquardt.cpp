@@ -13,10 +13,14 @@
 
 using namespace std;
 
-First_Order_Kinetics::First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>> data, std::vector<std::vector<double>> peakParams)
+First_Order_Kinetics::First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>> data, std::vector<std::vector<double>> peakParams, 
+    bool check, vector<double> fistDir)
     :count_data(data.second),temp_data(data.first), peakParams(peakParams){
-    //populate vector called orig_sig_deriv, derivative from data using central difference/5 point stencil
-    deriv(temp_data, count_data, orig_sig_deriv);
+    //if user input peak data then populate vector called orig_sig_deriv, derivative from data using central difference/5 point stencil
+    if (check)
+        deriv(temp_data, count_data, orig_sig_deriv);
+    else
+        orig_sig_deriv = fistDir;
     };
 
 /*---------------------------------Main Deconvolution---------------------------------------*/
@@ -228,4 +232,10 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
         cout<<".";
         cout.flush();
     }
+}
+
+//populate decon_sig_deriv for the sum of the deconvolute curve
+void First_Order_Kinetics::update_dir() {
+    vector<double> dir = glow_curves.back();
+    deriv(temp_data, dir, decon_sig_deriv);
 }

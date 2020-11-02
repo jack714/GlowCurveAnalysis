@@ -11,7 +11,7 @@
 #include "smartPeakDetect.hpp"
 
 // Sudo Main function for smartPeakDetect, take in temperature and count data then record peaks data in peakParams
-void findPeaks( std::vector<double>& x, std::vector<double>& y,
+vector<double> findPeaks( std::vector<double>& x, std::vector<double>& y,
                 std::vector<std::vector<double>>& peakParams, std::string output_dir )
 {
     std::vector<double> xNew = x, yNew= y;
@@ -52,6 +52,7 @@ void findPeaks( std::vector<double>& x, std::vector<double>& y,
     }
     //call write function from this file and output all FOK data to output.csv
     write( peaks, yNew, xNew, output_dir);
+    return firstDir;
 }
 
 // Calculate First Derivatives with temperature and data input

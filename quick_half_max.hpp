@@ -20,9 +20,6 @@
 using namespace std;
 
 //find the half_max points for every peak and populate peakParams accordingly
-void find_index(vector<double>& temp, vector<double>& count, vector<vector<double>>& peakParams);
-
-// activation formula used in find_half_max helper function
-double energy(double TL, double TR, double TM);
+void find_index(vector<double>& temp, vector<vector<double>>& peakParams);
 
 #endif /* quick_half_max_hpp */

@@ -83,9 +83,12 @@ int main() {
                 peakParam[index].push_back(energy);
                 peakParam[index].push_back(temp);
                 peakParam[index].push_back(count);
+                index++;
             }
             auto i = files.begin();
             for(; i != files.end(); ++i){
+                bool check = true;
+                vector<double> firstDir;
                 //make a coopy of peakParam and then customize the copy accoding to the data read in
                 vector<vector<double>> peakParams = peakParam;
                 //erase the previous temp.csv file to read in new data
@@ -121,13 +124,13 @@ int main() {
                 remove((dir + "/temp.csv").c_str());
 
                 //populate peakParams with full width half max indexes
-                find_index(data.first, data.second, peakParams);
+                find_index(data.first, peakParams);
 
                 //LEVENBERG-MARQUART call
                 cout << endl << "Deconvoluting Glow Peak  .";
                 cout.flush();
                 //calling Levenberg-Marquardt.cpp and create a First_Order_Kinetics object
-                First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peakParams);
+                First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peakParams, check, firstDir);
                 //calculate FOM and the area under each curve fit
                 stats[count].push_back(FOK_Model.glow_curve());
                 stats[count].push_back(FOK_Model.area());
@@ -158,16 +161,20 @@ int main() {
         else {
             auto i = files.begin();
             for(; i != files.end(); ++i){
+                bool check = true;
+                vector<double> firstDir;
                 vector<vector<double>> peakParam;
-                double temp, count;
+                double temp, count, energy;
                 char delim;
                 string filename = i->substr((i->find_last_of("/\\")) + 1);
                 cout << "for file: " << filename << endl;
-                cout << "Please type in data in the format: tmeperature,count separated by space." << endl;
+                cout << "Please type in data in the format: tmeperature,count,activation energy separated by space." << endl;
                 int index = 0;
-                while(cin >> temp >> delim >> count) {
+                while(cin >> temp >> delim >> count >> delim >> energy) {
+                    peakParam[index].push_back(energy);
                     peakParam[index].push_back(temp);
                     peakParam[index].push_back(count);
+                    index++;
                 }
                 cout << "----------------------------" << endl << "Processing: ";
                 cout << filename << " (" << count+1 << " of " << files.size() << ")" << endl << "Reading in File  .";
@@ -196,13 +203,13 @@ int main() {
                 remove((dir + "/temp.csv").c_str());
 
                 //populate peakParams with full width half max indexes
-                find_index(data.first, data.second, peakParam);
+                find_index(data.first, peakParam);
 
                 //LEVENBERG-MARQUART call
                 cout << endl << "Deconvoluting Glow Peak  .";
                 cout.flush();
                 //calling Levenberg-Marquardt.cpp and create a First_Order_Kinetics object
-                First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peakParam);
+                First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peakParam, check, firstDir);
                 //calculate FOM and the area under each curve fit
                 stats[count].push_back(FOK_Model.glow_curve());
                 stats[count].push_back(FOK_Model.area());
@@ -235,6 +242,8 @@ int main() {
         //iterate all the csv files in files and process them
         auto i = files.begin();
         for(; i != files.end(); ++i){
+            bool check = false;
+            vector<double> firstDir;
             vector<vector<double>> peakParams;
             //erase the previous temp.csv file to read in new data
             if(i->find("temp.csv") != string::npos){
@@ -272,7 +281,7 @@ int main() {
             cout << "." << endl << "Finding Peaks  ..";
             cout.flush();
             //call findPeaks from smartPeakDetect.cpp
-            findPeaks(data.first, data.second, peakParams, output_dir);
+            firstDir = findPeaks(data.first, data.second, peakParams, output_dir);
             cout << ".";
             cout.flush();
             stats[count].push_back(fileManager.barcode());
@@ -284,7 +293,7 @@ int main() {
             cout << endl << "Deconvoluting Glow Peak  .";
             cout.flush();
             //calling Levenberg-Marquardt.cpp and create a First_Order_Kinetics object
-            First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peakParams);
+            First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peakParams, check, firstDir);
             //calculate FOM and the area under each curve fit
             stats[count].push_back(FOK_Model.glow_curve());
             stats[count].push_back(FOK_Model.area());
