@@ -19,7 +19,7 @@ double First_Order_Kinetics::Deriv2(const double input, const vector<double> par
     vector<double> params1 = params;
     vector<double> params2 = params;
     double d = 0;
-    // Use central difference  to get derivative
+    // Use central difference to get derivative
     params1[n] -= DERIV_STEP;
     params2[n] += DERIV_STEP;
     double p1 = Func2(input, params1);

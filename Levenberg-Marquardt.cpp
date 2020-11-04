@@ -108,10 +108,11 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
         if(main_hold > 3){
             break;
         }
+        //param_num is used to indicate which value (energy, temp, count) will be modifed in the L-M process
         for(int param_num = 0; param_num < 3 ; ++param_num){
             vector<double> temp_params;
             vector<double> temp_output(curve.size(), 0.0);
-            //push everything in params to temp_params
+            //push ith value in params to temp_params
             for(int i = 0; i < int(params.size());++i){
                 temp_params.push_back(params[i][param_num]);
             }
@@ -127,7 +128,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 other_param1 = 0;
                 other_param2 = 1;
             }
-            //2d vector to store each point's fitted count under each peak curve
+            //2d vector to store each point's derivative under each peak curve
             vector<vector<double>> Jf_T(curentCurve, vector<double>(curveSize,0.0));
             vector<double> error(curveSize,0.0);
             vector<vector<double>> H;
@@ -142,13 +143,14 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     //Evaluate the jacobian matrix at the current paramater.
                     vector<double>t_parms(3, 0.0);
                     double integral = 0.0;
-                    for(int j=0; j < curveSize; j++) {
+                    for(int j = 0; j < curveSize; j++) {
                         double output = 0.0;
                         for(int k = 0; k < curentCurve; ++k){
                             t_parms[param_num] = temp_params[k];
                             t_parms[other_param1] = params[k][other_param1];
                             t_parms[other_param2] = params[k][other_param2];
                             Jf_T[k][j] = Deriv2(temp_data[j],t_parms, param_num);
+                            //output accumulates the single point's fitted counts
                             output += Func2(temp_data[j],t_parms);
                         }
                         temp_output[j] = output;
@@ -161,17 +163,17 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     for(int z = 0; z < int(curve.size()); ++z){
                         FOM += abs(curve[z] - temp_output[z])/integral;
                     }
-                    //Calculate the hessian mat
+                    //Calculate the hessian matrix
                     vector<vector<double>> Jf(Jf_T[0].size(), vector<double>(Jf_T.size(),0.0));
                     //Jf is transpose of Jf_T
                     transpose(Jf_T, Jf, int(Jf_T.size()), int(Jf_T[0].size()));
-                    //multiplication of jacobian matrix and its transpose
+                    //multiplication of the jacobian matrix and its transpose
                     H = multiply(Jf_T,Jf);
                     //e = dotProduct(error, error);
                 }
 
                 //apply the damping factor to the hessian matrix
-                //I is a diagonal matrix with diagonal equals lambda
+                //I is a diagonal matrix with diagonal equals lambda which is the damping vector
                 vector<vector<double>> I = Identity(curentCurve, lambda);
                 vector<vector<double>> H_lm(curentCurve, vector<double>(curentCurve,0.0));
                 for(int j = 0; j < int(H.size()); ++j){
@@ -181,9 +183,10 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 }
                 invert(H_lm, true);
                 //multiply jacobian matrix with error matrix
-                vector<double> Jf_error = vec_matrix_multi(Jf_T,error);
-                vector<double> delta = vec_matrix_multi(H_lm,Jf_error);
+                vector<double> Jf_error = vec_matrix_multi(Jf_T, error);
+                vector<double> delta = vec_matrix_multi(H_lm, Jf_error);
                 vector<double> t_params = temp_params;
+                //update the change to the original data
                 for(int x = 0; x < int(delta.size()); ++x){
                     t_params[x] += delta[x];
                 }
@@ -191,8 +194,8 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 //Evaluate the total distance error at the updated paramaters.
                 vector<double> temp_error(curveSize,0.0);
                 vector<double> t_param(3,0.0);
-                //for every point under every peak, with the new activation energy recalculate count data
-                for(int j=0; j < curveSize; j++){
+                //for every point under every peak, with the new parameter recalculate count data
+                for(int j = 0; j < curveSize; j++){
                     double output = 0.0;
                     for(int k = 0; k < curentCurve;++k){
                         t_param[param_num] = t_params[k];
@@ -205,25 +208,25 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     integral += output;
                     temp_error[j] = curve[j] - output;
                 }
-                //glow_curves.push_back(temp_output);
                 //calculate figure of merit after the step
                 double temp_FOM = 0.0;
                 for(int z = 0; z < int(curve.size()); ++z){
                     temp_FOM += abs(curve[z] - temp_output[z])/integral;
                 }
-                //double temp_e = dotProduct(temp_error, temp_error);
+                //if new fom is smaller then proceed to calculate a new jacobian with a smaller damping parameter
                 if(temp_FOM < FOM){
                     lambda /= 10;
                     temp_params = t_params;
-                    //e = temp_e;
                     updateJ = 1;
                     inner_hold = 0;
+                //if new fom is not better, then continue with the current jacobian matrix and use a larger damping parameter
                 }else{
                     inner_hold += 1;
                     updateJ = 0;
                     lambda *= 10;
                 }
-                if(inner_hold > 25) i = 500;
+                if(inner_hold > 25) 
+                    i = 500;
                 ++i;
             }
             for(int i = 0; i < int(temp_params.size());++i){
