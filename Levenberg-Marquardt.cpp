@@ -127,6 +127,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 other_param1 = 0;
                 other_param2 = 1;
             }
+            //2d vector to store each point's fitted count under each peak curve
             vector<vector<double>> Jf_T(curentCurve, vector<double>(curveSize,0.0));
             vector<double> error(curveSize,0.0);
             vector<vector<double>> H;
@@ -151,6 +152,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                             output += Func2(temp_data[j],t_parms);
                         }
                         temp_output[j] = output;
+                        //error stores the difference in orginal count and the accumulated fitted count
                         error[j] = curve[j] - output;
                         integral += output;
                     }
@@ -161,12 +163,15 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     }
                     //Calculate the hessian mat
                     vector<vector<double>> Jf(Jf_T[0].size(), vector<double>(Jf_T.size(),0.0));
+                    //Jf is transpose of Jf_T
                     transpose(Jf_T, Jf, int(Jf_T.size()), int(Jf_T[0].size()));
+                    //multiplication of jacobian matrix and its transpose
                     H = multiply(Jf_T,Jf);
                     //e = dotProduct(error, error);
                 }
 
                 //apply the damping factor to the hessian matrix
+                //I is a diagonal matrix with diagonal equals lambda
                 vector<vector<double>> I = Identity(curentCurve, lambda);
                 vector<vector<double>> H_lm(curentCurve, vector<double>(curentCurve,0.0));
                 for(int j = 0; j < int(H.size()); ++j){
@@ -175,6 +180,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     }
                 }
                 invert(H_lm, true);
+                //multiply jacobian matrix with error matrix
                 vector<double> Jf_error = vec_matrix_multi(Jf_T,error);
                 vector<double> delta = vec_matrix_multi(H_lm,Jf_error);
                 vector<double> t_params = temp_params;
@@ -185,6 +191,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 //Evaluate the total distance error at the updated paramaters.
                 vector<double> temp_error(curveSize,0.0);
                 vector<double> t_param(3,0.0);
+                //for every point under every peak, with the new activation energy recalculate count data
                 for(int j=0; j < curveSize; j++){
                     double output = 0.0;
                     for(int k = 0; k < curentCurve;++k){
@@ -238,4 +245,18 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
 void First_Order_Kinetics::update_dir() {
     vector<double> dir = glow_curves.back();
     deriv(temp_data, dir, decon_sig_deriv);
+}
+
+//calculate figure of merit from derivative of original count and derivative of accumulated count after curve fitting
+void First_Order_Kinetics::deriv_FOM() {
+    double total = 0.0;
+    double fom = 0.0;
+    //calculate total derivative of original count derative
+    for (double i : orig_sig_deriv) {
+        total += i;
+    }
+    for (int i = 0; i < static_cast<int>(orig_sig_deriv.size()); i++) {
+        fom += (orig_sig_deriv[i] - decon_sig_deriv[i]) / total;
+    }
+    fom *= 100;
 }

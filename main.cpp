@@ -76,14 +76,14 @@ int main() {
             double temp, count, energy;
             char delim;
             cout << "Please type in data in the format: tmeperature,count,activation energy separated by space." << endl;
-            int index = 0;
             //push back temperature, count data to peakParam
-            while(cin >> temp >> delim >> count >> delim >> energy) {
+            while(cin >> temp >> delim >> count >> delim >> energy >> delim) {
                 //push in place holder for activation energy
-                peakParam[index].push_back(energy);
-                peakParam[index].push_back(temp);
-                peakParam[index].push_back(count);
-                index++;
+                vector<double> param;
+                param.push_back(energy);
+                param.push_back(temp);
+                param.push_back(count);
+                peakParam.push_back(param);
             }
             auto i = files.begin();
             for(; i != files.end(); ++i){
@@ -158,9 +158,9 @@ int main() {
             }
         }
         //ask user to input peaks data for each file
-        else {
+        else if (repeat == "each") {
             auto i = files.begin();
-            for(; i != files.end(); ++i){
+            for (; i != files.end(); ++i) {
                 bool check = true;
                 vector<double> firstDir;
                 vector<vector<double>> peakParam;
@@ -169,17 +169,17 @@ int main() {
                 string filename = i->substr((i->find_last_of("/\\")) + 1);
                 cout << "for file: " << filename << endl;
                 cout << "Please type in data in the format: tmeperature,count,activation energy separated by space." << endl;
-                int index = 0;
-                while(cin >> temp >> delim >> count >> delim >> energy) {
-                    peakParam[index].push_back(energy);
-                    peakParam[index].push_back(temp);
-                    peakParam[index].push_back(count);
-                    index++;
+                while (cin >> temp >> delim >> count >> delim >> energy >> delim) {
+                    vector<double> param;
+                    param.push_back(energy);
+                    param.push_back(temp);
+                    param.push_back(count);
+                    peakParam.push_back(param);
                 }
                 cout << "----------------------------" << endl << "Processing: ";
-                cout << filename << " (" << count+1 << " of " << files.size() << ")" << endl << "Reading in File  .";
+                cout << filename << " (" << count + 1 << " of " << files.size() << ")" << endl << "Reading in File  .";
                 cout.flush();
-                
+
                 //FILE_MANAGER created
                 //create a fileManager object that takes in the i/csv path
                 File_Manager fileManager = *new File_Manager(*i);
@@ -235,6 +235,9 @@ int main() {
                 if (count == int(files.size()))
                     fileManager.statistics(stats, filenames, output_dir);
             }
+        }
+        else {
+            cout << "Invalid command!" << endl;
         }
     }
     //if user does not choose to input data manually the program will find peaks
