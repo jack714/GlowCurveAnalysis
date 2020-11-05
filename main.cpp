@@ -19,7 +19,7 @@
 #include "FileHandler.hpp"
 #include "smartPeakDetect.hpp"
 #include "DataSmoothing.hpp"
-#include "Levenberg-Marquardt.hpp"
+#include "Levenberg_Marquardt.hpp"
 #include "quick_half_max.hpp"
 #include "data_input.hpp"
 #ifdef WINDOWS

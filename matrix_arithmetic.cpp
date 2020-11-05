@@ -6,7 +6,7 @@
 //  Copyright © 2019 Jeremy Hepker. All rights reserved.
 //
 
-#include "Levenberg-Marquardt.hpp"
+#include "Levenberg_Marquardt.hpp"
 
 using namespace std;
 //---------------------Levenburg Marquardt Method Helper Functions----------------------//
