@@ -34,7 +34,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    //enable quick mode to run output with machine generated peak detections
+    //enable quick mode to run output with machine generated peak detections, q for quickmode, n for normal
     bool output_mode = (*(argv[1]) == 'q') ? true : false;
     cout << *(argv[1]);
     //string to store the input directory path
