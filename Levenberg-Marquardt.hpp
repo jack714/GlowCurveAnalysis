@@ -31,7 +31,7 @@ private:
     double k = .000086173303;
     double totalArea;
 public:
-    First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>>, std::vector<std::vector<double>>, bool, std::vector<double>);
+    First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>>, std::vector<std::vector<double>>);
     //double activation_energy(int TL_index,int TM_index,int TR_index);
     double glow_curve();
     std::vector<double> initial_guess(std::vector<double> &curve,int i);
@@ -67,7 +67,7 @@ public:
     void deriv(std::vector<double>& x, std::vector<double>& y, std::vector<double>& derivative);
 
     //populate decon_sig_deriv for the sum of the deconvolute curve
-    void update_dir();
+    void update_deriv();
 
     //use orig_sig_deriv and decon_sig_deriv
     //(osd[i] - dsd[i]) / (sum of osd) * 100 ----> FOM in %
