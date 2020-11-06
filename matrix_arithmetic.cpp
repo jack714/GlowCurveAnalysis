@@ -2,8 +2,9 @@
 //  matrix_arithmetic.cpp
 //  GlowCurveAnalsys
 //
-//  Created by jeremy hepker on 3/31/19.
-//  Copyright © 2019 Jeremy Hepker. All rights reserved.
+//  Initially created by jeremy hepker on 3/31/19.
+//
+//  Modified and re-organized by Jack Yu UROP 2020 Fall
 //
 
 #include "Levenberg_Marquardt.hpp"

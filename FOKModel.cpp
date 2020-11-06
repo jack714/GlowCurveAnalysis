@@ -3,7 +3,6 @@
 //  GlowCurveAnalsys
 //
 //  Created by jeremy hepker on 7/15/19.
-//  Copyright © 2019 Jeremy Hepker. All rights reserved.
 //
 
 #include "FOKModel.hpp"

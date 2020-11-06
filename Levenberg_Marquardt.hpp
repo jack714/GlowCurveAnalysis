@@ -2,8 +2,7 @@
 //  First_Order_kinetics.hpp
 //  GlowCurveAnalsys
 //
-//  Created by jeremy hepker on 1/27/19.
-//  Copyright © 2019 Jeremy Hepker. All rights reserved.
+//  Initially created by jeremy hepker on 1/27/19.
 //
 //  Modified and re-organized by Jack Yu UROP 2020 Fall
 
@@ -12,15 +11,9 @@
 
 #include <string>
 #include <vector>
-#include <chrono>
-#include <fstream>
-#include <iterator>
-#include <algorithm>
-#include <numeric>
-#include <cmath>
 #include <iostream>
 #include <stdlib.h>
-#include <iomanip>
+#include <cmath>
 #include <stdio.h>
 
 class First_Order_Kinetics{

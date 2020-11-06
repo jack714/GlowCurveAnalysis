@@ -1,11 +1,12 @@
-//GlowCurveAnalysis
-//Writen by Jack Yu UROP 2020 Fall
+//	fileHandler.hpp
+//	GlowCurveAnalysis
+//
+//	Created by Jack Yu UROP 2020 Fall
 
 #ifndef newHandler_hpp
 #define newHandler_hpp
 #include <iostream>
 #include <string>
-#include <fstream>
 #include <vector>
 //filesystem is available in C++17, please specify this c++ version
 //if a compiler like visual studio is used. If using makefile then no changes needed

@@ -1,4 +1,5 @@
 //
+//	quick_half_max.hpp
 //  GlowCurveAnalsys
 //
 //  Created by Jack Yu UROP 2020 Fall
@@ -8,12 +9,7 @@
 #define quick_half_max_hpp
 
 #include <stdio.h>
-#include <string>
-#include <cmath>
 #include <vector>
-#include <locale>
-#include <numeric>
-#include <fstream>
 #include <algorithm>
 #include "FOKModel.hpp"
 

@@ -1,5 +1,7 @@
-//GlowCurveAnalysis
-//Writen by Jack Yu UROP 2020 Fall
+//	fileHandler.cpp
+//	GlowCurveAnalysis
+//
+//	Created by Jack Yu UROP 2020 Fall
 
 #include "FileHandler.hpp"
 

@@ -2,24 +2,19 @@
 //  File_Manager.hpp
 //  GlowCurveAnalsys
 //
-//  Created by jeremy hepker on 1/27/19.
-//  Copyright © 2019 Jeremy Hepker. All rights reserved.
+//  Initially created by jeremy hepker on 1/27/19.
+//
+//  Modified and re-organized by Jack Yu UROP 2020 Fall
 //
 
 #ifndef File_Manager_hpp
 #define File_Manager_hpp
 
 #include <string>
-#include <getopt.h>
 #include <cmath>
 #include <vector>
 #include <fstream>
-#include <algorithm>
-#include <numeric>
 #include <stdio.h>
-#include <iostream>
-#include <locale>
-#include <cstdlib>
 #include <iomanip>
 #include "DataSmoothing.hpp"
 

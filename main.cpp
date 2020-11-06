@@ -11,9 +11,7 @@
 #include <iostream>
 #include <getopt.h>
 #include <string>
-#include <locale>
 #include <fstream>
-#include <iomanip>
 #include <stdio.h>
 #include "File_Manager.hpp"
 #include "FileHandler.hpp"
@@ -35,8 +33,9 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
     //enable quick mode to run output with machine generated peak detections
-    bool output_mode = (*(argv[1]) == 'q') ? true : false;
-    cout << *(argv[1]);
+    bool output_mode = false;
+    if (argc > 1)
+        output_mode = (*(argv[1]) == 'q') ? true : false;
     //string to store the input directory path
     string dir;
     //functional string that will be used in the while loop to read in path
@@ -84,6 +83,10 @@ int main(int argc, char* argv[]) {
                 cout << "Please type in data in the format: tmeperature,count,activation energy, press enter for each peak." << endl;
                 cout << "Type done when you are finished." << endl;
                 peakParams = input_data();
+                if (peakParams.empty()) {
+                    m = Mode::NONE;
+                    cout << "Empty input, switching to automatic peak identification." << endl;
+                }
             }
             else if (repeat == "each") {
                 m = Mode::EACH;
@@ -95,6 +98,10 @@ int main(int argc, char* argv[]) {
                     cout << "Enter data for: " << filename << endl;
                     vector<vector<double>> param = input_data();
                     all_peakParam.push_back(param);
+                    if (all_peakParam.empty()) {
+                        m = Mode::NONE;
+                        cout << "Empty input, switching to automatic peak identification." << endl;
+                    }
                 }
             }
             else {

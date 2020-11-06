@@ -2,8 +2,7 @@
 //  File_Manager.cpp
 //  GlowCurveAnalsys
 //
-//  Created by jeremy hepker on 1/27/19.
-//  Copyright © 2019 Jeremy Hepker. All rights reserved.
+//  Initially created by jeremy hepker on 1/27/19.
 //
 //  Modified and re-organized by Jack Yu UROP 2020 Fall
 //

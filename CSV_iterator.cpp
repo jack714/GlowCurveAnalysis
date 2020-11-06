@@ -2,16 +2,13 @@
 //  CSV_iterator.cpp
 //  GlowCurveAnalsys
 //
-//  Created by jeremy hepker on 1/13/19.
-//  Copyright © 2019 Jeremy Hepker. All rights reserved.
+//  Initially created by jeremy hepker on 1/13/19.
 //
 //  Modified and re-organized by Jack Yu UROP 2020 Fall
 //
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <vector>
-#include <fstream>
 #include <algorithm>
 #include <sstream>
 using namespace std;

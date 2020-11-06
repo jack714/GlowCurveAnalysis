@@ -1,4 +1,5 @@
 //
+//  quick_half_max.cpp
 //  GlowCurveAnalsys
 //
 //  Created by Jack Yu UROP 2020 Fall

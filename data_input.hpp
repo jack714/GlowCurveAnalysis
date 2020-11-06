@@ -1,4 +1,5 @@
 //
+//	data_input.hpp
 //  GlowCurveAnalsys
 //
 //  Created by Jack Yu UROP 2020 Fall
@@ -8,10 +9,7 @@
 #define data_input_hpp
 
 #include <iostream>
-#include <getopt.h>
 #include <string>
-#include <locale>
-#include <fstream>
 #include <vector>
 
 using namespace std;

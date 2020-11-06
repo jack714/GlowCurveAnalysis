@@ -1,4 +1,5 @@
 //
+//  data_input.cpp
 //  GlowCurveAnalsys
 //
 //  Created by Jack Yu UROP 2020 Fall
@@ -18,8 +19,12 @@ vector<vector<double>> input_data() {
         getline(cin, input);
         if (input == "done")
             break;
-        //push in place holder for activation energy
+        //cast the string and store corresponding values
         auto index = input.find(',');
+        if (index == std::string::npos) {
+            cout << "Invalid input!" << endl;
+            continue;
+        }
         energy_input = stod(input.substr(0, index));
         auto index2 = input.find(',', index + 1);
         temp_input = stod(input.substr(index + 1, index2 - index - 1));
