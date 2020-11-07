@@ -224,6 +224,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     i = 500;
                 ++i;
             }
+            //update params to contain new fitted data in temp_params
             for(int i = 0; i < int(temp_params.size());++i){
                 params[i][param_num]= temp_params[i];
             }
