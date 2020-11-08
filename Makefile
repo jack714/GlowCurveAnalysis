@@ -11,8 +11,8 @@ TARGET = GCA
 
 all: $(TARGET)
 
-$(TARGET): src/smartPeakDetect.cpp src/FileHandler.cpp src/matrix_arithmetic.cpp src/Levenberg_Marquardt.cpp src/DataSmoothing.cpp src/CSV_iterator.cpp src/main.cpp src/FOKModel.cpp src/File_Manager.cpp src/quick_half_max.cpp src/data_input.cpp
-	$(CC) $(CFLAGS) -o $(TARGET) src/smartPeakDetect.cpp src/matrix_arithmetic.cpp src/Levenberg_Marquardt.cpp src/DataSmoothing.cpp src/FileHandler.cpp src/CSV_iterator.cpp src/main.cpp src/FOKModel.cpp src/File_Manager.cpp src/quick_half_max.cpp src/data_input.cpp
+$(TARGET): data_input.cpp smartPeakDetect.cpp FileHandler.cpp matrix_arithmetic.cpp Levenberg_Marquardt.cpp DataSmoothing.cpp CSV_iterator.cpp main.cpp FOKModel.cpp File_Manager.cpp quick_half_max.cpp background_subtraction.cpp
+	$(CC) $(CFLAGS) -o $(TARGET) data_input.cpp smartPeakDetect.cpp matrix_arithmetic.cpp Levenberg_Marquardt.cpp DataSmoothing.cpp FileHandler.cpp CSV_iterator.cpp main.cpp FOKModel.cpp File_Manager.cpp quick_half_max.cpp background_subtraction.cpp
 
 clean:
 	$(RM) $(TARGET)

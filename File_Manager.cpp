@@ -9,6 +9,7 @@
 
 #include "File_Manager.hpp"
 #include "CSV_iterator.cpp"
+#include "background_subtraction.hpp"
 
 File_Manager::File_Manager(std::string given_filename):filename(given_filename){};
 
@@ -85,7 +86,7 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     /*
      I feel this can be improved by getting rid of two
      */
-    bool two = false;
+    //bool two = false;
     while(file){
         //skip the first count-2 sets of data separtaed by ',' so the next data read in is temperature
         for(int j = 0; j < (count - 2); ++j)
@@ -100,17 +101,25 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
         //    raw_temp_data.pop_back();
         //    raw_count_data.pop_back();
         //}
-        if(!two && raw_count_data.back() > 2)
-            two = true;
+        //if(!two && raw_count_data.back() > 2)
+        //    two = true;
         //go to next data by increment i again
         ++i;
         if(file.eof())
             break;
         //get rid of the data with count smaller or equal to 2
-        if(!two){
-            raw_temp_data.pop_back();
-            raw_count_data.pop_back();
-        }
+        //if(!two){
+        //    raw_temp_data.pop_back();
+        //    raw_count_data.pop_back();
+        //}
+    }
+    // BACKGROUND_SUBTRACTION
+    bg_subtract(raw_temp_data, raw_count_data);
+    //get rid of count < 2 data
+    int index = 0;
+    while (raw_count_data[index] < 2) {
+        raw_count_data.erase(raw_count_data.begin() + index);
+        raw_temp_data.erase(raw_temp_data.begin() + index);
     }
     file.close();
     //if the size of the two vector is even then remove the last data to make the size odd

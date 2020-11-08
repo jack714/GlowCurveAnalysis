@@ -259,3 +259,19 @@ void First_Order_Kinetics::deriv_FOM() {
     }
     fom *= 100;
 }
+
+//  Gradient Descent
+double check() {
+    double E = 1;
+    double Tm = 275.15;
+    double Im = 1;
+    double T = 100; 
+    double deriv_Im, deriv_Tm, deriv_E;
+    deriv_Im = exp(1.0 + (E / (k * T)) * ((T - Tm) / Tm) - ((T * T) / (Tm * Tm)) * exp((E / (k * T)) * ((T - Tm) / Tm)) * (1.0 - ((2.0 * k * T) / E)) - (2.0 * k * (Tm)) / E);
+    deriv_Tm = Im * ((2.0 * T * T * (1 - (2.0 * k * T) / E) * exp((E(T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm) - (T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T)) * (-(E * (T - Tm)) / (Tm * Tm * k * T) - E / (Tm * k * T))) / (Tm * Tm) - (E * (T - Tm)) / (Tm * Tm * k * T) - E / (Tm * k * T) - (2.0 * k) / E) * exp(-(T * T(1 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / E + 1.0);
+    deriv_E = Im * (-(2.0 * k * T * T * T * exp((E * (T - Tm)) / (Tm * k * T))) / (E * E * Tm * Tm) + (2.0 * Tm * k) / (E * E) - (T * (T - Tm) * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm * k) + (T - Tm) / (Tm * k * T)) * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / E + 1.0);
+    cout << deriv_Im << endl;
+    cout << deriv_Tm << endl;
+    cout << deriv_E << endl;
+    return 1.0;
+}

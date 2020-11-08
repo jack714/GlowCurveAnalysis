@@ -57,8 +57,12 @@ int main(int argc, char* argv[]) {
         //HANDLE FILES
         //call the handle_dir function from FileHandler.cpp, store all csv files in dir to the files vector
         files = handle_dir(dir, output_dir);
-        cout << "Is this correct and would you like to start processing (y/n)?" << endl;
-        cin >> start;
+        if (!output_mode) {
+            cout << "Is this correct and would you like to start processing (y/n)?" << endl;
+            cin >> start;
+        }
+        else
+            start = "y";
     }
     //2d vector to store processed data of each input file
     vector<vector<double>> stats(files.size(), vector<double>(0,0.0));
