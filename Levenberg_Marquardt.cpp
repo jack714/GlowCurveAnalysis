@@ -210,6 +210,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 }
                 //if new fom is smaller then proceed to calculate a new jacobian with a smaller damping parameter
                 if(temp_FOM < FOM){
+                    FOM = temp_FOM;
                     lambda /= 10;
                     temp_params = t_params;
                     updateJ = 1;
@@ -274,4 +275,78 @@ double check() {
     cout << deriv_Tm << endl;
     cout << deriv_E << endl;
     return 1.0;
+}
+
+void gradient_Descent(const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM) {
+    //temperary vector to store peak data
+    vector<vector<double>> temp_params = peakParams;
+    //temperary vector to store accumulated fitted count
+    vector<double> temp_output(curve.size(), 0.0);
+    int curveSize = int(curve.size());
+    int peakNum = int(peakParams.size());
+    double rate = 1.0;
+    double current_FOM = FOM;
+    int iteration = 0;
+    int main_hold = 0;
+    while (FOM > 0.02 && iteration < 300 && main_hold < 3) {
+        //calculate initial FOM
+        double integral = 0.0;
+        //for each point calculated the accumulated fitted count using FOK model
+        for (int i = 0; i < curveSize; i++) {
+            double fit = 0.0;
+            for (int j = 0; j < peakNum; j++) {
+                fit += Func2(temp_data[i], peakParams[j]);
+            }
+            integral += fit;
+            temp_output[i] = fit;
+        }
+        FOM = 0.0;
+        for (int k = 0; k < curveSize; ++k) {
+            FOM += abs(curve[k] - temp_output[k]) / integral;
+        }
+        //use gradient descent to calculate change in peak parameter
+        vector<vector<double>> update(peakNum, vector<double>(3, 0.0));
+        for (int a = 0; a < curveSize; a++) {
+            for (int b = 0; b < peakNum; b++) {
+                double deriv_E, deriv_Tm, deriv_Im;
+                update[b][0] += rate * deriv_E;
+                update[b][1] += rate * deriv_Tm;
+                update[b][2] += rate * deriv_Im;
+            }
+        }
+        //apply the change to original peak paramter
+        for (int c = 0; c < peakNum; c++) {
+            temp_params[c][0] += update[c][0];
+            temp_params[c][1] += update[c][1];
+            temp_params[c][2] += update[c][2];
+        }
+        //re-calculate the new FOM
+        double new_integral = 0.0;
+        vector<double> new_output(curve.size(), 0.0);
+        for (int d = 0; d < curveSize; d++) {
+            double new_fit = 0.0;
+            for (int e = 0; e < peakNum; e++) {
+                new_fit += Func2(temp_data[d], temp_params[e]);
+            }
+            new_integral += new_fit;
+            new_output[d] = new_fit;
+        }
+        current_FOM = 0.0;
+        for (int f = 0; f < curveSize; ++f) {
+            current_FOM += abs(curve[f] - new_output[f]) / new_integral;
+        }
+        if (current_FOM < FOM) {
+            //if no significant improvement then only iterate 3 times
+            if (abs(current_FOM - FOM) < (1e-4)) {
+                main_hold += 1;
+            }
+            FOM = current_FOM;
+            iteration++;
+            cout << ".";
+            cout.flush();
+        }
+        else {
+            break;
+        }
+    }
 }

@@ -10,7 +10,7 @@
 #include "smartPeakDetect.hpp"
 
 // Sudo Main function for smartPeakDetect, take in temperature and count data then record peaks data in peakParams
-vector<double> findPeaks( std::vector<double>& x, std::vector<double>& y,
+std::vector<double> findPeaks( std::vector<double>& x, std::vector<double>& y,
                 std::vector<std::vector<double>>& peakParams, std::string output_dir )
 {
     std::vector<double> xNew = x, yNew= y;

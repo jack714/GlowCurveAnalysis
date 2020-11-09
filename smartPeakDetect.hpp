@@ -15,9 +15,9 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 #include "FOKModel.hpp"
 #include "DataSmoothing.hpp"
-using namespace std;
 
 void smartPoints(std::vector<double>& x, std::vector<double>& y, std::vector<int>& minimum,std::vector<int>& maxima,std::vector<double> derivative,std::vector<double> secDerivative,std::vector<int>& inflectPnt);
 
