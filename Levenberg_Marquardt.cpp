@@ -8,7 +8,6 @@
 //
 
 #include "Levenberg_Marquardt.hpp"
-//#include "smartPeakDetect.hpp"
 
 using namespace std;
 
@@ -27,7 +26,8 @@ double First_Order_Kinetics::glow_curve(){
     cout << ".";
     cout.flush();
     //call LevenbergMarquardt from this file
-    LevenbergMarquardt(count_data, peakParams, FOM);
+    //LevenbergMarquardt(count_data, peakParams, FOM);
+    gradient_Descent(count_data, peakParams, FOM);
     cout<<".";
     cout.flush();
     if(FOM > 1.0){
@@ -79,12 +79,12 @@ double First_Order_Kinetics::glow_curve(){
 double First_Order_Kinetics::Func2(const double input, const vector<double> params){
     double T=0.0;
     double I_t = 0.0;
-    double E = params[0];
+    double energy = params[0];
     double Tm = params[1]+273.15;
-    double dm = (2.0*k*(Tm))/E;
+    double dm = (2.0*k*(Tm))/ energy;
     double Im = params[2];
     T = double(input+273.15);
-    I_t = Im*exp(1.0 +(E/(k*T))*((T-Tm)/Tm)-((T*T)/(Tm*Tm))*exp((E/(k*T))*((T-Tm)/Tm))*(1.0-((2.0*k*T)/E))-dm);
+    I_t = Im*exp(1.0 +(energy/(k*T))*((T-Tm)/Tm)-((T*T)/(Tm*Tm))*exp((energy/(k*T))*((T-Tm)/Tm))*(1.0-((2.0*k*T)/energy))-dm);
     return I_t;
 }
 
@@ -261,92 +261,120 @@ void First_Order_Kinetics::deriv_FOM() {
     fom *= 100;
 }
 
-//  Gradient Descent
-double check() {
-    double E = 1;
-    double Tm = 275.15;
-    double Im = 1;
-    double T = 100; 
-    double deriv_Im, deriv_Tm, deriv_E;
-    deriv_Im = exp(1.0 + (E / (k * T)) * ((T - Tm) / Tm) - ((T * T) / (Tm * Tm)) * exp((E / (k * T)) * ((T - Tm) / Tm)) * (1.0 - ((2.0 * k * T) / E)) - (2.0 * k * (Tm)) / E);
-    deriv_Tm = Im * ((2.0 * T * T * (1 - (2.0 * k * T) / E) * exp((E(T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm) - (T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T)) * (-(E * (T - Tm)) / (Tm * Tm * k * T) - E / (Tm * k * T))) / (Tm * Tm) - (E * (T - Tm)) / (Tm * Tm * k * T) - E / (Tm * k * T) - (2.0 * k) / E) * exp(-(T * T(1 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / E + 1.0);
-    deriv_E = Im * (-(2.0 * k * T * T * T * exp((E * (T - Tm)) / (Tm * k * T))) / (E * E * Tm * Tm) + (2.0 * Tm * k) / (E * E) - (T * (T - Tm) * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm * k) + (T - Tm) / (Tm * k * T)) * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / E + 1.0);
-    cout << deriv_Im << endl;
-    cout << deriv_Tm << endl;
-    cout << deriv_E << endl;
-    return 1.0;
-}
-
-void gradient_Descent(const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM) {
+void First_Order_Kinetics::gradient_Descent(const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM) {
     //temperary vector to store peak data
     vector<vector<double>> temp_params = peakParams;
     //temperary vector to store accumulated fitted count
     vector<double> temp_output(curve.size(), 0.0);
     int curveSize = int(curve.size());
     int peakNum = int(peakParams.size());
-    double rate = 1.0;
+    double rate1 = 0.02;
+    double rate2 = 0.001;
+    double rate3 = 0.02;
     double current_FOM = FOM;
     int iteration = 0;
     int main_hold = 0;
-    while (FOM > 0.02 && iteration < 300 && main_hold < 3) {
+    while (iteration < 300 && main_hold < 3) {
         //calculate initial FOM
         double integral = 0.0;
         //for each point calculated the accumulated fitted count using FOK model
-        for (int i = 0; i < curveSize; i++) {
-            double fit = 0.0;
-            for (int j = 0; j < peakNum; j++) {
-                fit += Func2(temp_data[i], peakParams[j]);
-            }
-            integral += fit;
-            temp_output[i] = fit;
-        }
-        FOM = 0.0;
-        for (int k = 0; k < curveSize; ++k) {
-            FOM += abs(curve[k] - temp_output[k]) / integral;
-        }
+        //for (int i = 0; i < curveSize; i++) {
+        //    double fit = 0.0;
+        //    for (int j = 0; j < peakNum; j++) {
+        //        fit += Func2(temp_data[i], temp_params[j]);
+        //    }
+        //    integral += fit;
+        //    temp_output[i] = fit;
+        //}
+        //FOM = 0.0;
+        //for (int k = 0; k < curveSize; ++k) {
+        //    FOM += abs(curve[k] - temp_output[k]) / integral;
+        //}
         //use gradient descent to calculate change in peak parameter
+        //vector<vector<double>> temp_params2 = temp_params;
         vector<vector<double>> update(peakNum, vector<double>(3, 0.0));
         for (int a = 0; a < curveSize; a++) {
             for (int b = 0; b < peakNum; b++) {
-                double deriv_E, deriv_Tm, deriv_Im;
-                update[b][0] += rate * deriv_E;
-                update[b][1] += rate * deriv_Tm;
-                update[b][2] += rate * deriv_Im;
+                double y = curve[a];
+                double T = temp_data[a];
+                double E = temp_params[b][0];
+                double Tm = temp_params[b][1];
+                double Im = temp_params[b][2];
+                double deriv_E = -2.0 * Im * (-(2.0 * k * T * T * T * exp((E * (T - Tm)) / (Tm * k * T))) / (E * E * Tm * Tm) + (2.0 * Tm * k) /
+                    (E * E) - (T * (T - Tm) * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm * k) + (T - Tm) /
+                    (Tm * k * T)) * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) /
+                    (Tm * k * T) - (2.0 * Tm * k) / E + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) /
+                        (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / E + 1.0));
+                double deriv_Tm = -2.0 * Im * ((2.0 * T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm) - (T * T * (1.0 - (2.0 * k * T) / E)
+                    * exp((E * (T - Tm)) / (Tm * k * T)) * (-(E * (T - Tm)) / (Tm * Tm * k * T) - E / (Tm * k * T))) / (Tm * Tm) - (E * (T - Tm)) / (Tm * Tm * k * T) -
+                    E / (Tm * k * T) - (2.0 * k) / E) * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) -
+                    (2.0 * Tm * k) / E + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) -
+                        (2.0 * Tm * k) / E + 1.0));
+                double deriv_Im = -2.0 * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) /
+                    (Tm * k * T) - (2.0 * Tm * k) / E + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) /
+                    (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / E + 1.0));
+                update[b][0] += rate1 * deriv_E;
+                update[b][1] += rate2 * deriv_Tm;
+                update[b][2] += rate3 * deriv_Im;
             }
         }
-        //apply the change to original peak paramter
+        for(int i = 0; i < peakNum; i++) {
+            if (update[i][0] < 0.001 || update[i][1] < 0.001 || update[i][2] < 0.001)
+                break;
+        }
+        //apply the change to the peak paramter
         for (int c = 0; c < peakNum; c++) {
-            temp_params[c][0] += update[c][0];
-            temp_params[c][1] += update[c][1];
-            temp_params[c][2] += update[c][2];
+            temp_params[c][0] -= update[c][0];
+            temp_params[c][1] -= update[c][1];
+            temp_params[c][2] -= update[c][2];
         }
         //re-calculate the new FOM
-        double new_integral = 0.0;
-        vector<double> new_output(curve.size(), 0.0);
-        for (int d = 0; d < curveSize; d++) {
-            double new_fit = 0.0;
-            for (int e = 0; e < peakNum; e++) {
-                new_fit += Func2(temp_data[d], temp_params[e]);
-            }
-            new_integral += new_fit;
-            new_output[d] = new_fit;
-        }
-        current_FOM = 0.0;
-        for (int f = 0; f < curveSize; ++f) {
-            current_FOM += abs(curve[f] - new_output[f]) / new_integral;
-        }
-        if (current_FOM < FOM) {
-            //if no significant improvement then only iterate 3 times
-            if (abs(current_FOM - FOM) < (1e-4)) {
-                main_hold += 1;
-            }
-            FOM = current_FOM;
-            iteration++;
-            cout << ".";
-            cout.flush();
-        }
-        else {
-            break;
-        }
+        //double new_integral = 0.0;
+        //vector<double> new_output(curve.size(), 0.0);
+        //for (int d = 0; d < curveSize; d++) {
+        //    double new_fit = 0.0;
+        //    for (int e = 0; e < peakNum; e++) {
+        //        new_fit += Func2(temp_data[d], temp_params2[e]);
+        //    }
+        //    new_integral += new_fit;
+        //    new_output[d] = new_fit;
+        //}
+        //current_FOM = 0.0;
+        //for (int f = 0; f < curveSize; ++f) {
+        //    current_FOM += abs(curve[f] - new_output[f]) / new_integral;
+        //}
+        //if (current_FOM < FOM) {
+        //    //if no significant improvement then only iterate 3 times
+        //    if (abs(current_FOM - FOM) < (1e-4)) {
+        //        main_hold += 1;
+        //    }
+        //    FOM = current_FOM;
+        //    temp_params = temp_params2;
+        //    iteration++;
+        //    cout << ".";
+        //    cout.flush();
+        //}
+        //else {
+        //    iteration++;
+        //    cout << ".";
+        //    cout.flush();
+        //}
+        iteration++;
     }
+    double new_integral = 0.0;
+    vector<double> new_output(curve.size(), 0.0);
+    for (int d = 0; d < curveSize; d++) {
+        double new_fit = 0.0;
+        for (int e = 0; e < peakNum; e++) {
+            new_fit += Func2(temp_data[d], temp_params[e]);
+        }
+        new_integral += new_fit;
+        new_output[d] = new_fit;
+    }
+    current_FOM = 0.0;
+    for (int f = 0; f < curveSize; ++f) {
+        current_FOM += abs(curve[f] - new_output[f]) / new_integral;
+    }
+    FOM = current_FOM;
+    peakParams = temp_params;
 }

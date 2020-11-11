@@ -65,6 +65,9 @@ public:
     //use orig_sig_deriv and decon_sig_deriv
     //(osd[i] - dsd[i]) / (sum of osd) * 100 ----> FOM in %
     void deriv_FOM();
+
+    //Gradient Descent method
+    void gradient_Descent(const std::vector<double>& curve, std::vector<std::vector<double>>& peakParams, double& FOM);
 };
 
 #endif
