@@ -18,14 +18,28 @@ void find_index(vector<double>& temp, vector<vector<double>>& param) {
 	for (int i = 0; i < static_cast<int>(param.size()); i++) {
 		//find the index of the peak
         double TM = param[i][1];
-		auto loc = find(temp.begin(), temp.end(), TM);
-		int max_index = int(loc - temp.begin());
+        int max = 0;
+        while (temp[max] - TM < 0.1 && max < static_cast<int>(temp.size())) {
+            max++;
+        }
+        int max_index = max;
+		//auto loc = find(temp.begin(), temp.end(), TM);
+        TM += 273.15;
+		//int max_index = int(loc - temp.begin());
         double energy = param[i][0];
         double dist = (c * k * TM * TM) / (energy + 2 * b * k * TM);
-        double TL_index = max_index - dist;
-        double TR_index = max_index + dist;
-        param[i].push_back(TL_index);
-        param[i].push_back(max_index);
-        param[i].push_back(TR_index);
+        TM -= 273.15;
+        double left_temp = TM - dist;
+        int index = max_index;
+        while (temp[index] - left_temp > 0.1 && index > 0) {
+            index--;
+        }
+        int left_index = index;
+        int right_index = abs(left_index - max_index) + max_index;
+        if (right_index > static_cast<int>(temp.size()))
+            right_index = static_cast<int>(temp.size()) - 1;
+        param[i][3] = left_index;
+        param[i][4] = max_index;
+        param[i][5] = right_index;
 	}
 }

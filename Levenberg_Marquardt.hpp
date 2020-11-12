@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <cmath>
 #include <stdio.h>
+#include "quick_half_max.hpp"
 
 class First_Order_Kinetics{
 private:

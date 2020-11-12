@@ -28,6 +28,7 @@ double First_Order_Kinetics::glow_curve(){
     //call LevenbergMarquardt from this file
     //LevenbergMarquardt(count_data, peakParams, FOM);
     gradient_Descent(count_data, peakParams, FOM);
+    //LevenbergMarquardt(count_data, peakParams, FOM);
     cout<<".";
     cout.flush();
     if(FOM > 1.0){
@@ -268,15 +269,15 @@ void First_Order_Kinetics::gradient_Descent(const vector<double>& curve, vector<
     vector<double> temp_output(curve.size(), 0.0);
     int curveSize = int(curve.size());
     int peakNum = int(peakParams.size());
-    double rate1 = 0.02;
-    double rate2 = 0.001;
-    double rate3 = 0.02;
+    double rate1 = 0.00000001;
+    double rate2 = 0.00002;
+    double rate3 = 0.001;
     double current_FOM = FOM;
     int iteration = 0;
     int main_hold = 0;
     while (iteration < 300 && main_hold < 3) {
         //calculate initial FOM
-        double integral = 0.0;
+        //double integral = 0.0;
         //for each point calculated the accumulated fitted count using FOK model
         //for (int i = 0; i < curveSize; i++) {
         //    double fit = 0.0;
@@ -293,26 +294,30 @@ void First_Order_Kinetics::gradient_Descent(const vector<double>& curve, vector<
         //use gradient descent to calculate change in peak parameter
         //vector<vector<double>> temp_params2 = temp_params;
         vector<vector<double>> update(peakNum, vector<double>(3, 0.0));
-        for (int a = 0; a < curveSize; a++) {
-            for (int b = 0; b < peakNum; b++) {
-                double y = curve[a];
-                double T = temp_data[a];
-                double E = temp_params[b][0];
-                double Tm = temp_params[b][1];
-                double Im = temp_params[b][2];
-                double deriv_E = -2.0 * Im * (-(2.0 * k * T * T * T * exp((E * (T - Tm)) / (Tm * k * T))) / (E * E * Tm * Tm) + (2.0 * Tm * k) /
-                    (E * E) - (T * (T - Tm) * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm * k) + (T - Tm) /
-                    (Tm * k * T)) * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) /
-                    (Tm * k * T) - (2.0 * Tm * k) / E + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) /
-                        (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / E + 1.0));
-                double deriv_Tm = -2.0 * Im * ((2.0 * T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm) - (T * T * (1.0 - (2.0 * k * T) / E)
-                    * exp((E * (T - Tm)) / (Tm * k * T)) * (-(E * (T - Tm)) / (Tm * Tm * k * T) - E / (Tm * k * T))) / (Tm * Tm) - (E * (T - Tm)) / (Tm * Tm * k * T) -
-                    E / (Tm * k * T) - (2.0 * k) / E) * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) -
-                    (2.0 * Tm * k) / E + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) -
-                        (2.0 * Tm * k) / E + 1.0));
-                double deriv_Im = -2.0 * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (E * (T - Tm)) /
-                    (Tm * k * T) - (2.0 * Tm * k) / E + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / E) * exp((E * (T - Tm)) / (Tm * k * T))) /
-                    (Tm * Tm) + (E * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / E + 1.0));
+        //use FWHM to find the left and right half max points
+        find_index(temp_data, temp_params);
+        for (int b = 0; b < peakNum; b++) {
+            int TL = temp_params[b][3];
+            int TR = temp_params[b][5];
+            double energy = temp_params[b][0];
+            double Tm = temp_params[b][1];
+            double Im = temp_params[b][2];
+            for (int index = TL; index < TR + 1; index++) {
+                double y = curve[index];
+                double T = temp_data[index];
+                double deriv_E = -2.0 * Im * (-(2.0 * k * T * T * T * exp((energy * (T - Tm)) / (Tm * k * T))) / (energy * energy * Tm * Tm) + (2.0 * Tm * k) /
+                    (energy * energy) - (T * (T - Tm) * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm * k) + (T - Tm) /
+                    (Tm * k * T)) * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (energy * (T - Tm)) /
+                    (Tm * k * T) - (2.0 * Tm * k) / energy + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) /
+                        (Tm * Tm) + (energy * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / energy + 1.0));
+                double deriv_Tm = -2.0 * Im * ((2.0 * T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm) - (T * T * (1.0 - (2.0 * k * T) / energy)
+                    * exp((energy * (T - Tm)) / (Tm * k * T)) * (-(energy * (T - Tm)) / (Tm * Tm * k * T) - energy / (Tm * k * T))) / (Tm * Tm) - (energy * (T - Tm)) / (Tm * Tm * k * T) -
+                    energy / (Tm * k * T) - (2.0 * k) / energy) * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (energy * (T - Tm)) / (Tm * k * T) -
+                    (2.0 * Tm * k) / energy + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (energy * (T - Tm)) / (Tm * k * T) -
+                        (2.0 * Tm * k) / energy + 1.0));
+                double deriv_Im = -2.0 * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (energy * (T - Tm)) /
+                    (Tm * k * T) - (2.0 * Tm * k) / energy + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) /
+                    (Tm * Tm) + (energy * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / energy + 1.0));
                 update[b][0] += rate1 * deriv_E;
                 update[b][1] += rate2 * deriv_Tm;
                 update[b][2] += rate3 * deriv_Im;
@@ -327,6 +332,10 @@ void First_Order_Kinetics::gradient_Descent(const vector<double>& curve, vector<
             temp_params[c][0] -= update[c][0];
             temp_params[c][1] -= update[c][1];
             temp_params[c][2] -= update[c][2];
+        }
+        for (int j = 0; j < peakNum; j++) {
+            cout << update[j][0] << ", " << update[j][1] << ", " << update[j][2] << endl;
+            cout << temp_params[j][0] << ", " << temp_params[j][1] << ", " << temp_params[j][2] << endl;
         }
         //re-calculate the new FOM
         //double new_integral = 0.0;
@@ -359,6 +368,8 @@ void First_Order_Kinetics::gradient_Descent(const vector<double>& curve, vector<
         //    cout << ".";
         //    cout.flush();
         //}
+        cout << ".";
+        cout.flush();
         iteration++;
     }
     double new_integral = 0.0;
