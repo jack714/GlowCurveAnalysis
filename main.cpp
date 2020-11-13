@@ -3,8 +3,6 @@
 //  GlowCurveAnalsys
 //
 //  Initially created by jeremy hepker on 1/9/19.
-//  Copyright © 2019 Jeremy Hepker. All rights reserved.
-//
 //  Modified and re-organized by Jack Yu UROP 2020 Fall
 //
 
@@ -20,6 +18,7 @@
 #include "Levenberg_Marquardt.hpp"
 #include "quick_half_max.hpp"
 #include "data_input.hpp"
+#include "background_subtraction.hpp"
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
@@ -34,7 +33,7 @@ using namespace std;
 int main(int argc, char* argv[]) {
     //enable quick mode to run output with machine generated peak detections
     bool output_mode = false;
-    if (argc > 1)
+    if(argc > 1)
         output_mode = (*(argv[1]) == 'q') ? true : false;
     //string to store the input directory path
     string dir;
@@ -87,10 +86,10 @@ int main(int argc, char* argv[]) {
                 cout << "Please type in data in the format: tmeperature,count,activation energy, press enter for each peak." << endl;
                 cout << "Type done when you are finished." << endl;
                 peakParams = input_data();
-                if (peakParams.empty()) {
-                    m = Mode::NONE;
-                    cout << "Empty input, switching to automatic peak identification." << endl;
-                }
+				if(peakParams.empty()) {
+					m = Mode::NONE;
+					cout << "Empty input, switching to automatic peak identification." << endl;
+				}
             }
             else if (repeat == "each") {
                 m = Mode::EACH;
@@ -102,19 +101,18 @@ int main(int argc, char* argv[]) {
                     cout << "Enter data for: " << filename << endl;
                     vector<vector<double>> param = input_data();
                     all_peakParam.push_back(param);
-                    if (all_peakParam.empty()) {
-                        m = Mode::NONE;
-                        cout << "Empty input, switching to automatic peak identification." << endl;
-                    }
                 }
+				if(all_peakParam.empty()) {
+					m = Mode::NONE;
+					cout << "Empty input, switching to automatic peak identification." << endl;
+				}
             }
             else {
                 cout << "Invalid command!" << endl;
             }
         }
     }
-    auto i = files.begin();
-    for (; i != files.end(); ++i) {
+    for (int i = 0; i < static_cast<int>(files.size()); i++) {
         //count to see which file is being processed
         int num = 0;
         vector<double> firstDir;
@@ -126,32 +124,36 @@ int main(int argc, char* argv[]) {
             peak = all_peakParam[num];
 
         //erase the previous temp.csv file to read in new data
-        if (i->find("temp.csv") != string::npos) {
-            files.erase(i);
+        if (files[i].find("temp.csv") != string::npos) {
+            files.erase(files.begin() + i);
             continue;
         }
         cout << "----------------------------" << endl << "Processing: ";
-        string filename = i->substr((i->find_last_of("/\\")) + 1);
+        string filename = files[i].substr((files[i].find_last_of("/\\")) + 1);
         cout << filename << " (" << count + 1 << " of " << files.size() << ")" << endl << "Reading in File  .";
         cout.flush();
 
         //FILE_MANAGER created
         //create a fileManager object that takes in the i/csv path
-        File_Manager fileManager = *new File_Manager(*i);
+        File_Manager fileManager = *new File_Manager(files[i]);
         cout << ".";
         cout.flush();
         //create a pair of two vector data which has first to be temperature data and second to be count data
         pair<vector<double>, vector<double>> data = fileManager.read();
-
         //DATA_SMOOTHING call
         //use dataSmooth from dataSmoothing.cpp to process raw data
-        for (int i = 0; i < 5; ++i)
+        for (int j = 0; j < 5; ++j)
             dataSmooth(data.first, data.second);
+        //for (double d : data.second) {
+        //    cout << d << " ";
+        //}
         //calculate the curve area by adding the count data
         const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
         //if the curve area is less 2000 then it's not enough for further analysis
         if (curveArea < 2000) {
-            files.erase(i);
+            files.erase(files.begin() + i);
+            i--;
+            remove((dir + "/temp.csv").c_str());
             continue;
         }
         //remove the temp.csv created in fileManager since already read them in data
@@ -203,7 +205,7 @@ int main(int argc, char* argv[]) {
         count++;
         //when all files are read, output statistic file for an overview of all fittings
         if (count == int(files.size()))
-            fileManager.statistics(stats, filenames, output_dir);
+            fileManager.statistics(stats, filenames, output_dir, count);
         num++;
     }
     return 0;

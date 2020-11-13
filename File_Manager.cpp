@@ -2,8 +2,7 @@
 //  File_Manager.cpp
 //  GlowCurveAnalsys
 //
-//  Initially created by jeremy hepker on 1/27/19.
-//
+//  Created by jeremy hepker on 1/27/19.
 //  Modified and re-organized by Jack Yu UROP 2020 Fall
 //
 
@@ -118,12 +117,18 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     //get rid of count < 2 data
     int index = 0;
     while (raw_count_data[index] < 2) {
-        raw_count_data.erase(raw_count_data.begin() + index);
-        raw_temp_data.erase(raw_temp_data.begin() + index);
+        if (!raw_count_data.empty()) {
+            raw_count_data.erase(raw_count_data.begin() + index);
+            raw_temp_data.erase(raw_temp_data.begin() + index);
+        }
+        if (raw_count_data.empty()) {
+            break;
+        }
+        //raw_temp_data.erase(raw_temp_data.begin() + index);
     }
     file.close();
     //if the size of the two vector is even then remove the last data to make the size odd
-    if((raw_temp_data.size() % 2) == 0){
+    if((raw_temp_data.size() % 2) == 0 && !raw_temp_data.empty()){
         raw_temp_data.pop_back();
         raw_count_data.pop_back();
     }
@@ -182,7 +187,7 @@ double File_Manager::temp_rate(std::string name){
 }
 
 //output an overview of all processed fittings 
-void File_Manager::statistics(std::vector<std::vector<double>> stats, std::vector<std::string> filenames, std::string dir){
+void File_Manager::statistics(std::vector<std::vector<double>> stats, std::vector<std::string> filenames, std::string dir, int num){
     std::ofstream myfile;
     dir += "/statistics.csv";
     myfile.open(dir);
@@ -192,9 +197,9 @@ void File_Manager::statistics(std::vector<std::vector<double>> stats, std::vecto
     }
     myfile<<"Filename, Barcode, Figure of Merit, Total Curve Area, Heating Rate (C/s), Peak Area(s)\n";
     int count = 0; 
-    for(auto i = stats.begin(); i != stats.end();++i){
+    for(int i = 0; i < num;++i){
         myfile << filenames[count++] << ",";
-        for(auto j = i->begin(); j != i->end();++j){
+        for(auto j = stats[i].begin(); j != stats[i].end(); ++j){
             myfile << *j << ",";
         }
         myfile<<"\n";

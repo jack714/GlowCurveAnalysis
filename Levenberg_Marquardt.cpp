@@ -26,8 +26,8 @@ double First_Order_Kinetics::glow_curve(){
     cout << ".";
     cout.flush();
     //call LevenbergMarquardt from this file
-    //LevenbergMarquardt(count_data, peakParams, FOM);
-    gradient_Descent(count_data, peakParams, FOM);
+    LevenbergMarquardt(count_data, peakParams, FOM);
+    //gradient_Descent(count_data, peakParams, FOM);
     //LevenbergMarquardt(count_data, peakParams, FOM);
     cout<<".";
     cout.flush();
@@ -206,8 +206,15 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 }
                 //calculate figure of merit after the step
                 double temp_FOM = 0.0;
-                for(int z = 0; z < int(curve.size()); ++z){
-                    temp_FOM += abs(curve[z] - temp_output[z])/integral;
+                if (integral == 0) {
+                    temp_FOM = 1;
+                    FOM = 1;
+                    break;
+                }
+                else {
+                    for (int z = 0; z < int(curve.size()); ++z) {
+                        temp_FOM += abs(curve[z] - temp_output[z]) / integral;
+                    }
                 }
                 //if new fom is smaller then proceed to calculate a new jacobian with a smaller damping parameter
                 if(temp_FOM < FOM){

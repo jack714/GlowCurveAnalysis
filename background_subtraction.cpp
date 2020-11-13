@@ -11,7 +11,7 @@ void bg_subtract(std::vector<double>& x, std::vector<double>& y) {
 	// while under 90 degrees C
 	int i = 0;
 	double avg_start = 0;
-	while (x[i] < 90) {
+	while (x[i] < 90 && i < static_cast<int>(x.size()) - 1) {
 		// and the counts are low (preventing spikes) (USE AVERAGE LATER!!!)
 		if (y[i] < 5)
 			avg_start += y[i];
