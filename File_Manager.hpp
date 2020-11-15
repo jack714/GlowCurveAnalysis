@@ -26,10 +26,10 @@ private:
     int total_counts = 0;
     double maxTime = 0.0, maxTemp = 0.0, barcodeNum = 0.0;
     bool time = false;
-    std::string filename,header;
+    std::string filename, header, output_dir;
 public:
     
-    File_Manager(std::string filename);
+    File_Manager(std::string filename, std::string out);
     File_Manager();
     
     //This function reads in the .csv file and parses the raw data into vector of coordinate pairs.

@@ -8,9 +8,10 @@
 
 #include "File_Manager.hpp"
 #include "CSV_iterator.cpp"
+#include "xls_iterator.cpp"
 #include "background_subtraction.hpp"
 
-File_Manager::File_Manager(std::string given_filename):filename(given_filename){};
+File_Manager::File_Manager(std::string given_filename, std::string output):filename(given_filename), output_dir(output) {};
 
 //This function reads in the .csv file and parses the raw data into std::vector of coordinate pairs.
 pair<std::vector<double>,std::vector<double>> File_Manager::read(){
@@ -18,9 +19,7 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     std::string line;
     vector<double> tempData, countData;
     //create a temporary csv file to store data
-    size_t path = filename.find_last_of("/\\");
-    std::string temp_path = filename.substr(0,path+1);
-    temp_path += "temp.csv";
+    output_dir += "/temp.csv";
     //open and check if filename is a valid path
     ifstream file(filename);
     if(!file.is_open()){
@@ -39,7 +38,7 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     }
     //open the temp.csv file
     ofstream temp_file;
-    temp_file.open(temp_path);
+    temp_file.open(output_dir);
     if(!temp_file.is_open()){
         cerr<< "Error opening file: " << filename << endl;
         exit(1);
@@ -64,54 +63,68 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     file.close();
     
     //open the temporary csv file and process data
-    file.open(temp_path);
+    file.open(output_dir);
     getline(file, line);
     getline(file, line);
     std::stringstream ss;
     ss << line;
     int count = 0;
-    //process the first line of data, for each time reading in until ','
-    //use count to record the number of ',' until temperature data
-    while(getline(ss, line, ',')){
-        count++;
-        //if there's a column for barcode, this would get executed and barcodeNum would record the barcode
-        if(line.find('N') != std::string::npos){
-            line.erase(0,1);
-            barcodeNum = stoi(line);
+    string type = filename.substr(filename.find_last_of('.') + 1);
+    if (type == "csv") {
+        //process the first line of data, for each time reading in until ','
+        //use count to record the number of ',' until temperature data
+        while (getline(ss, line, ',')) {
+            count++;
+            //if there's a column for barcode, this would get executed and barcodeNum would record the barcode
+            if (line.find('N') != std::string::npos) {
+                line.erase(0, 1);
+                barcodeNum = stoi(line);
+            }
+        }
+        //construct an csv_iterator object from csv_iterator.cpp to read in data from temp
+        auto i = csv_iterator<std::string>(file);
+        while (file) {
+            //skip the first count-2 sets of data separtaed by ',' so the next data read in is temperature
+            for (int j = 0; j < (count - 2); ++j)
+                ++i;
+            //push the temperature data to raw_temp_data
+            raw_temp_data.push_back(stod(*i));
+            //read in data until next ','
+            ++i;
+            //push count data to raw_count_data vector
+            raw_count_data.push_back(stod(*i));
+            ++i;
+            if (file.eof())
+                break;
         }
     }
-    //construct an csv_iterator object from csv_iterator.cpp to read in data from temp.csv
-    auto i = csv_iterator<std::string>( file );
-    /*
-     I feel this can be improved by getting rid of two
-     */
-    //bool two = false;
-    while(file){
-        //skip the first count-2 sets of data separtaed by ',' so the next data read in is temperature
-        for(int j = 0; j < (count - 2); ++j)
+    else {
+        //read in data in the xls xlsx format
+        while (getline(ss, line, '\t')) {
+            count++;
+            //if there's a column for barcode, this would get executed and barcodeNum would record the barcode
+            if (line.find('N') != std::string::npos) {
+                line.erase(0, 1);
+                barcodeNum = stoi(line);
+            }
+        }
+        //construct a xls_iterator object from xls_iterator.cpp to read in data from temp.xls
+        auto i = xls_iterator<std::string>(file);
+        while (file) {
+            //skip the first count-2 sets of data separtaed by space so the next data read in is temperature
+            for (int j = 0; j < (count - 2); ++j)
+                ++i;
+            //push the temperature data to raw_temp_data
+            raw_temp_data.push_back(stod(*i));
+            //read in data until next space
             ++i;
-        //push the temperature data to raw_temp_data
-        raw_temp_data.push_back(stod(*i));
-        //read in data until next ','
-        ++i;
-        //push count data to raw_count_data vector
-        raw_count_data.push_back(stod(*i));
-        //if(raw_count_data.back() <= 2) {
-        //    raw_temp_data.pop_back();
-        //    raw_count_data.pop_back();
-        //}
-        //if(!two && raw_count_data.back() > 2)
-        //    two = true;
-        //go to next data by increment i again
-        ++i;
-        if(file.eof())
-            break;
-        //get rid of the data with count smaller or equal to 2
-        //if(!two){
-        //    raw_temp_data.pop_back();
-        //    raw_count_data.pop_back();
-        //}
+            //push count data to raw_count_data vector
+            raw_count_data.push_back(stod(*i));
+            if (file.eof())
+                break;
+        }
     }
+    
     // BACKGROUND_SUBTRACTION
     bg_subtract(raw_temp_data, raw_count_data);
     //get rid of count < 2 data

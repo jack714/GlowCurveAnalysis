@@ -44,7 +44,7 @@ vector<string> handle_dir(string dir, string& output_dir) {
 			string path = entry.path().string();
 			unsigned long dot = path.find_last_of('.');
 			string type = path.substr(dot + 1);
-			if (type == "xlsx" || type == "csv") {
+			if (type == "xlsx" || type == "csv" || type == "xls") {
 				csv.push_back(path);
 				numCSV++;
 			}
@@ -56,8 +56,15 @@ vector<string> handle_dir(string dir, string& output_dir) {
 	cout << "Output Directory created: " << output_dir << endl;
 	cout << "CSV details: " << endl;
     //for debugging purpose, shows all the files read
+	std::sort(csv.begin(), csv.end(), compare);
 	for (string s : csv) {
 		cout << s << endl;
 	}
 	return csv;
+}
+
+bool compare(string a, string b) {
+	int first = stoi(a.substr(a.find_last_of("_") + 1, a.find_last_of(".")));
+	int sec = stoi(b.substr(b.find_last_of("_") + 1, b.find_last_of(".")));
+	return first < sec;
 }

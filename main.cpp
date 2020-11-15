@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
 
         //FILE_MANAGER created
         //create a fileManager object that takes in the i/csv path
-        File_Manager fileManager = *new File_Manager(files[i]);
+        File_Manager fileManager = *new File_Manager(files[i], output_dir);
         cout << ".";
         cout.flush();
         //create a pair of two vector data which has first to be temperature data and second to be count data
@@ -154,11 +154,13 @@ int main(int argc, char* argv[]) {
             files.erase(files.begin() + i);
             i--;
             cout << endl;
-            remove((dir + "/temp.csv").c_str());
+            //remove((dir + "/temp.csv").c_str());
+            remove((output_dir + "/temp.csv").c_str());
             continue;
         }
         //remove the temp.csv created in fileManager since already read them in data
-        remove((dir + "/temp.csv").c_str());
+        //remove((dir + "/temp.csv").c_str());
+        remove((output_dir + "/temp.csv").c_str());
 
         //if it's the quick output mode or user didn't input data, let the program detect peaks
         if (output_mode || m == Mode::NONE) {
@@ -171,7 +173,8 @@ int main(int argc, char* argv[]) {
             cout.flush();
             stats[count].push_back(fileManager.barcode());
             //need cast to cstr for remove in stdio.h
-            remove((dir + "/temp.csv").c_str());
+            //remove((dir + "/temp.csv").c_str());
+            remove((output_dir + "/temp.csv").c_str());
             cout.flush();
         }
 
