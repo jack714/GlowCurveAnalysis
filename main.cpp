@@ -153,6 +153,7 @@ int main(int argc, char* argv[]) {
         if (curveArea < 2000) {
             files.erase(files.begin() + i);
             i--;
+            cout << endl;
             remove((dir + "/temp.csv").c_str());
             continue;
         }
