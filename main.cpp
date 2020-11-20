@@ -19,6 +19,7 @@
 #include "quick_half_max.hpp"
 #include "data_input.hpp"
 #include "background_subtraction.hpp"
+#include "remove_spike.hpp"
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
@@ -44,6 +45,8 @@ int main(int argc, char* argv[]) {
     //vector of strings that will store all the csv file names in the "dir" directory
     vector<string> files;
     string output_dir = "";
+    //record the time elapse between data points
+    double time = 0.0;
     
     //read in the path that contains all the input data
     while(start == "n" || start =="N"){
@@ -139,7 +142,9 @@ int main(int argc, char* argv[]) {
         cout << ".";
         cout.flush();
         //create a pair of two vector data which has first to be temperature data and second to be count data
-        pair<vector<double>, vector<double>> data = fileManager.read();
+        pair<vector<double>, vector<double>> data = fileManager.read(time);
+        //REMOVE_SPIKE call
+        spike_elim(data.first, data.second);
         //DATA_SMOOTHING call
         //use dataSmooth from dataSmoothing.cpp to process raw data
         for (int j = 0; j < 5; ++j)

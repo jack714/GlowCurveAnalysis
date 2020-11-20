@@ -14,7 +14,7 @@
 File_Manager::File_Manager(std::string given_filename, std::string output):filename(given_filename), output_dir(output) {};
 
 //This function reads in the .csv file and parses the raw data into std::vector of coordinate pairs.
-pair<std::vector<double>,std::vector<double>> File_Manager::read(){
+pair<std::vector<double>,std::vector<double>> File_Manager::read(double& time){
     //Open and test the user input file.
     std::string line;
     vector<double> tempData, countData;
@@ -26,12 +26,13 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
         cerr<<"Error opening file: "<<filename<<endl;
         exit(1);
     }
-    //get rid of the title content, this will also get rid of the first line of the actual data
+    //get rid of the title content, this also get rid of the first line of data
     while(true){
         if(line.find("Time (") != std::string::npos) time =true;
         if(line.find("Count") == std::string::npos){
             getline(file, line,'\n');
         }else{
+            time = stod(line.substr(line.find("(") + 1, 3));
             getline(file, line,'\n');
             break;
         }
