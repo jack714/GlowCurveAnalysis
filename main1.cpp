@@ -34,7 +34,7 @@ using namespace std;
 int main(int argc, char* argv[]) {
     //enable quick mode to run output with machine generated peak detections
     bool output_mode = false;
-    if(argc > 1)
+    if (argc > 1)
         output_mode = (*(argv[1]) == 'q') ? true : false;
     //string to store the input directory path
     string dir;
@@ -47,15 +47,15 @@ int main(int argc, char* argv[]) {
     string output_dir = "";
     //record the time elapse between data points
     double time = 0.0;
-    
+
     //read in the path that contains all the input data
-    while(start == "n" || start =="N"){
-        cout<< "Please enter the full path to directory containing csv formatted emission spectra:" << endl;
+    while (start == "n" || start == "N") {
+        cout << "Please enter the full path to directory containing csv formatted emission spectra:" << endl;
         cin >> dir;
         //cast dir in the right format to be opened
-        if(dir.back() == '/') 
+        if (dir.back() == '/')
             dir.pop_back();
-        
+
         //HANDLE FILES
         //call the handle_dir function from FileHandler.cpp, store all csv files in dir to the files vector
         files = handle_dir(dir, output_dir);
@@ -67,9 +67,9 @@ int main(int argc, char* argv[]) {
             start = "y";
     }
     //2d vector to store processed data of each input file
-    vector<vector<double>> stats(files.size(), vector<double>(0,0.0));
+    vector<vector<double>> stats(files.size(), vector<double>(0, 0.0));
     int count = 0;
-    
+
     vector<vector<double>> peakParams;
     vector<vector<vector<double>>> all_peakParam;
     enum Mode { ALL, EACH, NONE };
@@ -89,10 +89,10 @@ int main(int argc, char* argv[]) {
                 cout << "Please type in data in the format: tmeperature,count,activation energy, press enter for each peak." << endl;
                 cout << "Type done when you are finished." << endl;
                 peakParams = input_data();
-				if(peakParams.empty()) {
-					m = Mode::NONE;
-					cout << "Empty input, switching to automatic peak identification." << endl;
-				}
+                if (peakParams.empty()) {
+                    m = Mode::NONE;
+                    cout << "Empty input, switching to automatic peak identification." << endl;
+                }
             }
             else if (repeat == "each") {
                 m = Mode::EACH;
@@ -105,10 +105,10 @@ int main(int argc, char* argv[]) {
                     vector<vector<double>> param = input_data();
                     all_peakParam.push_back(param);
                 }
-				if(all_peakParam.empty()) {
-					m = Mode::NONE;
-					cout << "Empty input, switching to automatic peak identification." << endl;
-				}
+                if (all_peakParam.empty()) {
+                    m = Mode::NONE;
+                    cout << "Empty input, switching to automatic peak identification." << endl;
+                }
             }
             else {
                 cout << "Invalid command!" << endl;
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
         vector<double> firstDir;
         //make a coopy of peakParam and then customize the copy accoding to the data read in
         vector<vector<double>> peak;
-        if (m == Mode::ALL) 
+        if (m == Mode::ALL)
             peak = peakParams;
         if (m == Mode::EACH)
             peak = all_peakParam[num];
@@ -143,79 +143,29 @@ int main(int argc, char* argv[]) {
         cout.flush();
         //create a pair of two vector data which has first to be temperature data and second to be count data
         pair<vector<double>, vector<double>> data = fileManager.read(time);
+        vector<double> orig_count = data.second;
         //REMOVE_SPIKE call
-        spike_elim(data.first, data.second);
+        //for(int i = 0; i < 2; i++)
+        spike_elim(data.first, data.second, 3, 1.2);
+        ofstream file;
+        string output = files[i] + "_output.csv";
+        file.open(output);
+        file << "temp, orig_count, new_count";
+        file << ",\n";
+        file.setf(ios_base::fixed);
+        file << setprecision(5);
+        for (int i = 0; i < int(orig_count.size()); ++i) {
+            file << data.first[i] << ",";
+            file << orig_count[i] << ", ";
+            file << data.second[i];
+            file << ",\n";
+        }
+        file.close();
+
         //DATA_SMOOTHING call
         //use dataSmooth from dataSmoothing.cpp to process raw data
-        for (int j = 0; j < 5; ++j)
-            dataSmooth(data.first, data.second);
-        for (double d : data.second) {
-            cout << d << " ";
-        }
-        //calculate the curve area by adding the count data
-        const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
-        //if the curve area is less 2000 then it's not enough for further analysis
-        if (curveArea < 2000) {
-            files.erase(files.begin() + i);
-            i--;
-            cout << endl;
-            //remove((dir + "/temp.csv").c_str());
-            remove((output_dir + "/temp.csv").c_str());
-            continue;
-        }
-        //remove the temp.csv created in fileManager since already read them in data
-        remove((dir + "/temp.csv").c_str());
-        remove((output_dir + "/temp.csv").c_str());
-
-        //if it's the quick output mode or user didn't input data, let the program detect peaks
-        if (output_mode || m == Mode::NONE) {
-            //SMART_PEAK_DETECTION
-            cout << "." << endl << "Finding Peaks  ..";
-            cout.flush();
-            //call findPeaks from smartPeakDetect.cpp
-            firstDir = findPeaks(data.first, data.second, peak, output_dir);
-            cout << ".";
-            cout.flush();
-            stats[count].push_back(fileManager.barcode());
-            //need cast to cstr for remove in stdio.h
-            //remove((dir + "/temp.csv").c_str());
-            remove((output_dir + "/temp.csv").c_str());
-            cout.flush();
-        }
-
-        //populate peakParams with full width half max indexes
-        //find_index(data.first, peakParams);
-
-        //LEVENBERG-MARQUART call
-        cout << endl << "Deconvoluting Glow Peak  .";
-        cout.flush();
-        //calling Levenberg-Marquardt.cpp and create a First_Order_Kinetics object
-        First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak);
-        //calculate FOM and the area under each curve fit
-        stats[count].push_back(FOK_Model.glow_curve());
-        stats[count].push_back(FOK_Model.area());
-        //push fileManager's heating rate to back of stats
-        stats[count].push_back(fileManager.temp_rate(filename));
-        //copy FOK_Model's curve_area vector which contains area under curve for each peak to peak_integral
-        vector<double> peak_integral = FOK_Model.return_curve_areas();
-        //store the area under curve for each peak fit to stats
-        for (auto i = peak_integral.begin(); i != peak_integral.end(); ++i) {
-            stats[count].push_back(*i);
-        }
-
-        //OUTPUT to files
-        //assign returnedPeak to be 2d vector that contains FOK data for each peak fit
-        vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
-        filenames.push_back(filename);
-        filename = output_dir + "/" + filename;
-        //create output csv file and write temperature, count, fitted count data
-        fileManager.write(returnedPeaks, filename);
-        cout << "----------------------------" << endl;
-        count++;
-        //when all files are read, output statistic file for an overview of all fittings
-        if (count == int(files.size()))
-            fileManager.statistics(stats, filenames, output_dir, count);
-        num++;
+        //for (int j = 0; j < 5; ++j)
+        //    dataSmooth(data.first, data.second);
     }
     return 0;
 }

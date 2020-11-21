@@ -29,7 +29,7 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(double& time){
     //get rid of the title content, this also get rid of the first line of data
     while(true){
         if(line.find("Time (") != std::string::npos) time =true;
-        if(line.find("Count") == std::string::npos){
+        if(line.find("Barcode") == std::string::npos){
             getline(file, line,'\n');
         }else{
             time = stod(line.substr(line.find("(") + 1, 3));
@@ -127,19 +127,19 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(double& time){
     }
     
     // BACKGROUND_SUBTRACTION
-    bg_subtract(raw_temp_data, raw_count_data);
+    //bg_subtract(raw_temp_data, raw_count_data);
     //get rid of count < 2 data
     int index = 0;
-    while (raw_count_data[index] < 2) {
-        if (!raw_count_data.empty()) {
-            raw_count_data.erase(raw_count_data.begin() + index);
-            raw_temp_data.erase(raw_temp_data.begin() + index);
-        }
-        if (raw_count_data.empty()) {
-            break;
-        }
-        //raw_temp_data.erase(raw_temp_data.begin() + index);
-    }
+    //while (raw_count_data[index] < 2) {
+    //    if (!raw_count_data.empty()) {
+    //        raw_count_data.erase(raw_count_data.begin() + index);
+    //        raw_temp_data.erase(raw_temp_data.begin() + index);
+    //    }
+    //    if (raw_count_data.empty()) {
+    //        break;
+    //    }
+    //    //raw_temp_data.erase(raw_temp_data.begin() + index);
+    //}
     file.close();
     //if the size of the two vector is even then remove the last data to make the size odd
     if((raw_temp_data.size() % 2) == 0 && !raw_temp_data.empty()){

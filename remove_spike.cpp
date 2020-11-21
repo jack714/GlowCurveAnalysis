@@ -6,53 +6,53 @@
 //
 
 #include "remove_spike.hpp"
-#include "smartPeakDetect.hpp"
 
-void spike_elim(vector<double>& x, vector<double>& y) {
-    //make sure only process minimas that are separated within dist, so that not treating actual peak as spike
-    int dist = 10;
-    //constant used to qualify if a point is a spike
-    double c = 2;
-	vector<double> derivative(x.size(), 0.0);
-	//call firstDeriv function from smartPeakDetect.cpp and populate derivative vector with first derivative data
-	firstDeriv(x, y, derivative);
-	int size = int(derivative.size());
-	vector<int> minimum;
-    //find all the local minimums
-    for (int i = 1; i < size; i++)
-    {
-        //minimum is recorded as first derivative change from negative to positive
-        if (derivative[i] > 0.0 && derivative[i - 1] < 0.0)
-        {
-            minimum.push_back(i);
-        }
-    }
-    minimum.push_back(int(x.size()) - 1);
-    for (int j = 0; j < static_cast<int>(minimum.size()) - 1; j++) {
-        //only process data that are within dist apart
-        if (minimum[j + 1] - minimum[j] < dist) {
-            int mid = minimum[j] + (minimum[j + 1] - minimum[j]) / 2;
-            //recognize spike if the y count is larger than c times the average of the two minima points
-            if (y[mid] > c* (y[j] + y[j + 1]) / 2) {
-                //use straight line approximation to remove spike
-                int span = minimum[j + 1] - minimum[j];
-                double change = (y[j + 1] - y[j]) / span;
-                for (int k = minimum[j] + 1; k < minimum[j + 1]; k++) {
-                    y[k] = y[k - 1] + change;
-                }
+void spike_elim(vector<double>& x, vector<double>& y, int span, double c) {
+    vector<int> alter;
+    //process all data points and store the left point of the left boundary point to the vector alter
+    for (int i = 0; i < static_cast<int>(x.size()) - span; i++) {
+        int process = -1;
+        elim_helper(y, span, c, i, process);
+        if (process != -1 && process + span < static_cast<int>(y.size()) - 1) {
+            alter.push_back(process);
+            if(process + span < static_cast<int>(y.size()) - span)
+            for (int j = 1; j < span; j++) {
+                alter.push_back(process + j);
             }
         }
     }
+    //if alter is not empty then continue to further process
+    int iteration = 0;
+    while (!alter.empty() && iteration < 4) {
+        //change the parameter
+        span += 2;
+        c -= 0.05;
+        //remove points that will go out of range
+        int j = 0;
+        while (j < static_cast<int>(alter.size())) {
+            if (alter[j] + span > static_cast<int>(y.size()))
+                alter.erase(alter.begin() + j);
+            else
+                j++;
+        }
+        //only process the boundary points stored in alter
+        for (int i : alter) {
+            int process = -1;
+            elim_helper(y, span, c, i, process);
+        }
+        iteration++;
+    }
 }
 
-void spike_elim2(vector<double>& x, vector<double>& y) {
-    double c = 2;
-    for (int i = 0; i < static_cast<int>(x.size()) - 10; i++) {
-        if (y[i + 5] > c* (y[i] + y[i + 9]) / 2) {
-            double change = (y[i + 9] - y[i]) / 9);
-            for (int j = i + 1; j < i + 9; j++) {
+void elim_helper(vector<double>& y, int span, double c, int index, int& process) {
+    if ((y[index] + y[index + span - 1]) / 2 != 0 && y[index + span / 2] > 3) {
+        if ((y[index + span / 2] > c * (y[index] + y[index + span - 1]) / 2) || (y[index + span / 2] < 1/c * (y[index] + y[index + span - 1]) / 2)) {
+            double change = (y[index + span - 1] - y[index]) / (span - 1);
+            for (int j = index + 1; j < index + span - 1; j++) {
                 y[j] = y[j - 1] + change;
             }
+            process = index - 1;
         }
     }
 }
+
