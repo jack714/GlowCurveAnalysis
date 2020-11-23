@@ -145,27 +145,26 @@ int main(int argc, char* argv[]) {
         pair<vector<double>, vector<double>> data = fileManager.read(time);
         vector<double> orig_count = data.second;
         //REMOVE_SPIKE call
-        //for(int i = 0; i < 2; i++)
         spike_elim(data.first, data.second, 3, 1.2);
+        //DATA_SMOOTHING call
+        //use dataSmooth from dataSmoothing.cpp to process raw data
+        for (int j = 0; j < 5; ++j)
+            dataSmooth(data.first, data.second);
         ofstream file;
-        string output = files[i] + "_output.csv";
+        string output = files[i] + "_output2.csv";
         file.open(output);
         file << "temp, orig_count, new_count";
         file << ",\n";
         file.setf(ios_base::fixed);
         file << setprecision(5);
-        for (int i = 0; i < int(orig_count.size()); ++i) {
+        //for (int i = 0; i < int(orig_count.size()); ++i) {
+        for (int i = 0; i < int(data.second.size()); ++i) {
             file << data.first[i] << ",";
             file << orig_count[i] << ", ";
             file << data.second[i];
             file << ",\n";
         }
         file.close();
-
-        //DATA_SMOOTHING call
-        //use dataSmooth from dataSmoothing.cpp to process raw data
-        //for (int j = 0; j < 5; ++j)
-        //    dataSmooth(data.first, data.second);
     }
     return 0;
 }
