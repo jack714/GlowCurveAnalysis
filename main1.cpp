@@ -20,6 +20,7 @@
 #include "data_input.hpp"
 #include "background_subtraction.hpp"
 #include "remove_spike.hpp"
+#include "Savitzsky_Golay.hpp"
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
@@ -148,23 +149,24 @@ int main(int argc, char* argv[]) {
         spike_elim(data.first, data.second, 3, 1.2);
         //DATA_SMOOTHING call
         //use dataSmooth from dataSmoothing.cpp to process raw data
-        for (int j = 0; j < 5; ++j)
-            dataSmooth(data.first, data.second);
-        ofstream file;
-        string output = files[i] + "_output2.csv";
-        file.open(output);
-        file << "temp, orig_count, new_count";
-        file << ",\n";
-        file.setf(ios_base::fixed);
-        file << setprecision(5);
-        //for (int i = 0; i < int(orig_count.size()); ++i) {
-        for (int i = 0; i < int(data.second.size()); ++i) {
-            file << data.first[i] << ",";
-            file << orig_count[i] << ", ";
-            file << data.second[i];
-            file << ",\n";
-        }
-        file.close();
+        //for (int j = 0; j < 5; ++j)
+        //    dataSmooth(data.first, data.second);
+        SG_smooth(data.second, 31, 5);
+        //ofstream file;
+        //string output = files[i] + "_output.csv";
+        //file.open(output);
+        //file << "temp, orig_count, new_count";
+        //file << ",\n";
+        //file.setf(ios_base::fixed);
+        //file << setprecision(5);
+        ////for (int i = 0; i < int(orig_count.size()); ++i) {
+        //for (int i = 0; i < int(data.second.size()); ++i) {
+        //    file << data.first[i] << ",";
+        //    file << orig_count[i] << ", ";
+        //    file << data.second[i];
+        //    file << ",\n";
+        //}
+        //file.close();
     }
     return 0;
 }

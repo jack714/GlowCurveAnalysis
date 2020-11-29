@@ -11,7 +11,7 @@
 #include <sstream>
 using namespace std;
 
-//this class creates an object that takes an istream to read in csv data
+//this class creates an object that takes an istream to read in xls data
 template <class T>
 class xls_iterator : public iterator<input_iterator_tag, T>
 {
