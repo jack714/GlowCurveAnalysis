@@ -37,66 +37,67 @@ void SG_smooth(vector<double>& y, int window_size, int size) {
         rate = 0;
     }
     //compute the transpose of A
-    vector<vector<double>> A_T(window_size, vector<double>(size));
+    vector<vector<double>> A_T(size, vector<double>(window_size));
     transpose(A, A_T, window_size, size);
     //compute the inverse of the multiplication of A_T and A
     vector<vector<double>> mul = multiply(A_T, A);
-    vector<vector<double>> mul_temp(size, vector<double>(size));
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            mul_temp[i][j] = mul[i][j];
-        }
-    }
-    mul = mul_temp;
-    invert(mul, false);
-    //multiply the inverse with the tranpose to get the multiplication matrix
-    vector<vector<double>> M = multiply(mul, A_T);
-    //take the first row of M and save as change
-    vector<double> change = M[0];
+    //invert(mul, false);
+    vector<vector<double>> m = { {1,6,7,4,8,3,6,4,2},{1,5,9,5,3,0,6,5,4},{6,8,9,5,4,8,5,9,5},{2,4,2,7,0,5,3,7,0},{2,6,8,3,7,9,4,7,9},{4,5,3,8,3,6,8,5,4},{5,7,3,8,9,2,4,3,7}, {7,5,3,1,4,1,4,1,1},{6,6,3,8,0,6,2,3,3} };
+    invert(m, false);
+    ////multiply the inverse with the tranpose to get the multiplication matrix
+    //vector<vector<double>> M = multiply(mul, A_T);
+    ////take the first row of M and save as change
+    //vector<double> change = M[0];
+    //
+    ////extend the left and right side of count data with the reverse of the original data
+    //vector<double> y_temp(y.size() + window_size - 1);
+    //for (int i = 0; i < window_size / 2; i++) {
+    //    y_temp[i] = y[window_size / 2 - i - 1];
+    //}
+    //for (int i = 0; i < static_cast<int>(y.size()); i++) {
+    //    y_temp[i + window_size / 2] = y[i];
+    //}
+    //int index = 1;
+    //for (int i = static_cast<int>(y.size()) + window_size / 2; i < static_cast<int>(y_temp.size()); i++) {
+    //    y_temp[i] = y_temp[i - index];
+    //    index += 2;
+    //}
+    //
+    ////convolve y_temp with the change matrix 
+    //vector<double> y_new(y_temp.size() - window_size + 1);
+    //int i = window_size - 3;
+    //while (i < static_cast<int>(y_temp.size()) - 1) {
+    //    for (int j = 0; j < static_cast<int>(change.size()) - 1; j++) {
+    //        if (i > window_size - 3) {
+    //            y_new[i - window_size + 2] += change[j] * y_temp[i - j];
+    //        }
+    //    }
+    //    i += 1;
+    //}
+    //
+    //y = y_new;
 
-    //extend the left and right side of count data with the reverse of the original data
-    vector<double> y_temp(y.size() + window_size - 1);
-    for (int i = 0; i < window_size / 2; i++) {
-        y_temp[i] = y[window_size / 2 - i - 1];
-    }
-    for (int i = 0; i < static_cast<int>(y.size()); i++) {
-        y_temp[i + window_size / 2] = y[i];
-    }
-    int index = 1;
-    for (int i = static_cast<int>(y.size()) + window_size / 2; i < static_cast<int>(y_temp.size()); i++) {
-        y_temp[i] = y_temp[i - index];
-        index += 2;
-    }
-
-    //convolve y_temp with the change matrix 
-    vector<double> y_new(y_temp.size() - window_size + 1);
-    int i = window_size - 3;
-    while (i < static_cast<int>(y_temp.size()) - 1) {
-        for (int j = 0; j < static_cast<int>(change.size()) - 1; j++) {
-            if (i > window_size - 3) {
-                y_new[i - window_size + 2] += change[j] * y_temp[i - j];
-            }
-        }
-        i += 1;
-    }
-
-    y = y_new;
+    //vector<vector<double>> v = { {1,2,3}, {4,5,6} };
+    //vector<vector<double>> c(3, vector<double>(2));
+    //transpose(v, c, 2, 3);
+    //vector<vector<double>> r = multiply(c, v);
     //for (double d : y_new) {
     //    cout << d << " ";
     //}
     //cout << y.size() << endl;
     //cout << y_new.size();
-    //for (int i = 0; i < 5; i++) {
-    //    for (int j = 0; j < 31; j++) {
-    //        cout << M[i][j] << " ";
-    //    }
-    //    cout << endl;
-    //}
+    //cout << "size is " << mul.size() << " x " << mul[0].size() << endl;
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            cout << m[i][j] << " ";
+        }
+        cout << endl;
+    }
 }
 
 //take the transpose of a matrix
 void transpose(vector<vector<double>> const& A, vector<vector<double>>& B, int n, int m) {
-    for (auto i = B.begin(); i != B.end(); ++i) i->resize(A.size());
+    //for (auto i = B.begin(); i != B.end(); ++i) i->resize(A.size());
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
             B[j][i] = A[i][j];
@@ -108,13 +109,11 @@ vector<vector<double>> multiply(vector<vector<double>> const& A, vector<vector<d
     size_t row_A = A.size();
     size_t col_A = A[0].size();
     size_t col_B = B[0].size();
-    //double stop = 1 * pow(double(10), double(-35));
     vector<vector<double>> C(row_A, vector<double>(col_B, 0));
     for (size_t i = 0; i < row_A; i++) {
         for (size_t j = 0; j < col_B; j++) {
             for (size_t k = 0; k < col_A; k++) {
                 C[i][j] += A[i][k] * B[k][j];
-                //((C[i][j] < stop) ? C[i][j] = 0.0 : false);
             }
         }
     }
@@ -151,6 +150,7 @@ double determinant(vector<vector<double>>& A, int size) {
         }
     }
     return (det);
+    //cout << "finish determinant" << endl;
 }
 
 void cofactor(vector<vector<double>>& A, vector<vector<double>>& temp, int p, int q, int n) {
@@ -163,7 +163,13 @@ void cofactor(vector<vector<double>>& A, vector<vector<double>>& temp, int p, in
             //  which are not in given row and column
             if (row != p && col != q) {
                 temp[i][j++] = A[row][col];
-
+                //for (int a = 0; a < 6; a++) {
+                //    for (int b = 0; b < 6; b++) {
+                //        cout << temp[a][b] << " ";
+                //    }
+                //    cout << endl;
+                //}
+                //cout << endl;
                 // Row is filled, so increase row index and
                 // reset col index
                 if (j == n - 1) {
@@ -173,6 +179,7 @@ void cofactor(vector<vector<double>>& A, vector<vector<double>>& temp, int p, in
             }
         }
     }
+    //cout << "finish cofactor" << endl;
 }
 
 void adjoint(vector<vector<double>>& A, vector<vector<double>>& adj) {
@@ -190,7 +197,6 @@ void adjoint(vector<vector<double>>& A, vector<vector<double>>& adj) {
         for (int j = 0; j < N; j++) {
             // Get cofactor of A[i][j]
             cofactor(A, temp, i, j, N);
-
             // sign of adj[j][i] positive if sum of row
             // and column indexes is even.
             sign = ((i + j) % 2 == 0) ? 1.0 : -1.0;
@@ -198,8 +204,16 @@ void adjoint(vector<vector<double>>& A, vector<vector<double>>& adj) {
             // Interchanging rows and columns to get the
             // transpose of the cofactor matrix
             adj[j][i] = (sign) * (determinant(temp, N - 1));
+            //for (int a = 0; a < 6; a++) {
+            //    for (int b = 0; b < 6; b++) {
+            //        cout << adj[a][b] << " ";
+            //    }
+            //    cout << endl;
+            //}
+            //cout << endl;
         }
     }
+    cout << "finish adjoint" << endl;
 }
 
 //Function to invert a matrix, with option for negtive inverse.
@@ -235,5 +249,6 @@ void invert(vector<vector<double>>& A, bool neg) {
             }
         }
     }
+    //cout << "finish invert" << endl;
 }
 
