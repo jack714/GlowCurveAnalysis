@@ -7,7 +7,7 @@
 //
 #include "Savitzsky_Golay.hpp"
 
-void SG_smooth(vector<double> y, int window_size, int size) {
+void SG_smooth(vector<double>& y, int window_size, int size) {
     //create the Vandermonde Matrix
     vector<vector<double>> A(window_size, vector<double>(size));
     int up = -(window_size / 2);
@@ -69,20 +69,23 @@ void SG_smooth(vector<double> y, int window_size, int size) {
     }
 
     //convolve y_temp with the change matrix 
-    vector<double> y_new(y_temp.size() - window_size + 2);
-    int i = window_size / 2;
-    while (i < static_cast<int>(y_temp.size())) {
-        for (int j = window_size / 2; j < static_cast<int>(change.size()); j++) {
-            if (i > window_size / 2 - 3) {
-                y_new[i - (window_size / 2) + 2] += change[j] * y_temp[i - j];
+    vector<double> y_new(y_temp.size() - window_size + 1);
+    int i = window_size - 3;
+    while (i < static_cast<int>(y_temp.size()) - 1) {
+        for (int j = 0; j < static_cast<int>(change.size()) - 1; j++) {
+            if (i > window_size - 3) {
+                y_new[i - window_size + 2] += change[j] * y_temp[i - j];
             }
         }
         i += 1;
     }
 
-    for (double d : y_new) {
-        cout << d << " ";
-    }
+    y = y_new;
+    //for (double d : y_new) {
+    //    cout << d << " ";
+    //}
+    //cout << y.size() << endl;
+    //cout << y_new.size();
     //for (int i = 0; i < 5; i++) {
     //    for (int j = 0; j < 31; j++) {
     //        cout << M[i][j] << " ";
@@ -91,6 +94,7 @@ void SG_smooth(vector<double> y, int window_size, int size) {
     //}
 }
 
+//take the transpose of a matrix
 void transpose(vector<vector<double>> const& A, vector<vector<double>>& B, int n, int m) {
     for (auto i = B.begin(); i != B.end(); ++i) i->resize(A.size());
     for (int i = 0; i < n; i++) {

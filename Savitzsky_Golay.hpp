@@ -15,7 +15,7 @@
 using namespace std;
 
 //use Savitzsky Golay algorithm to smooth data
-void SG_smooth(vector<double> y, int window_size, int size);
+void SG_smooth(vector<double>& y, int window_size, int size);
 void transpose(vector<vector<double>> const& A, vector<vector<double>>& B, int n, int m);
 vector<vector<double>> multiply(vector<vector<double>> const& A, vector<vector<double>> const& B);
 double determinant(vector<vector<double>>& A, int size);
