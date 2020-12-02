@@ -22,16 +22,16 @@ void dataSmooth(std::vector<double>& x, std::vector<double>& y){
             sec = i+1;
         }
     }
-    //for(int j = 0; j < 2; ++j){
-    //    for(int i = 2; i < int(yNew.size()-2); ++i){
-    //        yNew[i] = (yNew[i-2] + 2.0 * yNew[i-1] + 3.0 * yNew[i] + 2.0 * yNew[i+1] + yNew[i+2])/9;
-    //    }
-    //}
-    for (int j = 0; j < 2; ++j) {
-        for (int i = 3; i < int(yNew.size() - 3); ++i) {
-            yNew[i] = (-2 * yNew[i - 3] + 3 * yNew[i - 2] + 6 * yNew[i - 1] + 7 * yNew[i] + 6 * yNew[i + 1] + 3 * yNew[i + 2] - 2 * yNew[i + 3]) / 21;
+    for(int j = 0; j < 2; ++j){
+        for(int i = 2; i < int(yNew.size()-2); ++i){
+            yNew[i] = (yNew[i-2] + 2.0 * yNew[i-1] + 3.0 * yNew[i] + 2.0 * yNew[i+1] + yNew[i+2])/9;
         }
     }
+    //for (int j = 0; j < 2; ++j) {
+    //    for (int i = 3; i < int(yNew.size() - 3); ++i) {
+    //        yNew[i] = (-2 * yNew[i - 3] + 3 * yNew[i - 2] + 6 * yNew[i - 1] + 7 * yNew[i] + 6 * yNew[i + 1] + 3 * yNew[i + 2] - 2 * yNew[i + 3]) / 21;
+    //    }
+    //}
     x = xNew;
     y = yNew;
 }

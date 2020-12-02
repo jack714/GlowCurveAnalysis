@@ -152,10 +152,14 @@ int main(int argc, char* argv[]) {
         //use dataSmooth from dataSmoothing.cpp to process raw data
         //for (int j = 0; j < 5; ++j)
         //    dataSmooth(data.first, data.second);
-        SG_smooth(data.second, 41, 6);
+        //dataSmooth(data.first, data.second);
+        SG_smooth(data.second, 111, 7);
         ofstream file;
-        string output = files[i] + "_output.csv";
-        file.open(output);
+        //string output = files[i] + "_output.csv";
+        //file.open(output);
+        string output = files[i].substr(files[i].find("R"));
+        string path = output_dir + "/" + output;
+        file.open(path);
         file << "temp, orig_count, new_count";
         file << ",\n";
         file.setf(ios_base::fixed);

@@ -29,10 +29,10 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(double& time){
     //get rid of the title content, this also get rid of the first line of data
     while(true){
         if(line.find("Time (") != std::string::npos) time =true;
-        if(line.find("Barcode") == std::string::npos){
+        if(line.find("Barcode") == std::string::npos)
             getline(file, line,'\n');
-        }else{
-            time = stod(line.substr(line.find("(") + 1, 3));
+        else{
+            //time = stod(line.substr(line.find("(") + 1, 3));
             getline(file, line,'\n');
             break;
         }

@@ -56,7 +56,7 @@ vector<string> handle_dir(string dir, string& output_dir) {
 	cout << "Output Directory created: " << output_dir << endl;
 	cout << "CSV details: " << endl;
     //for debugging purpose, shows all the files read
-	std::sort(csv.begin(), csv.end(), compare);
+	//std::sort(csv.begin(), csv.end(), compare);
 	for (string s : csv) {
 		cout << s << endl;
 	}

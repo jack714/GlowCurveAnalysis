@@ -41,58 +41,46 @@ void SG_smooth(vector<double>& y, int window_size, int size) {
     transpose(A, A_T, window_size, size);
     //compute the inverse of the multiplication of A_T and A
     vector<vector<double>> mul = multiply(A_T, A);
-    //invert(mul, false);
-    vector<vector<double>> m = { {1,6,7,4,8,3,6,4,2},{1,5,9,5,3,0,6,5,4},{6,8,9,5,4,8,5,9,5},{2,4,2,7,0,5,3,7,0},{2,6,8,3,7,9,4,7,9},{4,5,3,8,3,6,8,5,4},{5,7,3,8,9,2,4,3,7}, {7,5,3,1,4,1,4,1,1},{6,6,3,8,0,6,2,3,3} };
-    invert(m, false);
-    ////multiply the inverse with the tranpose to get the multiplication matrix
-    //vector<vector<double>> M = multiply(mul, A_T);
-    ////take the first row of M and save as change
-    //vector<double> change = M[0];
-    //
-    ////extend the left and right side of count data with the reverse of the original data
-    //vector<double> y_temp(y.size() + window_size - 1);
-    //for (int i = 0; i < window_size / 2; i++) {
-    //    y_temp[i] = y[window_size / 2 - i - 1];
-    //}
-    //for (int i = 0; i < static_cast<int>(y.size()); i++) {
-    //    y_temp[i + window_size / 2] = y[i];
-    //}
-    //int index = 1;
-    //for (int i = static_cast<int>(y.size()) + window_size / 2; i < static_cast<int>(y_temp.size()); i++) {
-    //    y_temp[i] = y_temp[i - index];
-    //    index += 2;
-    //}
-    //
-    ////convolve y_temp with the change matrix 
-    //vector<double> y_new(y_temp.size() - window_size + 1);
-    //int i = window_size - 3;
-    //while (i < static_cast<int>(y_temp.size()) - 1) {
-    //    for (int j = 0; j < static_cast<int>(change.size()) - 1; j++) {
-    //        if (i > window_size - 3) {
-    //            y_new[i - window_size + 2] += change[j] * y_temp[i - j];
-    //        }
-    //    }
-    //    i += 1;
-    //}
-    //
-    //y = y_new;
-
-    //vector<vector<double>> v = { {1,2,3}, {4,5,6} };
-    //vector<vector<double>> c(3, vector<double>(2));
-    //transpose(v, c, 2, 3);
-    //vector<vector<double>> r = multiply(c, v);
-    //for (double d : y_new) {
-    //    cout << d << " ";
-    //}
-    //cout << y.size() << endl;
-    //cout << y_new.size();
-    //cout << "size is " << mul.size() << " x " << mul[0].size() << endl;
-    for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 9; j++) {
-            cout << m[i][j] << " ";
-        }
-        cout << endl;
+    invert(mul, false);
+    //multiply the inverse with the tranpose to get the multiplication matrix
+    vector<vector<double>> M = multiply(mul, A_T);
+    //take the first row of M and save as change
+    vector<double> change = M[0];
+    
+    //extend the left and right side of count data with the reverse of the original data
+    vector<double> y_temp(y.size() + window_size - 1);
+    for (int i = 0; i < window_size / 2; i++) {
+        y_temp[i] = y[window_size / 2 - i - 1];
     }
+    for (int i = 0; i < static_cast<int>(y.size()); i++) {
+        y_temp[i + window_size / 2] = y[i];
+    }
+    int index = 1;
+    for (int i = static_cast<int>(y.size()) + window_size / 2; i < static_cast<int>(y_temp.size()); i++) {
+        y_temp[i] = y_temp[i - index];
+        index += 2;
+    }
+    
+    //convolve y_temp with the change matrix 
+    vector<double> y_new(y_temp.size() - window_size + 1);
+    int i = window_size - 3;
+    while (i < static_cast<int>(y_temp.size()) - 1) {
+        for (int j = 0; j < static_cast<int>(change.size()) - 1; j++) {
+            if (i > window_size - 3) {
+                y_new[i - window_size + 2] += change[j] * y_temp[i - j];
+            }
+        }
+        i += 1;
+    }
+    
+    y = y_new;
+
+    //for (int i = 0; i < 9; i++) {
+    //    for (int j = 0; j < 9; j++) {
+    //        cout << m[i][j] << " ";
+    //    }
+    //    cout << endl;
+    //}
 }
 
 //take the transpose of a matrix
