@@ -201,7 +201,7 @@ void adjoint(vector<vector<double>>& A, vector<vector<double>>& adj) {
             //cout << endl;
         }
     }
-    cout << "finish adjoint" << endl;
+    //cout << "finish adjoint" << endl;
 }
 
 //Function to invert a matrix, with option for negtive inverse.
