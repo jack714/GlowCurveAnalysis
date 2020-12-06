@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         }
     }
     ofstream file1;
-    string path = "C:/Users/wenji/Desktop/LARGE_GCA_TEST_SUITE/large_output.txt";
+    //string path = "C:/Users/wenji/Desktop/LARGE_GCA_TEST_SUITE/large_output.txt";
     file1.open(path);
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
         //count to see which file is being processed
