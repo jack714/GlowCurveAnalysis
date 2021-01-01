@@ -46,8 +46,8 @@ int main(int argc, char* argv[]) {
     //vector of strings that will store all the csv file names in the "dir" directory
     vector<string> files;
     string output_dir = "";
-    //record the time elapse between data points
-    double time = 0.0;
+    //sampling rate default to be 0.1
+    int time = 0.1;
 
     //read in the path that contains all the input data
     while (start == "n" || start == "N") {
@@ -73,6 +73,7 @@ int main(int argc, char* argv[]) {
 
     vector<vector<double>> peakParams;
     vector<vector<vector<double>>> all_peakParam;
+    vector<int> samp_rate;
     enum Mode { ALL, EACH, NONE };
     Mode m = Mode::NONE;
     if (!output_mode) {
@@ -94,17 +95,24 @@ int main(int argc, char* argv[]) {
                     m = Mode::NONE;
                     cout << "Empty input, switching to automatic peak identification." << endl;
                 }
+                cout << "Please give the sampling rate for all data.";
+                cin >> time;
             }
             else if (repeat == "each") {
                 m = Mode::EACH;
-                cout << "For each file, please type in data in the format: tmeperature,count,activation energy, press enter for each peak." << endl;
+                cout << "For each file, please type in peak data in the format: tmeperature,count,activation energy, press enter for each peak." << endl;
                 cout << "Type done when you are finished." << endl;
+                cout << "Then, please type in the sampling rate." << endl;
                 auto i = files.begin();
                 for (; i != files.end(); ++i) {
                     string filename = i->substr((i->find_last_of("/\\")) + 1);
-                    cout << "Enter data for: " << filename << endl;
+                    cout << "Enter peak data for: " << filename << endl;
                     vector<vector<double>> param = input_data();
                     all_peakParam.push_back(param);
+                    cout << "Enter sampling rate." << endl;
+                    int t;
+                    cin >> t;
+                    samp_rate.push_back(t);
                 }
                 if (all_peakParam.empty()) {
                     m = Mode::NONE;
@@ -118,7 +126,7 @@ int main(int argc, char* argv[]) {
     }
     ofstream file1;
     //string path = "C:/Users/wenji/Desktop/LARGE_GCA_TEST_SUITE/large_output.txt";
-    file1.open(path);
+    //file1.open(path);
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
         //count to see which file is being processed
         int num = 0;
@@ -146,7 +154,7 @@ int main(int argc, char* argv[]) {
         cout << ".";
         cout.flush();
         //create a pair of two vector data which has first to be temperature data and second to be count data
-        pair<vector<double>, vector<double>> data = fileManager.read(time);
+        pair<vector<double>, vector<double>> data = fileManager.read();
         int length = static_cast<int>(data.second.size());
         int window_size = length * 0.05;
         if (window_size % 2 == 0) {
