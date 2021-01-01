@@ -1,4 +1,0 @@
-﻿  main1.cpp
-C:\Users\wenji\Desktop\GlowCurveAnalysis\main1.cpp(50,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\wenji\Desktop\GlowCurveAnalysis\main1.cpp(159,25): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-  GCA.vcxproj -> C:\Users\wenji\Desktop\GlowCurveAnalysis\Debug\GCA.exe
