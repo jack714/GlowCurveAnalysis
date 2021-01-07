@@ -25,7 +25,6 @@ private:
     std::vector<double> heating_rate;
     int total_counts = 0;
     double maxTime = 0.0, maxTemp = 0.0, barcodeNum = 0.0;
-    bool time = false;
     std::string filename, header, output_dir;
 public:
     
