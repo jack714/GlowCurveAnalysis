@@ -5,8 +5,8 @@
 //  Created by Jack YuUROP 2020 Fall
 //
 
-#ifndef Savitzsky_Golay_hpp
-#define Savitzsky_Golay_hpp
+#ifndef Savitzky_Golay_hpp
+#define Savitzky_Golay_hpp
 
 #include <vector>
 #include <iostream>
@@ -24,4 +24,4 @@ void adjoint(vector<vector<double>>& A, vector<vector<double>>& adj);
 void invert(vector<vector<double>>& A, bool neg);
 
 
-#endif /* Savitzsky_Golay_hpp */
+#endif /* Savitzky_Golay_hpp */

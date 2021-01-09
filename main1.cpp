@@ -20,7 +20,8 @@
 #include "data_input.hpp"
 #include "background_subtraction.hpp"
 #include "remove_spike.hpp"
-#include "Savitzsky_Golay.hpp"
+#include "Savitzky_Golay.hpp"
+#include "background_remove.hpp"
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
@@ -124,13 +125,12 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    ofstream file1;
+    //ofstream file1;
     //string path = "C:/Users/wenji/Desktop/LARGE_GCA_TEST_SUITE/large_output.txt";
     //file1.open(path);
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
         //count to see which file is being processed
         int num = 0;
-        vector<double> firstDir;
         //make a coopy of peakParam and then customize the copy accoding to the data read in
         vector<vector<double>> peak;
         if (m == Mode::ALL)
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
         //    dataSmooth(data.first, data.second);
         //dataSmooth(data.first, data.second);
 
-        //copy two times the count data and run Savitzsky-Golay with order 4 and 5, then take the average
+        //copy two times the count data and run Savitzky-Golay with order 4 and 5, then take the average
         vector<double> orig_count1 = data.second;
         vector<double> orig_count2 = orig_count1;
         SG_smooth(orig_count1, window_size, 4);
@@ -177,6 +177,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < static_cast<int>(orig_count1.size()); i++) {
             data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
         }
+        vector<double> temp = data.second;
         //calculate the curve area by adding the count data
         const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
         //if the curve area is less 2000 then it's not enough for further analysis
@@ -188,37 +189,42 @@ int main(int argc, char* argv[]) {
             remove((output_dir + "/temp.csv").c_str());
             continue;
         }
+
+        //background_substraction
+        remove_back(data.first, data.second);
+
         ofstream file2;
         //calculate the noise ratio
-        file1 << filename << " ";
-        double sum_smooth = 0.0;
-        double sum_diff = 0.0;
-        for (int i = 0; i < static_cast<int>(orig_count.size()); i++) {
-            sum_smooth += data.second[i];
-            sum_diff += abs(data.second[i] - orig_count[i]);
-        }
-        file1 << sum_smooth / sum_diff << endl;
+        //file1 << filename << " ";
+        //double sum_smooth = 0.0;
+        //double sum_diff = 0.0;
+        //for (int i = 0; i < static_cast<int>(orig_count.size()); i++) {
+        //    sum_smooth += data.second[i];
+        //    sum_diff += abs(data.second[i] - orig_count[i]);
+        //}
+        //file1 << sum_smooth / sum_diff << endl;
         //string output = files[i] + "_output.csv";
         //file.open(output);
         //string output = files[i].substr(files[i].find("R"));
         //string path = output_dir + "/" + output;
         string path = output_dir + "/" + filename;
         file2.open(path);
-        file2 << "temp, orig_count, new_count";
+        file2 << "temp, orig_count, new_count, subtracted_count";
         file2 << ",\n";
-        file2.setf(ios_base::fixed);
-        file2 << setprecision(5);
+        //file2.setf(ios_base::fixed);
+        //file2 << setprecision(5);
         //for (int i = 0; i < int(orig_count.size()); ++i) {
         for (int i = 0; i < int(data.second.size()); ++i) {
             file2 << data.first[i] << ",";
             file2 << orig_count[i] << ", ";
+            file2 << temp[i] << ", ";
             file2 << data.second[i];
             file2 << ",\n";
         }
         file2.close();
         count++;
     }
-    file1.close();
+    //file1.close();
     return 0;
 }
 

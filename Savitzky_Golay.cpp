@@ -5,7 +5,7 @@
 //  Created by Jack YuUROP 2020 Fall
 //  Matrix aithmetics written by Jeremy Hepker
 //
-#include "Savitzsky_Golay.hpp"
+#include "Savitzky_Golay.hpp"
 
 void SG_smooth(vector<double>& y, int window_size, int size) {
     //create the Vandermonde Matrix

@@ -11,19 +11,19 @@
 
 // Sudo Main function for smartPeakDetect, take in temperature and count data then record peaks data in peakParams
 vector<double> findPeaks( std::vector<double>& x, std::vector<double>& y,
-                std::vector<std::vector<double>>& peakParams, std::string output_dir )
+                std::vector<std::vector<double>>& peakParams, std::string output_dir, std::vector<double>& firstDir)
 {
     std::vector<double> xNew = x, yNew= y;
     std::vector<std::vector<double>> peaks;
     std::vector<int> maximums, minimum, inflections;
-    std::vector<double> firstDir( x.size( ), 0.0 );
+    //std::vector<double> firstDir( x.size( ), 0.0 );
     std::vector<double> secDir( x.size( ), 0.0 );
     //call firstDeriv function from this file and populate firstDir vector with first derivative data
-    firstDeriv( xNew, yNew, firstDir );
+    //firstDeriv( xNew, yNew, firstDir );
     //call secDeriv function from this file and populate secDir vector with second derivative data
     secDeriv( xNew, yNew, secDir );
     //call smartPoints from this file and populate maximum, minimum, inflections, further process the peaks in maximum
-    smartPoints( xNew, yNew, minimum, maximums,firstDir, secDir, inflections );
+    smartPoints( xNew, yNew, minimum, maximums, firstDir, secDir, inflections );
     
     //call pointsParams from this file, populate peakParams with activation, temperature,
     //full width half max TL TM TR's index for peak fitting
