@@ -70,7 +70,15 @@ void remove_back(vector<double>& x, vector<double>& y) {
         slope = (rightCount - leftCount) / (rightTemp - leftTemp);
         c = leftCount - slope * leftTemp;
     }
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < size; i++) 
         y[i] -= slope * x[i] + c;
+    vector<double> xTemp;
+    vector<double> yTemp;
+    for (int i = leftPoint; i < rightPoint; i++) {
+        xTemp.push_back(x[i]);
+        yTemp.push_back(y[i]);
+    }
+    swap(x, xTemp);
+    swap(y, yTemp);
     //cout << slope << " " << c;
 }
