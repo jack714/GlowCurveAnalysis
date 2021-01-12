@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
         //string path = output_dir + "/" + output;
         string path = output_dir + "/" + filename;
         file2.open(path);
-        file2 << "temp, orig_count, new_count, subtracted_count, line";
+        file2 << "temp, orig_count, new_count, subtracted_count, new line";
         file2 << ",\n";
         //file2.setf(ios_base::fixed);
         //file2 << setprecision(5);
