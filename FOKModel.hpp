@@ -14,5 +14,6 @@
 #include <vector>
 
 void FOKModel(std::vector<double>& x, std::vector<double>& peak, double Tm, double Im, double E);
+double quickFok(const double input, const std::vector<double> params);
 
 #endif /* FOKModel_hpp */

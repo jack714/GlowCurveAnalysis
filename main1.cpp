@@ -18,7 +18,6 @@
 #include "Levenberg_Marquardt.hpp"
 #include "quick_half_max.hpp"
 #include "data_input.hpp"
-#include "background_subtraction.hpp"
 #include "remove_spike.hpp"
 #include "Savitzky_Golay.hpp"
 #include "background_remove.hpp"
@@ -32,6 +31,99 @@
 #endif
 
 using namespace std;
+
+double func(const double input, const vector<double> params) {
+    double T = 0.0;
+    double I_t = 0.0;
+    double k = .000086173303;
+    double energy = params[0];
+    double Tm = params[1] + 273.15;
+    double dm = (2.0 * k * (Tm)) / energy;
+    double Im = params[2];
+    T = double(input + 273.15);
+    I_t = Im * exp(1.0 + (energy / (k * T)) * ((T - Tm) / Tm) - ((T * T) / (Tm * Tm)) * exp((energy / (k * T)) * ((T - Tm) / Tm)) * (1.0 - ((2.0 * k * T) / energy)) - dm);
+    return I_t;
+}
+
+void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM) {
+    //temperary vector to store peak data
+    vector<vector<double>> temp_params = peakParams;
+    //temperary vector to store accumulated fitted count
+    vector<double> temp_output(curve.size(), 0.0);
+    int curveSize = int(curve.size());
+    int peakNum = int(peakParams.size());
+    double k = .000086173303;
+    double rate1 = 0.00000001;
+    double rate2 = 0.00002;
+    double rate3 = 0.001;
+    double current_FOM = FOM;
+    int iteration = 0;
+    int main_hold = 0;
+    while (iteration < 300 && main_hold < 3) {
+        vector<vector<double>> update(peakNum, vector<double>(3, 0.0));
+        //use FWHM to find the left and right half max points
+        for (int b = 0; b < peakNum; b++) {
+            int TL = temp_params[b][3];
+            int TR = temp_params[b][5];
+            double energy = temp_params[b][0];
+            double Tm = temp_params[b][1];
+            double Im = temp_params[b][2];
+            for (int index = TL; index < TR + 1; index++) {
+                double y = curve[index];
+                double T = temp[index];
+                double deriv_E = -2.0 * Im * (-(2.0 * k * T * T * T * exp((energy * (T - Tm)) / (Tm * k * T))) / (energy * energy * Tm * Tm) + (2.0 * Tm * k) /
+                    (energy * energy) - (T * (T - Tm) * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm * k) + (T - Tm) /
+                    (Tm * k * T)) * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (energy * (T - Tm)) /
+                    (Tm * k * T) - (2.0 * Tm * k) / energy + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) /
+                        (Tm * Tm) + (energy * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / energy + 1.0));
+                double deriv_Tm = -2.0 * Im * ((2.0 * T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm) - (T * T * (1.0 - (2.0 * k * T) / energy)
+                    * exp((energy * (T - Tm)) / (Tm * k * T)) * (-(energy * (T - Tm)) / (Tm * Tm * k * T) - energy / (Tm * k * T))) / (Tm * Tm) - (energy * (T - Tm)) / (Tm * Tm * k * T) -
+                    energy / (Tm * k * T) - (2.0 * k) / energy) * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (energy * (T - Tm)) / (Tm * k * T) -
+                    (2.0 * Tm * k) / energy + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (energy * (T - Tm)) / (Tm * k * T) -
+                        (2.0 * Tm * k) / energy + 1.0));
+                double deriv_Im = -2.0 * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm) + (energy * (T - Tm)) /
+                    (Tm * k * T) - (2.0 * Tm * k) / energy + 1.0) * (y - Im * exp(-(T * T * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) /
+                    (Tm * Tm) + (energy * (T - Tm)) / (Tm * k * T) - (2.0 * Tm * k) / energy + 1.0));
+                update[b][0] += rate1 * deriv_E;
+                update[b][1] += rate2 * deriv_Tm;
+                update[b][2] += rate3 * deriv_Im;
+            }
+        }
+        for (int i = 0; i < peakNum; i++) {
+            if (update[i][0] < 0.001 || update[i][1] < 0.001 || update[i][2] < 0.001)
+                break;
+        }
+        //apply the change to the peak paramter
+        for (int c = 0; c < peakNum; c++) {
+            temp_params[c][0] -= update[c][0];
+            temp_params[c][1] -= update[c][1];
+            temp_params[c][2] -= update[c][2];
+        }
+        //for (int j = 0; j < peakNum; j++) {
+        //    cout << update[j][0] << ", " << update[j][1] << ", " << update[j][2] << endl;
+        //    cout << temp_params[j][0] << ", " << temp_params[j][1] << ", " << temp_params[j][2] << endl;
+        //}
+        cout << ".";
+        cout.flush();
+        iteration++;
+    }
+    double new_integral = 0.0;
+    vector<double> new_output(curve.size(), 0.0);
+    for (int d = 0; d < curveSize; d++) {
+        double new_fit = 0.0;
+        for (int e = 0; e < peakNum; e++) {
+            new_fit += func(temp[d], temp_params[e]);
+        }
+        new_integral += new_fit;
+        new_output[d] = new_fit;
+    }
+    current_FOM = 0.0;
+    for (int f = 0; f < curveSize; ++f) {
+        current_FOM += abs(curve[f] - new_output[f]) / new_integral;
+    }
+    FOM = current_FOM;
+    peakParams = temp_params;
+}
 
 int main(int argc, char* argv[]) {
     //enable quick mode to run output with machine generated peak detections
@@ -163,11 +255,6 @@ int main(int argc, char* argv[]) {
         vector<double> orig_count = data.second;
         //REMOVE_SPIKE call
         spike_elim(data.first, data.second, 3, 1.2);
-        //DATA_SMOOTHING call
-        //use dataSmooth from dataSmoothing.cpp to process raw data
-        //for (int j = 0; j < 5; ++j)
-        //    dataSmooth(data.first, data.second);
-        //dataSmooth(data.first, data.second);
 
         //copy two times the count data and run Savitzky-Golay with order 4 and 5, then take the average
         vector<double> orig_count1 = data.second;
@@ -178,6 +265,10 @@ int main(int argc, char* argv[]) {
             data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
         }
         vector<double> temp = data.second;
+
+        //background_substraction
+        //vector<double> t = remove_back(data.first, data.second);
+
         //calculate the curve area by adding the count data
         const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
         //if the curve area is less 2000 then it's not enough for further analysis
@@ -190,8 +281,44 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        //background_substraction
-        vector<double> t = remove_back(data.first, data.second);
+        
+
+        //testing gradient descent on TLD 100
+        //peakparams: activation energy, maxTemp, maxIntensity, TL, TM, TR
+        vector<vector<double>> peakParams;
+        findPeaks(data.first, data.second, peakParams, output_dir);
+        //cout << "energy, temp, count, TL, TM, TR" << endl;
+        //for (int i = 0; i < int(peakParams.size()); i++)
+        //    cout << peakParams[i][0] << " " << peakParams[i][1] << " " << peakParams[i][2] << " " << peakParams[i][3] << " " << peakParams[i][4] << " " << peakParams[i][5] << endl;
+        vector<vector<double>> curve;
+        for (int i = 0; i < int(peakParams.size()); ++i) {
+            curve.push_back(vector<double>(data.first.size(), 0.0));
+        }
+        //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak in
+        //peak_areas and accumulate same temperature's FOK values in all fits to sum
+        for (int i = 0; i < int(data.first.size()); ++i) {
+            double output = 0.0;
+            for (int x = 0; x < int(peakParams.size()); ++x) {
+                double out = quickFok(data.first[i], peakParams[x]);
+                curve[x][i] = out;
+            }
+        }
+        vector<vector<double>> GDParams = peakParams;
+        vector<vector<double>> GDcurve;
+        double fom = 1;
+        gd(data.first, data.second, GDParams, fom);
+        for (int i = 0; i < int(GDParams.size()); ++i) {
+            GDcurve.push_back(vector<double>(data.first.size(), 0.0));
+        }
+        for (int i = 0; i < int(data.first.size()); ++i) {
+            double output = 0.0;
+            for (int x = 0; x < int(GDParams.size()); ++x) {
+                double out = quickFok(data.first[i], GDParams[x]);
+                GDcurve[x][i] = out;
+            }
+        }
+        //cout << oldParams[0][0] << " " << oldParams[0][1] << " " << oldParams[0][2] << endl;
+        //cout << peakParams[0][0] << " " << peakParams[0][1] << " " << peakParams[0][2] << endl;
 
         ofstream file2;
         //calculate the noise ratio
@@ -207,19 +334,33 @@ int main(int argc, char* argv[]) {
         //file.open(output);
         //string output = files[i].substr(files[i].find("R"));
         //string path = output_dir + "/" + output;
+        //string path = output_dir + "/" + filename;
         string path = output_dir + "/" + filename;
         file2.open(path);
-        file2 << "temp, orig_count, new_count, subtracted_count, deriv";
+        //file2 << "temp, orig_count, new_count, subtracted_count, deriv";
+        //file2 << ",\n";
+        file2 << "temp, first, sec, third, forth, GDfirst, GDsec, GDthird, GDforth";
         file2 << ",\n";
         //file2.setf(ios_base::fixed);
         //file2 << setprecision(5);
         //for (int i = 0; i < int(orig_count.size()); ++i) {
-        for (int i = 0; i < int(data.second.size()); ++i) {
+        //for (int i = 0; i < int(data.second.size()); ++i) {
+        //    file2 << data.first[i] << ",";
+        //    file2 << orig_count[i] << ", ";
+        //    file2 << temp[i] << ", ";
+        //    file2 << data.second[i] << ", ";
+        //    //file2 << t[i];
+        //    file2 << ",\n";
+        //}
+        for (int i = 0; i < int(data.first.size()); i++) {
             file2 << data.first[i] << ",";
-            file2 << orig_count[i] << ", ";
-            file2 << temp[i] << ", ";
-            file2 << data.second[i] << ", ";
-            file2 << t[i];
+            for (int j = 0; j < int(curve.size()); j++) {
+                file2 << curve[j][i] << ",";
+            }
+            for (int j = 0; j < int(GDcurve.size()) - 1; j++) {
+                file2 << GDcurve[j][i] << ",";
+            }
+            file2 << GDcurve[curve.size() - 1][i];
             file2 << ",\n";
         }
         file2.close();

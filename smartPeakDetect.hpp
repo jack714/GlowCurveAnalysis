@@ -33,7 +33,7 @@ double activation(double TL, double TR, double TM);
 int find_half_max(int index, std::vector<double>& x,std::vector<double>& y, std::vector<int>& maxima, std::vector<int>& minima, std::vector<std::vector<double>>& peakParams);
 
 // Sudo Main function for smartPeakDetect, take in temperature and count data then record peaks in peakParams
-std::vector<double> findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::vector<double>>& peakPrams, std::string output_dir, std::vector<double>& firstDir);
+std::vector<double> findPeaks(std::vector<double>& x, std::vector<double>& y, std::vector<std::vector<double>>& peakPrams, std::string output_dir);
 
 //double average(std::vector<double>::iterator first, std::vector<double>::iterator last, int size);
 

@@ -394,5 +394,5 @@ void First_Order_Kinetics::gradient_Descent(const vector<double>& curve, vector<
         current_FOM += abs(curve[f] - new_output[f]) / new_integral;
     }
     FOM = current_FOM;
-    peakParams = temp_params;
+    swap(peakParams, temp_params);
 }
