@@ -14,6 +14,6 @@
 using namespace std;
 
 //remove the background noise
-void remove_back(vector<double>& x, vector<double>& y);
+vector<double> remove_back(vector<double>& x, vector<double>& y);
 
 #endif /* background_remove_hpp */

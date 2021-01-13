@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
         }
 
         //background_substraction
-        remove_back(data.first, data.second);
+        vector<double> t = remove_back(data.first, data.second);
 
         ofstream file2;
         //calculate the noise ratio
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
         //string path = output_dir + "/" + output;
         string path = output_dir + "/" + filename;
         file2.open(path);
-        file2 << "temp, orig_count, new_count, subtracted_count, new line";
+        file2 << "temp, orig_count, new_count, subtracted_count, deriv";
         file2 << ",\n";
         //file2.setf(ios_base::fixed);
         //file2 << setprecision(5);
@@ -219,6 +219,7 @@ int main(int argc, char* argv[]) {
             file2 << orig_count[i] << ", ";
             file2 << temp[i] << ", ";
             file2 << data.second[i] << ", ";
+            file2 << t[i];
             file2 << ",\n";
         }
         file2.close();
