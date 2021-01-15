@@ -57,7 +57,8 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
     //double rate1 = 0.0000000047;
     double rate2 = 0.00002;
     //double rate2 = 0.000001;
-    double rate3 = 0.001;
+    //double rate3 = 0.001;
+    double rate3 = 0.00001;
     //double rate3 = 0.0000065;
     double current_FOM = FOM;
     int iteration = 0;
@@ -107,16 +108,19 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
                 update[b][2] += rate3 * deriv_Im;
             }
         }
-        vector<double> change(peakParams.size(), 0);
+        vector<double> change(peakParams.size(), -1000);
         for (int i = 0; i < peakNum; i++) {
             cout << update[i][0] << "   " << update[i][1] << "   " << update[i][2] << endl;
             if (abs(update[i][0]) > change[0])
                 change[0] = abs(update[i][0]);
             if (abs(update[i][1]) > change[1])
                 change[1] = abs(update[i][1]);
-            if (abs(update[i][2]) > change[2])
-                change[2] = abs(update[i][2]);
-            if (abs(change[0]) < 0.00001 || abs(change[1]) < 0.0001 || abs(change[2]) < 0.0001) {
+            //if (abs(update[i][2]) > change[2])
+            //    change[2] = abs(update[i][2]);
+            if (update[i][2] > change[2])
+                change[2] = update[i][2];
+            //if (abs(change[0]) < 0.00001 || abs(change[1]) < 0.0001 || abs(change[2]) < 0.0001) {
+            if (abs(change[0]) < 0.00001 || change[2] > 0) {
                 check = false;
             }
             
@@ -283,6 +287,24 @@ int main(int argc, char* argv[]) {
         if (window_size % 2 == 0) {
             window_size += 1;
         }
+
+        //Smooth temperature raw data with Savitzky-Golay
+        int window = length * 0.05;
+        if (window % 2 == 0) {
+            window += 1;
+        }
+        vector<double> temp_orig1 = data.first;
+        vector<double> temp_orig2 = temp_orig1;
+        //SG_smooth(temp_orig1, window, 4);
+        //SG_smooth(temp_orig2, window, 5);
+        SG_smooth(temp_orig2, window, 3);
+        //for (int i = 0; i < static_cast<int>(temp_orig1.size()); i++) {
+        //    data.first[i] = (temp_orig1[i] + temp_orig2[i]) / 2;
+        //}
+        for (int i = 0; i < static_cast<int>(temp_orig1.size()); i++) {
+            data.first[i] = temp_orig2[i];
+        }
+
         vector<double> orig_count = data.second;
         //REMOVE_SPIKE call
         spike_elim(data.first, data.second, 3, 1.2);
@@ -297,7 +319,7 @@ int main(int argc, char* argv[]) {
         }
 
         //background_substraction
-        //vector<double> t = remove_back(data.first, data.second);
+        vector<double> t = remove_back(data.first, data.second);
         vector<double> temp = data.second;
 
         //calculate the curve area by adding the count data
