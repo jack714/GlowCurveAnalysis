@@ -53,14 +53,29 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
     int curveSize = int(curve.size());
     int peakNum = int(peakParams.size());
     double k = .000086173303;
-    double rate1 = 0.00000001;
+    double rate1 = 0.0000001;
+    //double rate1 = 0.0000000047;
     double rate2 = 0.00002;
+    //double rate2 = 0.000001;
     double rate3 = 0.001;
+    //double rate3 = 0.0000065;
     double current_FOM = FOM;
     int iteration = 0;
-    int main_hold = 0;
-    while (iteration < 300 && main_hold < 3) {
+    bool check = true;
+    while (iteration < 500 && check) {
         vector<vector<double>> update(peakNum, vector<double>(3, 0.0));
+        vector<vector<double>> curves(temp_params.size(), vector<double>(curve.size()));
+        vector<double> totalCurve(curve.size());
+        for (int i = 0; i < int(curve.size()); ++i) {
+            double out;
+            double accum = 0.0;
+            for (int x = 0; x < int(temp_params.size()); ++x) {
+                out = quickFok(temp[i], temp_params[x]);
+                curves[x][i] = out;
+                accum += out;
+            }
+            totalCurve[i] = accum;
+        }
         //use FWHM to find the left and right half max points
         for (int b = 0; b < peakNum; b++) {
             int TL = temp_params[b][3];
@@ -69,7 +84,10 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
             double Tm = temp_params[b][1];
             double Im = temp_params[b][2];
             for (int index = TL; index < TR + 1; index++) {
-                double y = curve[index];
+            //for (int index = 0; index < int(curve.size()); index++) {
+                double y = curve[index] - totalCurve[index] + curves[b][index];
+                if (y < 0)
+                    y = 0;
                 double T = temp[index];
                 double deriv_E = -2.0 * Im * (-(2.0 * k * T * T * T * exp((energy * (T - Tm)) / (Tm * k * T))) / (energy * energy * Tm * Tm) + (2.0 * Tm * k) /
                     (energy * energy) - (T * (T - Tm) * (1.0 - (2.0 * k * T) / energy) * exp((energy * (T - Tm)) / (Tm * k * T))) / (Tm * Tm * Tm * k) + (T - Tm) /
@@ -89,10 +107,21 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
                 update[b][2] += rate3 * deriv_Im;
             }
         }
+        vector<double> change(peakParams.size(), 0);
         for (int i = 0; i < peakNum; i++) {
-            if (update[i][0] < 0.001 || update[i][1] < 0.001 || update[i][2] < 0.001)
-                break;
+            cout << update[i][0] << "   " << update[i][1] << "   " << update[i][2] << endl;
+            if (abs(update[i][0]) > change[0])
+                change[0] = abs(update[i][0]);
+            if (abs(update[i][1]) > change[1])
+                change[1] = abs(update[i][1]);
+            if (abs(update[i][2]) > change[2])
+                change[2] = abs(update[i][2]);
+            if (abs(change[0]) < 0.00001 || abs(change[1]) < 0.0001 || abs(change[2]) < 0.0001) {
+                check = false;
+            }
+            
         }
+        cout << endl;
         //apply the change to the peak paramter
         for (int c = 0; c < peakNum; c++) {
             temp_params[c][0] -= update[c][0];
@@ -123,6 +152,8 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
     }
     FOM = current_FOM;
     peakParams = temp_params;
+    cout << "GD ran " << iteration << " times" << endl;
+    cout << "the new FOM is: " << FOM;
 }
 
 int main(int argc, char* argv[]) {
@@ -264,10 +295,10 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < static_cast<int>(orig_count1.size()); i++) {
             data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
         }
-        vector<double> temp = data.second;
 
         //background_substraction
         //vector<double> t = remove_back(data.first, data.second);
+        vector<double> temp = data.second;
 
         //calculate the curve area by adding the count data
         const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
@@ -296,13 +327,24 @@ int main(int argc, char* argv[]) {
         }
         //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak in
         //peak_areas and accumulate same temperature's FOK values in all fits to sum
+        vector<double> total_curve(data.first.size());
+        double total = 0.0;
         for (int i = 0; i < int(data.first.size()); ++i) {
             double output = 0.0;
+            double partial_sum = 0.0;
             for (int x = 0; x < int(peakParams.size()); ++x) {
                 double out = quickFok(data.first[i], peakParams[x]);
                 curve[x][i] = out;
+                partial_sum += out;
             }
+            total_curve[i] = partial_sum;
+            total += partial_sum;
         }
+        double cur_fom = 0.0;
+        for (int f = 0; f < int(total_curve.size()); ++f) {
+            cur_fom += abs(data.second[f] - total_curve[f]) / total;
+        }
+        cout << "the initial FOM is: " << cur_fom << endl;
         vector<vector<double>> GDParams = peakParams;
         vector<vector<double>> GDcurve;
         double fom = 1;
@@ -339,7 +381,7 @@ int main(int argc, char* argv[]) {
         file2.open(path);
         //file2 << "temp, orig_count, new_count, subtracted_count, deriv";
         //file2 << ",\n";
-        file2 << "temp, first, sec, third, forth, GDfirst, GDsec, GDthird, GDforth";
+        file2 << "temp, after removal, first, sec, third, forth, GDfirst, GDsec, GDthird, GDforth";
         file2 << ",\n";
         //file2.setf(ios_base::fixed);
         //file2 << setprecision(5);
@@ -354,6 +396,8 @@ int main(int argc, char* argv[]) {
         //}
         for (int i = 0; i < int(data.first.size()); i++) {
             file2 << data.first[i] << ",";
+            //file2 << orig_count[i] << ",";
+            file2 << temp[i] << ",";
             for (int j = 0; j < int(curve.size()); j++) {
                 file2 << curve[j][i] << ",";
             }
