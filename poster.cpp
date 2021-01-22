@@ -252,7 +252,9 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    //ofstream file1;
+    ofstream file1;
+    string folder = output_dir + "ratios.txt";
+    file1.open(folder);
     //string path = "C:/Users/wenji/Desktop/LARGE_GCA_TEST_SUITE/large_output.txt";
     //file1.open(path);
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
@@ -283,44 +285,44 @@ int main(int argc, char* argv[]) {
         //create a pair of two vector data which has first to be temperature data and second to be count data
         pair<vector<double>, vector<double>> data = fileManager.read();
         int length = static_cast<int>(data.second.size());
-        int window_size = length * 0.05;
-        if (window_size % 2 == 0) {
-            window_size += 1;
-        }
+        //int window_size = length * 0.05;
+        //if (window_size % 2 == 0) {
+        //    window_size += 1;
+        //}
 
         //Smooth temperature raw data with Savitzky-Golay
-        int window = length * 0.05;
-        if (window % 2 == 0) {
-            window += 1;
-        }
-        vector<double> temp_orig1 = data.first;
-        vector<double> temp_orig2 = temp_orig1;
+        //int window = length * 0.05;
+        //if (window % 2 == 0) {
+        //    window += 1;
+        //}
+        //vector<double> temp_orig1 = data.first;
+        //vector<double> temp_orig2 = temp_orig1;
         //SG_smooth(temp_orig1, window, 4);
         //SG_smooth(temp_orig2, window, 5);
-        SG_smooth(temp_orig2, window, 3);
+        //SG_smooth(temp_orig2, window, 3);
         //for (int i = 0; i < static_cast<int>(temp_orig1.size()); i++) {
         //    data.first[i] = (temp_orig1[i] + temp_orig2[i]) / 2;
         //}
-        for (int i = 0; i < static_cast<int>(temp_orig1.size()); i++) {
-            data.first[i] = temp_orig2[i];
-        }
+        //for (int i = 0; i < static_cast<int>(temp_orig1.size()); i++) {
+        //    data.first[i] = temp_orig2[i];
+        //}
 
         vector<double> orig_count = data.second;
         //REMOVE_SPIKE call
-        spike_elim(data.first, data.second, 3, 1.2);
+        //spike_elim(data.first, data.second, 3, 1.2);
 
         //copy two times the count data and run Savitzky-Golay with order 4 and 5, then take the average
-        vector<double> orig_count1 = data.second;
-        vector<double> orig_count2 = orig_count1;
-        SG_smooth(orig_count1, window_size, 4);
-        SG_smooth(orig_count2, window_size, 5);
-        for (int i = 0; i < static_cast<int>(orig_count1.size()); i++) {
-            data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
-        }
+        //vector<double> orig_count1 = data.second;
+        //vector<double> orig_count2 = orig_count1;
+        //SG_smooth(orig_count1, window_size, 4);
+        //SG_smooth(orig_count2, window_size, 5);
+        //for (int i = 0; i < static_cast<int>(orig_count1.size()); i++) {
+        //    data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
+        //}
 
         //background_substraction
-        vector<double> t = remove_back(data.first, data.second);
-        vector<double> temp = data.second;
+        //vector<double> t = remove_back(data.first, data.second);
+        //vector<double> temp = data.second;
 
         //calculate the curve area by adding the count data
         const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
@@ -338,49 +340,49 @@ int main(int argc, char* argv[]) {
 
         //testing gradient descent on TLD 100
         //peakparams: activation energy, maxTemp, maxIntensity, TL, TM, TR
-        vector<vector<double>> peakParams;
-        findPeaks(data.first, data.second, peakParams, output_dir);
+        //vector<vector<double>> peakParams;
+        //findPeaks(data.first, data.second, peakParams, output_dir);
         //cout << "energy, temp, count, TL, TM, TR" << endl;
         //for (int i = 0; i < int(peakParams.size()); i++)
         //    cout << peakParams[i][0] << " " << peakParams[i][1] << " " << peakParams[i][2] << " " << peakParams[i][3] << " " << peakParams[i][4] << " " << peakParams[i][5] << endl;
-        vector<vector<double>> curve;
-        for (int i = 0; i < int(peakParams.size()); ++i) {
-            curve.push_back(vector<double>(data.first.size(), 0.0));
-        }
+        //vector<vector<double>> curve;
+        //for (int i = 0; i < int(peakParams.size()); ++i) {
+        //    curve.push_back(vector<double>(data.first.size(), 0.0));
+        //}
         //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak in
         //peak_areas and accumulate same temperature's FOK values in all fits to sum
-        vector<double> total_curve(data.first.size());
-        double total = 0.0;
-        for (int i = 0; i < int(data.first.size()); ++i) {
-            double output = 0.0;
-            double partial_sum = 0.0;
-            for (int x = 0; x < int(peakParams.size()); ++x) {
-                double out = quickFok(data.first[i], peakParams[x]);
-                curve[x][i] = out;
-                partial_sum += out;
-            }
-            total_curve[i] = partial_sum;
-            total += partial_sum;
-        }
-        double cur_fom = 0.0;
-        for (int f = 0; f < int(total_curve.size()); ++f) {
-            cur_fom += abs(data.second[f] - total_curve[f]) / total;
-        }
-        cout << "the initial FOM is: " << cur_fom << endl;
-        vector<vector<double>> GDParams = peakParams;
-        vector<vector<double>> GDcurve;
-        double fom = 1;
-        gd(data.first, data.second, GDParams, fom);
-        for (int i = 0; i < int(GDParams.size()); ++i) {
-            GDcurve.push_back(vector<double>(data.first.size(), 0.0));
-        }
-        for (int i = 0; i < int(data.first.size()); ++i) {
-            double output = 0.0;
-            for (int x = 0; x < int(GDParams.size()); ++x) {
-                double out = quickFok(data.first[i], GDParams[x]);
-                GDcurve[x][i] = out;
-            }
-        }
+        //vector<double> total_curve(data.first.size());
+        //double total = 0.0;
+        //for (int i = 0; i < int(data.first.size()); ++i) {
+        //    double output = 0.0;
+        //    double partial_sum = 0.0;
+        //    for (int x = 0; x < int(peakParams.size()); ++x) {
+        //        double out = quickFok(data.first[i], peakParams[x]);
+        //        curve[x][i] = out;
+        //        partial_sum += out;
+        //    }
+        //    total_curve[i] = partial_sum;
+        //    total += partial_sum;
+        //}
+        //double cur_fom = 0.0;
+        //for (int f = 0; f < int(total_curve.size()); ++f) {
+        //    cur_fom += abs(data.second[f] - total_curve[f]) / total;
+        //}
+        //cout << "the initial FOM is: " << cur_fom << endl;
+        //vector<vector<double>> GDParams = peakParams;
+        //vector<vector<double>> GDcurve;
+        //double fom = 1;
+        //gd(data.first, data.second, GDParams, fom);
+        //for (int i = 0; i < int(GDParams.size()); ++i) {
+        //    GDcurve.push_back(vector<double>(data.first.size(), 0.0));
+        //}
+        //for (int i = 0; i < int(data.first.size()); ++i) {
+        //    double output = 0.0;
+        //    for (int x = 0; x < int(GDParams.size()); ++x) {
+        //        double out = quickFok(data.first[i], GDParams[x]);
+        //        GDcurve[x][i] = out;
+        //    }
+        //}
         //cout << oldParams[0][0] << " " << oldParams[0][1] << " " << oldParams[0][2] << endl;
         //cout << peakParams[0][0] << " " << peakParams[0][1] << " " << peakParams[0][2] << endl;
 
@@ -399,13 +401,21 @@ int main(int argc, char* argv[]) {
         //string output = files[i].substr(files[i].find("R"));
         //string path = output_dir + "/" + output;
         //string path = output_dir + "/" + filename;
-        cout << filename;
         string path = output_dir + "/" + filename;
         file2.open(path);
         //file2 << "temp, orig_count, new_count, subtracted_count, deriv";
         //file2 << ",\n";
-        file2 << "temp, after removal, first, sec, third, forth, GDfirst, GDsec, GDthird, GDforth";
+        //file2 << "temp, after removal, first, sec, third, forth, GDfirst, GDsec, GDthird, GDforth";
+        file2 << "temp, orig_count, new_count";
         file2 << ",\n";
+        double orig = 0.0;
+        double process = 0.0;
+        for (double d : orig_count)
+            orig += d;
+        for (double d : data.second)
+            process += d;
+        double ratio = abs((orig - process) / orig);
+        file1 << filename << ", " << ratio << ",\n";
         //file2.setf(ios_base::fixed);
         //file2 << setprecision(5);
         //for (int i = 0; i < int(orig_count.size()); ++i) {
@@ -420,20 +430,21 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < int(data.first.size()); i++) {
             file2 << data.first[i] << ",";
             //file2 << orig_count[i] << ",";
-            file2 << temp[i] << ",";
-            for (int j = 0; j < int(curve.size()); j++) {
-                file2 << curve[j][i] << ",";
-            }
-            for (int j = 0; j < int(GDcurve.size()) - 1; j++) {
-                file2 << GDcurve[j][i] << ",";
-            }
-            file2 << GDcurve[curve.size() - 1][i];
+            //file2 << temp[i] << ",";
+            //for (int j = 0; j < int(curve.size()); j++) {
+            //    file2 << curve[j][i] << ",";
+            //}
+            //for (int j = 0; j < int(GDcurve.size()) - 1; j++) {
+            //    file2 << GDcurve[j][i] << ",";
+            //}
+            //file2 << GDcurve[curve.size() - 1][i];
+            file2 << orig_count[i] << ", " << data.second[i] << ", ";
             file2 << ",\n";
         }
         file2.close();
         count++;
     }
-    //file1.close();
+    file1.close();
     return 0;
 }
 

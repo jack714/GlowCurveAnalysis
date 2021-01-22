@@ -14,6 +14,7 @@ using namespace std;
 
 //remove the spike in raw data
 void spike_elim(vector<double>& x, vector<double>& y, int span, double c);
-void elim_helper(vector<double>& y, int span, double c, int index, int& process);
+//remember to add process back
+void elim_helper(vector<double>& y, int span, double c, int index);
 
 #endif /* remove_spike_hpp */
