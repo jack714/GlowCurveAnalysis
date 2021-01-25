@@ -14,6 +14,7 @@
 #include <stdlib.h> 
 #include <random>
 #include <math.h>
+#include <iomanip>
 #include "remove_spike.hpp"
 #include "Savitzky_Golay.hpp"
 #ifdef WINDOWS
@@ -35,9 +36,9 @@ double fRand(double fMin, double fMax)
 }
 
 void generate_spike(vector<double>& y, vector<double>& x, vector<int> locations, double height, int width) {
-    for (int i : locations) {
+    //for (int i : locations) {
         //get the index of the spike
-        int index = i;
+        int index = locations[0];
         //get the height
         //double lower = 0.0;
         //double upper = height;
@@ -63,7 +64,7 @@ void generate_spike(vector<double>& y, vector<double>& x, vector<int> locations,
             int left = index - width / 2 - 1;
             int right = index + width / 2 + 1;
             double left_slope = (y[index] - y[left]) / (x[index] - x[left]);
-            double left_k = y[index] - x[left] * left_slope;
+            double left_k = y[index] - x[index] * left_slope;
             double right_slope = (y[right] - y[index]) / (x[right] - x[index]);
             double right_k = y[index] - right_slope * x[index];
             for (int i = left + 1; i < index; i++) {
@@ -73,10 +74,11 @@ void generate_spike(vector<double>& y, vector<double>& x, vector<int> locations,
                 y[j] = x[j] * right_slope + right_k;
             }
         }
-    }
+    //}
 }
 
 int main() {
+    srand(time(0));
     ofstream file1;
     string path = "C:/Users/jack0/Desktop/output1.csv";
     file1.open(path);
@@ -105,61 +107,91 @@ int main() {
     vector<double> orig = y;
     //int width = 5;
     file1 << "Orignal, Add spike, SG, spike_remove, " << endl;
-    for (int i = 0; i < 10000; i += 1) {
-        int width = rand() % 13;
+    //for (int i = 0; i < 10000; i += 1) {
+        //int width = rand() % 13 + 1;
+        //cout << width << endl;
         vector<int> locations;
-        //locations.push_back(500);
-        double d = 0.0;
-        while (d < 5.0) {
-            locations.push_back(floor(fRand(100, 900)));
-            d = fRand(0, 7.0);
-        }
+        locations.push_back(500);
+        //double d = 0.0;
+        //while (d < 5.0) {
+        //    locations.push_back(floor(fRand(100, 900)));
+        //    d = fRand(0, 7.0);
+        //}
+        //double height = fRand(0, 8.0);
+        //cout << height << endl;
+    int width = 7;
+    for(double h = 0; h < 8; h+=0.08) {
+        double height = h;
+        vector<double> new_temp = orig;
+        generate_spike(new_temp, x, locations, height, width);
+        vector<double> spike = new_temp;
+        //cout << spike[i] << " ";
 
-        //double height = 4.0;
-        double height = fRand(0, 8.0);
-        
-    
-        //ofstream file2;
-        //string p = "C:/Users/jack0/Desktop/" + to_string(h) + ".csv";
-        //file2.open(p);
-        //height += d;
-        //width = w;
-        //height = h;
-        //vector<int> loc;
-        //loc.push_back(i);
-        vector<double> temp = orig;
-        generate_spike(temp, x, locations, height, width);
-        vector<double> spike = temp;
-
-        vector<double> orig_copy_1 = temp;
-        vector<double> orig_copy_2 = temp;
-        vector<double> sg_copy = temp;
+        vector<double> orig_copy_1 = new_temp;
+        vector<double> orig_copy_2 = new_temp;
+        vector<double> sg_copy = new_temp;
         int window_size = 201;
         SG_smooth(orig_copy_1, window_size, 4);
         SG_smooth(orig_copy_2, window_size, 5);
         for (int i = 0; i < 1000; i++) {
             sg_copy[i] = (orig_copy_1[i] + orig_copy_2[i]) / 2;
         }
-
-        vector<double> add_spike = temp;
-        spike_elim(x, temp, 3, 1.2);
+        
+        //vector<double> add_spike = temp;
+        spike_elim(x, new_temp, 3, 1.2);
         double orig_sum = 0.0;
         double spike_sum = 0.0;
         double remove_sum = 0.0;
         double sg_sum = 0.0;
         for (double d : orig)
             orig_sum += d;
-        for (double d : add_spike)
+        for (double d : spike)
             spike_sum += d;
-        for (double d : temp)
+        for (double d : new_temp)
             remove_sum += d;
         for (double d : sg_copy)
             sg_sum += d;
-        
+
+        file1.setf(ios_base::fixed);
+        file1 << setprecision(9);
         file1 << orig_sum << ", ";
         file1 << spike_sum << ", ";
         file1 << sg_sum << ", ";
         file1 << remove_sum << ",\n";
+
+        //if (i == 110 || i == 101) {
+        //    ofstream file2;
+        //    string p = "C:/Users/jack0/Desktop/" + to_string(i) + ".csv";
+        //    file2.open(p);
+        //    file2 << "temp, orig, spike, sg, remove" << endl;
+        //    for (int i = 0; i < 1000; i++) {
+        //        file2 << x[i] << ", ";
+        //        file2 << orig[i] << ", ";
+        //        file2 << spike[i] << ", ";
+        //        file2 << sg_copy[i] << ", ";
+        //        file2 << new_temp[i] << ",\n";
+        //    }
+        //}
+    }
+
+        //locations.push_back(500);
+        //double d = 0.0;
+        //while (d < 5.0) {
+        //    locations.push_back(floor(fRand(100, 900)));
+        //    d = fRand(0, 7.0);
+        //}
+
+        //double height = 4.0;
+        //double height = fRand(0, 8.0);
+        
+    
+        
+        //height += d;
+        //width = w;
+        //height = h;
+        //vector<int> loc;
+        //loc.push_back(i);
+        
 
         //file2 << "temp, orig, spike, sg, remove" << endl;
         //for (int i = 0; i < 1000; i++) {
@@ -170,7 +202,7 @@ int main() {
         //    file2 << temp[i] << ",\n";
         //}
 
-    }
+    //}
     //vector<double> orig_copy_1 = y;
     //vector<double> orig_copy_2 = y;
     //vector<double> sg_copy = y;
