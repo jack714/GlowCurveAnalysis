@@ -380,6 +380,7 @@ int main(int argc, char* argv[]) {
             for (int i = 0; i < int(GDParams.size()); ++i) {
                 GDcurve.push_back(vector<double>(data.first.size(), 0.0));
             }
+            GDcurve.resize(4);
             for (int i = 0; i < int(data.first.size()); ++i) {
                 double output = 0.0;
                 for (int x = 0; x < int(GDParams.size()); ++x) {
