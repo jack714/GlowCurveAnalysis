@@ -79,7 +79,7 @@ vector<double> remove_back(vector<double>& x, vector<double>& y) {
     //cout << slope << " " << c << endl;
     int size = static_cast<int>(x.size());
     if (!check) {
-        cout << "yes!" << endl;
+        //cout << "yes!" << endl;
         double leftCount = (firstCount + secCount) / 2;
         double leftTemp = x[middle];
         double rightCount = 0.0;
