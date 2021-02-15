@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
         }
     }
     ofstream file1;
-    string path = "C:/Users/jack0/Desktop/FOMtest.txt";
+    string path = "C:/Users/jack0/Desktop/experiment.txt";
     file1.open(path);
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
         //count to see which file is being processed
@@ -345,25 +345,34 @@ int main(int argc, char* argv[]) {
 
         //testing gradient descent on TLD 100
         //peakparams: activation energy, maxTemp, maxIntensity, TL, TM, TR
-        vector<vector<double>> peakParams;
-        findPeaks(data.first, data.second, peakParams, output_dir);
-        if (int(peakParams.size()) != 4) {
-            files.erase(files.begin() + i);
-            i--;
-            cout << "file not considered" << endl;
-            //remove((dir + "/temp.csv").c_str());
-            remove((output_dir + "/temp.csv").c_str());
-            continue;
-        }
+        //vector<vector<double>> peakParams;
+        //findPeaks(data.first, data.second, peakParams, output_dir);
+        //if (int(peakParams.size()) != 4) {
+        //    files.erase(files.begin() + i);
+        //    i--;
+        //    cout << "file not considered" << endl;
+        //    //remove((dir + "/temp.csv").c_str());
+        //    remove((output_dir + "/temp.csv").c_str());
+        //    continue;
+        //}
         //cout << "energy, temp, count, TL, TM, TR" << endl;
         //for (int i = 0; i < int(peakParams.size()); i++)
         //    cout << peakParams[i][0] << " " << peakParams[i][1] << " " << peakParams[i][2] << " " << peakParams[i][3] << " " << peakParams[i][4] << " " << peakParams[i][5] << endl;
-        vector<vector<double>> curve;
-        for (int i = 0; i < int(peakParams.size()); ++i) {
-            curve.push_back(vector<double>(data.first.size(), 0.0));
-        }
+        //vector<vector<double>> curve;
+        //for (int i = 0; i < int(peakParams.size()); ++i) {
+        //    curve.push_back(vector<double>(data.first.size(), 0.0));
+        //}
         //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak in
         //peak_areas and accumulate same temperature's FOK values in all fits to sum
+        vector<vector<double>> peak_param;
+        peak_param.push_back{1.45, 367, 0.4};
+        peak_param.push_back{ 1.17, 385, 1.3};
+        peak_param.push_back{ 1.3, 406, 2};
+        peak_param.push_back{ 1.09, 434, 1.4};
+        peak_param.push_back{ 1.31, 461, 7};
+        peak_param.push_back{ 1.26, 489, };
+        peak_param.push_back{ 1.43, 538, };
+        peak_param.push_back{ 1.31, 562, };
         vector<double> total_curve(data.first.size());
         double total = 0.0;
         for (int i = 0; i < int(data.first.size()); ++i) {
@@ -420,28 +429,28 @@ int main(int argc, char* argv[]) {
         //string output = files[i].substr(files[i].find("R"));
         //string path = output_dir + "/" + output;
         //string path = output_dir + "/" + filename;
-        if (check) {
-            ofstream file2;
-            string path = output_dir + "/" + filename;
-            file2.open(path);
-            file2 << "temp, after removal, first, sec, third, forth, GDfirst, GDsec, GDthird, GDforth";
-            file2 << ",\n";
-            for (int i = 0; i < int(data.first.size()); i++) {
-                file2 << data.first[i] << ",";
-                //file2 << orig_count[i] << ",";
-                file2 << temp[i] << ",";
-                for (int j = 0; j < int(curve.size()); j++) {
-                    file2 << curve[j][i] << ",";
-                }
-                for (int j = 0; j < int(GDcurve.size()) - 1; j++) {
-                    file2 << GDcurve[j][i] << ",";
-                }
-                file2 << GDcurve[curve.size() - 1][i];
-                file2 << ",\n";
-                
-            }
-            file2.close();
-        }
+        //if (check) {
+        //    ofstream file2;
+        //    string path = output_dir + "/" + filename;
+        //    file2.open(path);
+        //    file2 << "temp, after removal, first, sec, third, forth, GDfirst, GDsec, GDthird, GDforth";
+        //    file2 << ",\n";
+        //    for (int i = 0; i < int(data.first.size()); i++) {
+        //        file2 << data.first[i] << ",";
+        //        //file2 << orig_count[i] << ",";
+        //        file2 << temp[i] << ",";
+        //        for (int j = 0; j < int(curve.size()); j++) {
+        //            file2 << curve[j][i] << ",";
+        //        }
+        //        for (int j = 0; j < int(GDcurve.size()) - 1; j++) {
+        //            file2 << GDcurve[j][i] << ",";
+        //        }
+        //        file2 << GDcurve[curve.size() - 1][i];
+        //        file2 << ",\n";
+        //        
+        //    }
+        //    file2.close();
+        //}
         
         //file2 << "temp, orig_count, new_count, subtracted_count, deriv";
         //file2 << ",\n";
