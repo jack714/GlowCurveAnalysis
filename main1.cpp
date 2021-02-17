@@ -341,8 +341,6 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        
-
         //testing gradient descent on TLD 100
         //peakparams: activation energy, maxTemp, maxIntensity, TL, TM, TR
         //vector<vector<double>> peakParams;
@@ -365,52 +363,69 @@ int main(int argc, char* argv[]) {
         //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak in
         //peak_areas and accumulate same temperature's FOK values in all fits to sum
         vector<vector<double>> peak_param;
-        peak_param.push_back{1.45, 367, 0.4};
-        peak_param.push_back{ 1.17, 385, 1.3};
-        peak_param.push_back{ 1.3, 406, 2};
-        peak_param.push_back{ 1.09, 434, 1.4};
-        peak_param.push_back{ 1.31, 461, 7};
-        peak_param.push_back{ 1.26, 489, };
-        peak_param.push_back{ 1.43, 538, };
-        peak_param.push_back{ 1.31, 562, };
-        vector<double> total_curve(data.first.size());
-        double total = 0.0;
+        peak_param.push_back({1.45, 367, 0.51});
+        peak_param.push_back({ 1.17, 385, 1.2});
+        peak_param.push_back({ 1.3, 406, 1.8});
+        peak_param.push_back({ 1.09, 434, 1.25});
+        peak_param.push_back({ 1.31, 461, 7.1});
+        peak_param.push_back({ 1.26, 489, 0.5});
+        peak_param.push_back({ 1.43, 538, 1.85});
+        peak_param.push_back({ 1.31, 562, 1.75});
+        //vector<double> total_curve(data.first.size());
+        double area = 0.0;
         for (int i = 0; i < int(data.first.size()); ++i) {
             double output = 0.0;
             double partial_sum = 0.0;
-            for (int x = 0; x < int(peakParams.size()); ++x) {
-                double out = quickFok(data.first[i], peakParams[x]);
-                curve[x][i] = out;
+            for (int x = 0; x < int(peak_param.size()); ++x) {
+                double out = quickFok(data.first[i], peak_param[x]);
+                //curve[x][i] = out;
                 partial_sum += out;
             }
-            total_curve[i] = partial_sum;
-            total += partial_sum;
+            //total_curve[i] = partial_sum;
+            area += partial_sum;
         }
-        double cur_fom = 0.0;
-        for (int f = 0; f < int(total_curve.size()); ++f) {
-            cur_fom += abs(data.second[f] - total_curve[f]) / total;
+        int cons = 5;
+        int iteration = 0;
+        while (area < 0.95 * curveArea || area > 1.05 * curveArea) {
+            if (iteration > 50)
+                break;
+            vector<vector<double>> temp = peak_param;
+            cons *= (1 - (curveArea / area));
+            for (auto& v : temp)
+                v[2] += cons;
+            area = 0.0;
+            for (int i = 0; i < int(data.first.size()); ++i) {
+                for (int x = 0; x < int(temp.size()); ++x) {
+                    area += quickFok(data.first[i], temp[x]);
+                }
+            }
+            iteration++;
         }
+        //double cur_fom = 0.0;
+        //for (int f = 0; f < int(total_curve.size()); ++f) {
+        //    cur_fom += abs(data.second[f] - total_curve[f]) / total;
+        //}
         
         file1 << filename << " ";
-        file1 << "original: " << cur_fom;
+        file1 << "constant: " << cons << " iterations: " << iteration << endl;
         //vector<vector<double>> GDParams = peakParams;
-        vector<vector<double>> GDcurve;
-        double fom = 1;
-        vector<vector<double>> GDParams = peakParams;
-        bool check = false;
-        gd(data.first, data.second, GDParams, cur_fom, file1, check);
+        //vector<vector<double>> GDcurve;
+        //double fom = 1;
+        //vector<vector<double>> GDParams = peakParams;
+        //bool check = false;
+        //gd(data.first, data.second, GDParams, cur_fom, file1, check);
         
         //gd(data.first, data.second, GDParams, fom);
-        for (int i = 0; i < int(GDParams.size()); ++i) {
-            GDcurve.push_back(vector<double>(data.first.size(), 0.0));
-        }
-        for (int i = 0; i < int(data.first.size()); ++i) {
-            double output = 0.0;
-            for (int x = 0; x < int(GDParams.size()); ++x) {
-                double out = quickFok(data.first[i], GDParams[x]);
-                GDcurve[x][i] = out;
-            }
-        }
+        //for (int i = 0; i < int(GDParams.size()); ++i) {
+        //    GDcurve.push_back(vector<double>(data.first.size(), 0.0));
+        //}
+        //for (int i = 0; i < int(data.first.size()); ++i) {
+        //    double output = 0.0;
+        //    for (int x = 0; x < int(GDParams.size()); ++x) {
+        //        double out = quickFok(data.first[i], GDParams[x]);
+        //        GDcurve[x][i] = out;
+        //    }
+        //}
         ////cout << oldParams[0][0] << " " << oldParams[0][1] << " " << oldParams[0][2] << endl;
         //cout << peakParams[0][0] << " " << peakParams[0][1] << " " << peakParams[0][2] << endl;
 
