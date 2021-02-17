@@ -42,6 +42,9 @@ double func(const double input, const vector<double> params) {
     double Im = params[2];
     T = double(input + 273.15);
     I_t = Im * exp(1.0 + (energy / (k * T)) * ((T - Tm) / Tm) - ((T * T) / (Tm * Tm)) * exp((energy / (k * T)) * ((T - Tm) / Tm)) * (1.0 - ((2.0 * k * T) / energy)) - dm);
+    if (isinf(I_t)) {
+        cout << T << " " << Tm << " " << Im << " " << dm << endl;
+    }
     return I_t;
 }
 
@@ -325,8 +328,9 @@ int main(int argc, char* argv[]) {
             data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
         }
 
+        double max_intensity = *max_element(data.second.begin(), data.second.end());
         //background_substraction
-        vector<double> t = remove_back(data.first, data.second);
+        //vector<double> t = remove_back(data.first, data.second);
         vector<double> temp = data.second;
 
         //calculate the curve area by adding the count data
@@ -362,52 +366,89 @@ int main(int argc, char* argv[]) {
         //}
         //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak in
         //peak_areas and accumulate same temperature's FOK values in all fits to sum
+
+        //TLD 300
         vector<vector<double>> peak_param;
-        peak_param.push_back({1.45, 367, 0.51});
-        peak_param.push_back({ 1.17, 385, 1.2});
-        peak_param.push_back({ 1.3, 406, 1.8});
-        peak_param.push_back({ 1.09, 434, 1.25});
-        peak_param.push_back({ 1.31, 461, 7.1});
-        peak_param.push_back({ 1.26, 489, 0.5});
-        peak_param.push_back({ 1.43, 538, 1.85});
-        peak_param.push_back({ 1.31, 562, 1.75});
+        //peak_param.push_back({1.45, 93.85, 0.51});
+        //peak_param.push_back({ 1.17, 111.85, 1.2});
+        //peak_param.push_back({ 1.3, 132.85, 1.8});
+        //peak_param.push_back({ 1.09, 160.85, 1.25});
+        //peak_param.push_back({ 1.31, 187.85, 7.1});
+        //peak_param.push_back({ 1.26, 215.85, 0.5});
+        //peak_param.push_back({ 1.43, 264.85, 1.85});
+        //peak_param.push_back({ 1.31, 288.85, 1.75});
+        //TLD 400
+        //peak_param.push_back({ 1.42, 296.85, 4});
+        //peak_param.push_back({ 1.32, 323.85, 6.2});
+        //peak_param.push_back({ 1.36, 349.85, 4.8});
+        //TLD 900
+        peak_param.push_back({ 1.02, 122.85, 0.38});
+        peak_param.push_back({ 0.96, 149.85, 0.40});
+        peak_param.push_back({ 1.05, 161.85, 0.65});
+        peak_param.push_back({ 1.40, 188.85, 0.55});
+        peak_param.push_back({ 1.42, 205.85, 0.25});
+        peak_param.push_back({ 0.96, 249.85, 0.65});
+        peak_param.push_back({ 0.88, 272.85, 3.25});
         //vector<double> total_curve(data.first.size());
+        double orig_integral = 0.0;
+        vector<double> orig_fit(data.second.size());
+        for (int d = 0; d < int(data.second.size()); d++) {
+            double fit = 0.0;
+            for (int e = 0; e < int(peak_param.size()); e++) {
+                fit += func(data.first[d], peak_param[e]);
+            }
+            orig_integral += fit;
+            orig_fit[d] = fit;
+        }
+        double orig_fom = 0.0;
+        for (int f = 0; f < int(data.second.size()); ++f) {
+            orig_fom += abs(data.second[f] - orig_fit[f]) / orig_integral;
+        }
         double area = 0.0;
         for (int i = 0; i < int(data.first.size()); ++i) {
-            double output = 0.0;
-            double partial_sum = 0.0;
             for (int x = 0; x < int(peak_param.size()); ++x) {
-                double out = quickFok(data.first[i], peak_param[x]);
-                //curve[x][i] = out;
-                partial_sum += out;
+                area += quickFok(data.first[i], peak_param[x]);
             }
-            //total_curve[i] = partial_sum;
-            area += partial_sum;
         }
-        int cons = 5;
+        int cons = 1;
         int iteration = 0;
-        while (area < 0.95 * curveArea || area > 1.05 * curveArea) {
-            if (iteration > 50)
+        vector<vector<double>> temp_param = peak_param;
+        while (area < 0.97 * curveArea || area > 1.03 * curveArea) {
+            if (iteration > 1000)
                 break;
-            vector<vector<double>> temp = peak_param;
-            cons *= (1 - (curveArea / area));
-            for (auto& v : temp)
+            cons = 20;
+            cons *= (1 - (area / curveArea));
+            for (auto& v : temp_param)
                 v[2] += cons;
             area = 0.0;
             for (int i = 0; i < int(data.first.size()); ++i) {
-                for (int x = 0; x < int(temp.size()); ++x) {
-                    area += quickFok(data.first[i], temp[x]);
+                for (int x = 0; x < int(peak_param.size()); ++x) {
+                    area += quickFok(data.first[i], temp_param[x]);
                 }
             }
             iteration++;
+        }
+        double new_integral = 0.0;
+        vector<double> new_fit(data.second.size());
+        for (int d = 0; d < int(data.second.size()); d++) {
+            double fit = 0.0;
+            for (int e = 0; e < int(temp_param.size()); e++) {
+                fit += func(data.first[d], temp_param[e]);
+            }
+            new_integral += fit;
+            new_fit[d] = fit;
+        }
+        double new_fom = 0.0;
+        for (int f = 0; f < int(data.second.size()); ++f) {
+            new_fom += abs(data.second[f] - new_fit[f]) / new_integral;
         }
         //double cur_fom = 0.0;
         //for (int f = 0; f < int(total_curve.size()); ++f) {
         //    cur_fom += abs(data.second[f] - total_curve[f]) / total;
         //}
-        
+        double final_cons = temp_param[0][2] / peak_param[0][2];
         file1 << filename << " ";
-        file1 << "constant: " << cons << " iterations: " << iteration << endl;
+        file1 << "orig_fom: " << orig_fom << " new_fom: " << new_fom << " ratio: " << final_cons << " iterations: " << iteration << " max_intensity: " << max_intensity << endl;
         //vector<vector<double>> GDParams = peakParams;
         //vector<vector<double>> GDcurve;
         //double fom = 1;
