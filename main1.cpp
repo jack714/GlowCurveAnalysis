@@ -170,31 +170,57 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
     f1 << " new fom: " << FOM << " " << iteration << " times" << endl;
 }
 
-int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM, int type) {
+int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM, int type, double max_intensity, double& original_fom) {
     vector<vector<double>> change_range;
+    double intensity_coeff;
     if (type == 100)
         change_range = { {0.1, 0.05, 0.05}, {0.15, 0.04, 0.05}, {0.16, 0.03, 0.05} };
     else if (type == 200)
         change_range = { {0.16, 0.03, 0.05}, {0.18, 0.02, 0.05}, {0.4, 0.02, 0.05}, {0.3, 0.02, 0.05}, {0.15, 0.03, 0.05}, {0.2, 0.013, 0.05}, {0.18, 0.02, 0.05}, {0.2, 0.02, 0.05}, {0.18, 0.02, 0.05} };
-    else if (type == 300)
+    else if (type == 300) {
         change_range = { {0.3, 0.03, 0.05}, {0.23, 0.02, 0.05}, {0.4, 0.03, 0.05}, {0.37, 0.03, 0.05}, {0.24, 0.023, 0.05}, {0.2, 0.012, 0.05}, {0.3, 0.024, 0.05}, {0.24, 0.023, 0.05} };
-    else if (type == 400)
+        intensity_coeff = 0.5328 * max_intensity - 25.089;
+        peakParams = { {1.45, 93.85, 0.51 * intensity_coeff, 0, 0, 0},
+                    { 1.17, 111.85, 1.2 * intensity_coeff, 0, 0, 0},
+                    { 1.3, 132.85, 1.8 * intensity_coeff, 0, 0, 0},
+                    { 1.09, 160.85, 1.25 * intensity_coeff, 0, 0, 0},
+                    { 1.31, 187.85, 7.1 * intensity_coeff, 0, 0, 0},
+                    { 1.26, 215.85, 0.5 * intensity_coeff, 0, 0, 0},
+                    { 1.43, 264.85, 1.85 * intensity_coeff, 0, 0, 0},
+                    { 1.31, 288.85, 1.75 * intensity_coeff, 0, 0, 0} };
+    }
+    else if (type == 400) {
         change_range = { {0.15, 0.014, 0.05}, {0.21, 0.015, 0.05}, {0.18, 0.013, 0.05} };
+        intensity_coeff = 0.1083 * max_intensity + 42.252;
+        peakParams = { {1.42, 296.85, 4 * intensity_coeff, 0, 0, 0},
+                    { 1.32, 323.85, 6.2 * intensity_coeff, 0, 0, 0},
+                    { 1.36, 349.85, 4.8 * intensity_coeff, 0, 0, 0} };
+    }
     else if (type == 700)
         change_range = { {0.15, 0.03, 0.05}, {0.15, 0.017, 0.05}, {0.14, 0.02, 0.05}, {0.06, 0.013, 0.05} };
-    else
+    else {
         change_range = { {0.12, 0.035, 0.05}, {0.17, 0.016, 0.05}, {0.24, 0.08, 0.05}, {0.14, 0.026, 0.05}, {0.155, 0.012, 0.05}, {0.15, 0.02, 0.05}, {0.25, 0.053, 0.05} };
+        intensity_coeff = 0.8437 * max_intensity + 74.519;
+        peakParams = { { 1.02, 122.85, 0.38 * intensity_coeff, 0, 0, 0},
+                    { 0.96, 149.85, 0.40 * intensity_coeff, 0, 0, 0},
+                    { 1.05, 161.85, 0.65 * intensity_coeff, 0, 0, 0},
+                    { 1.40, 188.85, 0.55 * intensity_coeff, 0, 0, 0},
+                    { 1.42, 205.85, 0.25 * intensity_coeff, 0, 0, 0},
+                    { 0.96, 249.85, 0.65 * intensity_coeff, 0, 0, 0},
+                    { 0.88, 272.85, 3.25 * intensity_coeff, 0, 0, 0} };
+    }
     int curveSize = int(curve.size());
     int peakNum = int(peakParams.size());
+    
     //find the half max index
     vector<double> temperature = temp;
     find_index(temperature, peakParams);
     //calculate original integral
     double orig_integral = 0.0;
-    vector<double> orig_fit(curve.size());
-    for (int d = 0; d < int(curve.size()); d++) {
+    vector<double> orig_fit(curveSize);
+    for (int d = 0; d < curveSize; d++) {
         double fit = 0.0;
-        for (int e = 0; e < curveSize; e++) {
+        for (int e = 0; e < peakNum; e++) {
             fit += func(temp[d], peakParams[e]);
         }
         orig_integral += fit;
@@ -204,6 +230,7 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     for (int f = 0; f < int(curve.size()); ++f) {
         orig_fom += abs(curve[f] - orig_fit[f]) / orig_integral;
     }
+    original_fom = orig_fom;
     vector<vector<double>> temp_params = peakParams;
     double k = .000086173303;
     double rate1 = 0.0000001;
@@ -212,7 +239,7 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     double current_FOM = orig_fom;
     int iteration = 0;
     //bool matrix to check if should apply change
-    vector<vector<bool>> process(curveSize, vector<bool>(3, true));
+    vector<vector<bool>> process(peakNum, vector<bool>(3, true));
     //check fom
     bool check = true;
     //check if any still inside allowable range
@@ -420,7 +447,7 @@ int main(int argc, char* argv[]) {
         }
     }
     ofstream file1;
-    string path = "C:/Users/jack0/Desktop/experiment.txt";
+    string path = "C:/Users/jack0/Desktop/report.txt";
     file1.open(path);
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
         //count to see which file is being processed
@@ -564,39 +591,67 @@ int main(int argc, char* argv[]) {
         //    orig_fom += abs(data.second[f] - orig_fit[f]) / orig_integral;
         //}
 
-        vector<vector<double>> peak_100;
-        double fom_100 = -1;
-        int iteration_100 = gd_types(data.first, data.second, peak_100, fom_100, 100);
-        vector<vector<double>> peak_200;
-        double fom_200 = -1;
-        int iteration_200 = gd_types(data.first, data.second, peak_200, fom_200, 200);
+        //vector<vector<double>> peak_100;
+        //double fom_100 = -1;
+        //int iteration_100 = gd_types(data.first, data.second, peak_100, fom_100, 100, max_intensity);
+        //vector<vector<double>> peak_200;
+        //double fom_200 = -1;
+        //int iteration_200 = gd_types(data.first, data.second, peak_200, fom_200, 200, max_intensity);
         vector<vector<double>> peak_300;
         double fom_300 = -1;
-        int iteration_300 = gd_types(data.first, data.second, peak_300, fom_300, 300);
+        double original_fom_300 = 0;
+        int iteration_300 = gd_types(data.first, data.second, peak_300, fom_300, 300, max_intensity, original_fom_300);
+        cout << fom_300 << endl;
         vector<vector<double>> peak_400;
         double fom_400 = -1;
-        int iteration_400 = gd_types(data.first, data.second, peak_400, fom_400, 400);
-        vector<vector<double>> peak_700;
-        double fom_700 = -1;
-        int iteration_700 = gd_types(data.first, data.second, peak_700, fom_700, 700);
+        double original_fom_400 = 0;
+        int iteration_400 = gd_types(data.first, data.second, peak_400, fom_400, 400, max_intensity, original_fom_400);
+        cout << fom_400 << endl;
+        //vector<vector<double>> peak_700;
+        //double fom_700 = -1;
+        //int iteration_700 = gd_types(data.first, data.second, peak_700, fom_700, 700, max_intensity);
+
         vector<vector<double>> peak_900;
         double fom_900 = -1;
-        int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900);
-        vector<double> fom_set{ fom_100 , fom_200, fom_300, fom_400, fom_700, fom_900 };
+        double original_fom_900 = 0;
+        int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900);
+        cout << fom_900 << endl;
+        vector<double> fom_set{ fom_300, fom_400, fom_900 };
         int min_fom = min_element(fom_set.begin(), fom_set.end()) - fom_set.begin();
-        if (min_fom == 0)
-            peak_param = peak_100;
-        else if (min_fom == 1)
-            peak_param = peak_200;
-        else if(min_fom == 2)
-            peak_param = peak_300;
-        else if(min_fom == 3)
-            peak_param = peak_400;
-        else if (min_fom == 4)
-            peak_param = peak_700;
-        else
-            peak_param = peak_900;
 
+        int adopt = -1;
+        double orig_fom = -1;
+        int iter = -1;
+        double cur_fom = -1;
+        //if (min_fom == 0)
+        //    peak_param = peak_100;
+        //else if (min_fom == 1)
+        //    peak_param = peak_200;
+        if (min_fom == 0) {
+            peak_param = peak_300;
+            adopt = 300;
+            orig_fom = original_fom_300;
+            cur_fom = fom_300;
+            iter = iteration_300;
+        }
+        else if (min_fom == 1) {
+            peak_param = peak_400;
+            adopt = 400;
+            orig_fom = original_fom_400;
+            cur_fom = fom_400;
+            iter = iteration_400;
+        }
+        //else if (min_fom == 4)
+        //    peak_param = peak_700;
+        else {
+            peak_param = peak_900;
+            adopt = 900;
+            orig_fom = original_fom_900;
+            cur_fom = fom_900;
+            iter = iteration_900;
+        }
+            
+        file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << endl;
 
         //double area = 0.0;
         //for (int i = 0; i < int(data.first.size()); ++i) {

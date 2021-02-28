@@ -19,7 +19,7 @@ void find_index(vector<double>& temp, vector<vector<double>>& param) {
 		//find the index of the peak
         double TM = param[i][1];
         int max = 0;
-        while (temp[max] - TM < 0.1 && max < static_cast<int>(temp.size())) {
+        while (temp[max] - TM < 0.1 && max < static_cast<int>(temp.size()) - 1) {
             max++;
         }
         int max_index = max;
@@ -31,7 +31,7 @@ void find_index(vector<double>& temp, vector<vector<double>>& param) {
         TM -= 273.15;
         double left_temp = TM - dist;
         int index = max_index;
-        while (temp[index] - left_temp > 0.1 && index > 0) {
+        while (temp[index] - left_temp > 0.1 && index > 1) {
             index--;
         }
         int left_index = index;
