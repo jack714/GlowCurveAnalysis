@@ -170,7 +170,7 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
     f1 << " new fom: " << FOM << " " << iteration << " times" << endl;
 }
 
-int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM, int type, double max_intensity, double& original_fom) {
+int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM, int type, double max_intensity, double& original_fom, vector<vector<double>>& orig_peak) {
     vector<vector<double>> change_range;
     double intensity_coeff;
     if (type == 100)
@@ -209,13 +209,15 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
                     { 0.96, 249.85, 0.65 * intensity_coeff, 0, 0, 0},
                     { 0.88, 272.85, 3.25 * intensity_coeff, 0, 0, 0} };
     }
+    orig_peak = peakParams;
     int curveSize = int(curve.size());
     int peakNum = int(peakParams.size());
     
     //find the half max index
     vector<double> temperature = temp;
+    //find full width half max points
     find_index(temperature, peakParams);
-    //calculate original integral
+    //calculate original fom
     double orig_integral = 0.0;
     vector<double> orig_fit(curveSize);
     for (int d = 0; d < curveSize; d++) {
@@ -345,8 +347,8 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
             check = false;
         else
             current_FOM = new_fom;
-        cout << ".";
-        cout.flush();
+        //cout << ".";
+        //cout.flush();
         iteration++;
     }
     FOM = current_FOM;
@@ -515,7 +517,7 @@ int main(int argc, char* argv[]) {
         double max_intensity = *max_element(data.second.begin(), data.second.end());
         //background_substraction
         //vector<double> t = remove_back(data.first, data.second);
-        vector<double> temp = data.second;
+        vector<double> smooth_count = data.second;
 
         //calculate the curve area by adding the count data
         const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
@@ -598,26 +600,26 @@ int main(int argc, char* argv[]) {
         //double fom_200 = -1;
         //int iteration_200 = gd_types(data.first, data.second, peak_200, fom_200, 200, max_intensity);
         vector<vector<double>> peak_300;
+        vector<vector<double>> orig_peak_300;
         double fom_300 = -1;
         double original_fom_300 = 0;
-        int iteration_300 = gd_types(data.first, data.second, peak_300, fom_300, 300, max_intensity, original_fom_300);
-        cout << fom_300 << endl;
+        int iteration_300 = gd_types(data.first, data.second, peak_300, fom_300, 300, max_intensity, original_fom_300, orig_peak_300);
         vector<vector<double>> peak_400;
         double fom_400 = -1;
         double original_fom_400 = 0;
-        int iteration_400 = gd_types(data.first, data.second, peak_400, fom_400, 400, max_intensity, original_fom_400);
-        cout << fom_400 << endl;
+        vector<vector<double>> orig_peak_400;
+        int iteration_400 = gd_types(data.first, data.second, peak_400, fom_400, 400, max_intensity, original_fom_400, orig_peak_400);
         //vector<vector<double>> peak_700;
         //double fom_700 = -1;
         //int iteration_700 = gd_types(data.first, data.second, peak_700, fom_700, 700, max_intensity);
 
         vector<vector<double>> peak_900;
+        vector<vector<double>> orig_peak_900;
         double fom_900 = -1;
         double original_fom_900 = 0;
-        int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900);
-        cout << fom_900 << endl;
-        vector<double> fom_set{ fom_300, fom_400, fom_900 };
-        int min_fom = min_element(fom_set.begin(), fom_set.end()) - fom_set.begin();
+        int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900, orig_peak_900);
+        vector<int> iter_set{ iteration_300, iteration_400, iteration_900 };
+        int max_iter = max_element(iter_set.begin(), iter_set.end()) - iter_set.begin();
 
         int adopt = -1;
         double orig_fom = -1;
@@ -627,14 +629,87 @@ int main(int argc, char* argv[]) {
         //    peak_param = peak_100;
         //else if (min_fom == 1)
         //    peak_param = peak_200;
-        if (min_fom == 0) {
+        if (iter_set[0] == 500 && iter_set[1] == 500 && iter_set[2] == 500) {
+            vector<double> fom_set{ fom_300, fom_400, fom_900 };
+            int mix_iter = min_element(iter_set.begin(), iter_set.end()) - iter_set.begin();
+            if (mix_iter == 0) {
+                peak_param = peak_300;
+                adopt = 300;
+                orig_fom = original_fom_300;
+                cur_fom = fom_300;
+                iter = iteration_300;
+            }
+            else if (mix_iter == 1) {
+                peak_param = peak_400;
+                adopt = 400;
+                orig_fom = original_fom_400;
+                cur_fom = fom_400;
+                iter = iteration_400;
+            }
+            else {
+                peak_param = peak_900;
+                adopt = 900;
+                orig_fom = original_fom_900;
+                cur_fom = fom_900;
+                iter = iteration_900;
+            }
+        }
+        else if (iter_set[0] == 500 && iter_set[1] == 500) {
+            if (fom_300 < fom_400){
+                peak_param = peak_300;
+                adopt = 300;
+                orig_fom = original_fom_300;
+                cur_fom = fom_300;
+                iter = iteration_300;
+            }
+            else {
+                peak_param = peak_400;
+                adopt = 400;
+                orig_fom = original_fom_400;
+                cur_fom = fom_400;
+                iter = iteration_400;
+            }
+        }
+        else if (iter_set[0] == 500 && iter_set[2] == 500) {
+            if (fom_300 < fom_900) {
+                peak_param = peak_300;
+                adopt = 300;
+                orig_fom = original_fom_300;
+                cur_fom = fom_300;
+                iter = iteration_300;
+            }
+            else{
+                peak_param = peak_900;
+                adopt = 900;
+                orig_fom = original_fom_900;
+                cur_fom = fom_900;
+                iter = iteration_900;
+            }
+        }
+        else if (iter_set[1] == 500 && iter_set[2] == 500) {
+            if (fom_400 < fom_900) {
+                peak_param = peak_400;
+                adopt = 400;
+                orig_fom = original_fom_400;
+                cur_fom = fom_400;
+                iter = iteration_400;
+            }
+            else {
+                peak_param = peak_900;
+                adopt = 900;
+                orig_fom = original_fom_900;
+                cur_fom = fom_900;
+                iter = iteration_900;
+            }
+        }
+        else if (max_iter == 0) {
             peak_param = peak_300;
             adopt = 300;
             orig_fom = original_fom_300;
             cur_fom = fom_300;
             iter = iteration_300;
         }
-        else if (min_fom == 1) {
+        else if (max_iter == 1) {
             peak_param = peak_400;
             adopt = 400;
             orig_fom = original_fom_400;
@@ -653,6 +728,116 @@ int main(int argc, char* argv[]) {
             
         file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << endl;
 
+        ofstream file2;
+        string path = output_dir+"/300_"+filename;
+        file2.open(path);
+        vector<vector<double>> gd_300(peak_300.size(), vector<double>(data.second.size(), 0));
+        vector<vector<double>> orig_300(peak_300.size(), vector<double>(data.second.size(), 0));
+        for (int i = 0; i < int(data.first.size()); ++i) {
+            double output = 0.0;
+            for (int x = 0; x < int(orig_peak_300.size()); ++x) {
+                double out = quickFok(data.first[i], orig_peak_300[x]);
+                orig_300[x][i] = out;
+            }
+        }
+        for (int i = 0; i < int(data.first.size()); ++i) {
+            double output = 0.0;
+            for (int x = 0; x < int(peak_300.size()); ++x) {
+                double out = quickFok(data.first[i], peak_300[x]);
+                gd_300[x][i] = out;
+            }
+        }
+        file2 << "temp, after removal, first, sec, third, forth, fifth, sixth, seventh, eighth, GDfirst, GDsec, GDthird, GDforth, GDfifth, GDsixth, GDseventh, GDeighth";
+        file2 << ",\n";
+        for (int i = 0; i < int(data.first.size()); i++) {
+            file2 << data.first[i] << ",";
+            //file2 << orig_count[i] << ",";
+            file2 << data.second[i] << ",";
+            for (int j = 0; j < int(orig_peak_300.size()); j++) {
+                file2 << orig_300[j][i] << ",";
+            }
+            for (int j = 0; j < int(peak_300.size()) - 1; j++) {
+                file2 << gd_300[j][i] << ",";
+            }
+            file2 << gd_300[peak_300.size() - 1][i];
+            file2 << ",\n";
+
+        }
+        file2.close();
+
+        ofstream file3;
+        path = output_dir + "/400_" + filename;
+        file3.open(path);
+        vector<vector<double>> gd_400(peak_400.size(), vector<double>(data.second.size(), 0));
+        vector<vector<double>> orig_400(peak_400.size(), vector<double>(data.second.size(), 0));
+        for (int i = 0; i < int(data.first.size()); ++i) {
+            double output = 0.0;
+            for (int x = 0; x < int(orig_peak_400.size()); ++x) {
+                double out = quickFok(data.first[i], orig_peak_400[x]);
+                orig_400[x][i] = out;
+            }
+        }
+        for (int i = 0; i < int(data.first.size()); ++i) {
+            double output = 0.0;
+            for (int x = 0; x < int(peak_400.size()); ++x) {
+                double out = quickFok(data.first[i], peak_400[x]);
+                gd_400[x][i] = out;
+            }
+        }
+        file3 << "temp, after removal, first, sec, third, GDfirst, GDsec, GDthird";
+        file3 << ",\n";
+        for (int i = 0; i < int(data.first.size()); i++) {
+            file3 << data.first[i] << ",";
+            //file2 << orig_count[i] << ",";
+            file3 << data.second[i] << ",";
+            for (int j = 0; j < int(orig_peak_400.size()); j++) {
+                file2 << orig_400[j][i] << ",";
+            }
+            for (int j = 0; j < int(peak_400.size()) - 1; j++) {
+                file2 << gd_400[j][i] << ",";
+            }
+            file3 << gd_400[peak_400.size() - 1][i];
+            file3 << ",\n";
+
+        }
+        file3.close();
+
+        ofstream file4;
+        path = output_dir + "/900_" + filename;
+        file4.open(path);
+        vector<vector<double>> gd_900(peak_900.size(), vector<double>(data.second.size(), 0));
+        vector<vector<double>> orig_900(peak_900.size(), vector<double>(data.second.size(), 0));
+        for (int i = 0; i < int(data.first.size()); ++i) {
+            double output = 0.0;
+            for (int x = 0; x < int(orig_peak_900.size()); ++x) {
+                double out = quickFok(data.first[i], orig_peak_900[x]);
+                orig_900[x][i] = out;
+            }
+        }
+        for (int i = 0; i < int(data.first.size()); ++i) {
+            double output = 0.0;
+            for (int x = 0; x < int(peak_900.size()); ++x) {
+                double out = quickFok(data.first[i], peak_900[x]);
+                gd_900[x][i] = out;
+            }
+        }
+        file4 << "temp, after removal, first, sec, third, fourth, fifth, sixth, seventh, GDfirst, GDsec, GDthird, GDfourth, GDfifth, GDsixth, GDseventh";
+        file4 << ",\n";
+        for (int i = 0; i < int(data.first.size()); i++) {
+            file4 << data.first[i] << ",";
+            //file2 << orig_count[i] << ",";
+            file4 << data.second[i] << ",";
+            for (int j = 0; j < int(orig_peak_900.size()); j++) {
+                file4 << orig_900[j][i] << ",";
+            }
+            for (int j = 0; j < int(peak_900.size()) - 1; j++) {
+                file4 << gd_900[j][i] << ",";
+            }
+            file4 << gd_900[peak_900.size() - 1][i];
+            file4 << ",\n";
+
+        }
+        file4.close();
         //double area = 0.0;
         //for (int i = 0; i < int(data.first.size()); ++i) {
         //    for (int x = 0; x < int(peak_param.size()); ++x) {
