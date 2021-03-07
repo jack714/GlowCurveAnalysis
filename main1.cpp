@@ -170,44 +170,97 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
     f1 << " new fom: " << FOM << " " << iteration << " times" << endl;
 }
 
+void remove_tail(vector<double>& temp, vector<double>& curve, double intensity) {
+    //find index of max point
+    int max_index = -1;
+    for (int i = 0; i < int(curve.size()); i++) {
+        if (curve[i] == intensity)
+            max_index = i;
+    }
+    vector<double> firstDir(temp.size(), 0.0);
+    //calculate first derivative of count data using function from SmartPeakDetect
+    firstDeriv(temp, curve, firstDir);
+    int cut = -1;
+    for (int i = max_index + 5; i < int(temp.size()); i++) {
+        if (firstDir[i] > 0) {
+            cut = i;
+            break;
+        }
+    }
+    cout << cut;
+    temp.resize(cut);
+    curve.resize(cut);
+}
+
 int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM, int type, double max_intensity, double& original_fom, vector<vector<double>>& orig_peak) {
+    //find index of max point
+    int max_index = -1;
+    for (int i = 0; i < int(curve.size()); i++) {
+        if (curve[i] == max_intensity)
+            max_index = i;
+    }
     vector<vector<double>> change_range;
     double intensity_coeff;
+    double index_coff;
     if (type == 100)
         change_range = { {0.1, 0.05, 0.05}, {0.15, 0.04, 0.05}, {0.16, 0.03, 0.05} };
     else if (type == 200)
         change_range = { {0.16, 0.03, 0.05}, {0.18, 0.02, 0.05}, {0.4, 0.02, 0.05}, {0.3, 0.02, 0.05}, {0.15, 0.03, 0.05}, {0.2, 0.013, 0.05}, {0.18, 0.02, 0.05}, {0.2, 0.02, 0.05}, {0.18, 0.02, 0.05} };
     else if (type == 300) {
-        change_range = { {0.3, 0.03, 0.05}, {0.23, 0.02, 0.05}, {0.4, 0.03, 0.05}, {0.37, 0.03, 0.05}, {0.24, 0.023, 0.05}, {0.2, 0.012, 0.05}, {0.3, 0.024, 0.05}, {0.24, 0.023, 0.05} };
+        change_range = { {0.3, 0.03, 0.1}, {0.23, 0.02, 0.1}, {0.4, 0.03, 0.1}, {0.37, 0.03, 0.1}, {0.24, 0.023, 0.1}, {0.2, 0.012, 0.1}, {0.3, 0.024, 0.1}, {0.24, 0.023, 0.1} };
         intensity_coeff = 0.5328 * max_intensity - 25.089;
-        peakParams = { {1.45, 93.85, 0.51 * intensity_coeff, 0, 0, 0},
-                    { 1.17, 111.85, 1.2 * intensity_coeff, 0, 0, 0},
-                    { 1.3, 132.85, 1.8 * intensity_coeff, 0, 0, 0},
-                    { 1.09, 160.85, 1.25 * intensity_coeff, 0, 0, 0},
-                    { 1.31, 187.85, 7.1 * intensity_coeff, 0, 0, 0},
-                    { 1.26, 215.85, 0.5 * intensity_coeff, 0, 0, 0},
-                    { 1.43, 264.85, 1.85 * intensity_coeff, 0, 0, 0},
-                    { 1.31, 288.85, 1.75 * intensity_coeff, 0, 0, 0} };
+        //peakParams = { {1.45, 93.85, 0.51 * intensity_coeff, 0, 0, 0},
+        //            { 1.17, 111.85, 1.2 * intensity_coeff, 0, 0, 0},
+        //            { 1.3, 132.85, 1.8 * intensity_coeff, 0, 0, 0},
+        //            { 1.09, 160.85, 1.25 * intensity_coeff, 0, 0, 0},
+        //            { 1.31, 187.85, 7.1 * intensity_coeff, 0, 0, 0},
+        //            { 1.26, 215.85, 0.5 * intensity_coeff, 0, 0, 0},
+        //            { 1.43, 264.85, 1.85 * intensity_coeff, 0, 0, 0},
+        //            { 1.31, 288.85, 1.75 * intensity_coeff, 0, 0, 0} };
+        index_coff = temp[max_index] - 187.85;
+        peakParams = { {1.45, 93.85+ index_coff, 0.063926 * intensity_coeff * 2, 0, 0, 0},
+                    { 1.17, 111.85+ index_coff, 0.150415 * intensity_coeff * 2, 0, 0, 0},
+                    { 1.3, 132.85+ index_coff, 0.225622 * intensity_coeff * 2, 0, 0, 0},
+                    { 1.09, 160.85+ index_coff, 0.156682 * intensity_coeff * 2, 0, 0, 0},
+                    { 1.31, 187.85+ index_coff, 0.889954 * intensity_coeff * 2, 0, 0, 0},
+                    { 1.26, 215.85+ index_coff, 0.062673 * intensity_coeff * 2, 0, 0, 0},
+                    { 1.43, 264.85+ index_coff, 0.231889 * intensity_coeff * 2, 0, 0, 0},
+                    { 1.31, 288.85+ index_coff, 0.219355 * intensity_coeff * 2, 0, 0, 0} };
     }
     else if (type == 400) {
-        change_range = { {0.15, 0.014, 0.05}, {0.21, 0.015, 0.05}, {0.18, 0.013, 0.05} };
+        change_range = { {0.15, 0.014, 0.1}, {0.21, 0.015, 0.1}, {0.18, 0.013, 0.1} };
         intensity_coeff = 0.1083 * max_intensity + 42.252;
-        peakParams = { {1.42, 296.85, 4 * intensity_coeff, 0, 0, 0},
-                    { 1.32, 323.85, 6.2 * intensity_coeff, 0, 0, 0},
-                    { 1.36, 349.85, 4.8 * intensity_coeff, 0, 0, 0} };
+        index_coff = temp[max_index] - 323.85;
+        double coeff = 1;
+        peakParams = { {1.42, 296.85 + index_coff * coeff, 4 * intensity_coeff * 0.9, 0, 0, 0},
+                    { 1.32, 323.85 + index_coff * coeff, 6.2 * intensity_coeff * 0.9, 0, 0, 0},
+                    { 1.36, 349.85 + index_coff * coeff, 4.8 * intensity_coeff * 0.9, 0, 0, 0} };
+        //peakParams = { {1.42, 266.85, 4 * intensity_coeff, 0, 0, 0},
+        //        { 1.32, 293.85, 6.2 * intensity_coeff, 0, 0, 0},
+        //        { 1.36, 319.85, 4.8 * intensity_coeff, 0, 0, 0} };
+
     }
     else if (type == 700)
         change_range = { {0.15, 0.03, 0.05}, {0.15, 0.017, 0.05}, {0.14, 0.02, 0.05}, {0.06, 0.013, 0.05} };
     else {
-        change_range = { {0.12, 0.035, 0.05}, {0.17, 0.016, 0.05}, {0.24, 0.08, 0.05}, {0.14, 0.026, 0.05}, {0.155, 0.012, 0.05}, {0.15, 0.02, 0.05}, {0.25, 0.053, 0.05} };
+        change_range = { {0.12, 0.035, 0.1}, {0.17, 0.016, 0.1}, {0.24, 0.08, 0.1}, {0.14, 0.026, 0.1}, {0.155, 0.012, 0.1}, {0.1, 0.02, 0.1}, {0.25, 0.053, 0.1} };
         intensity_coeff = 0.8437 * max_intensity + 74.519;
-        peakParams = { { 1.02, 122.85, 0.38 * intensity_coeff, 0, 0, 0},
-                    { 0.96, 149.85, 0.40 * intensity_coeff, 0, 0, 0},
-                    { 1.05, 161.85, 0.65 * intensity_coeff, 0, 0, 0},
-                    { 1.40, 188.85, 0.55 * intensity_coeff, 0, 0, 0},
-                    { 1.42, 205.85, 0.25 * intensity_coeff, 0, 0, 0},
-                    { 0.96, 249.85, 0.65 * intensity_coeff, 0, 0, 0},
-                    { 0.88, 272.85, 3.25 * intensity_coeff, 0, 0, 0} };
+        index_coff = temp[max_index] - 312.85;
+        //peakParams = { { 1.02, 122.85, 0.38 * intensity_coeff, 0, 0, 0},
+        //            { 0.96, 149.85, 0.40 * intensity_coeff, 0, 0, 0},
+        //            { 1.05, 161.85, 0.65 * intensity_coeff, 0, 0, 0},
+        //            { 1.40, 188.85, 0.55 * intensity_coeff, 0, 0, 0},
+        //            { 1.42, 205.85, 0.25 * intensity_coeff, 0, 0, 0},
+        //            { 0.96, 249.85, 0.65 * intensity_coeff, 0, 0, 0},
+        //            { 0.88, 272.85, 3.25 * intensity_coeff, 0, 0, 0} };
+        peakParams = { { 1.02, 162.85 + index_coff * 0.7, 0.109347 * intensity_coeff, 0, 0, 0},
+                    { 0.96, 189.85 + index_coff * 0.75, 0.115102 * intensity_coeff, 0, 0, 0},
+                    { 1.05, 201.85 + index_coff * 0.8, 0.18704 * intensity_coeff, 0, 0, 0},
+                    { 1.40, 228.85 + index_coff * 0.85, 0.158265 * intensity_coeff, 0, 0, 0},
+                    { 1.42, 245.85 + index_coff * 0.9, 0.071939 * intensity_coeff, 0, 0, 0},
+                    { 0.96, 289.85 + index_coff * 0.95, 0.18704 * intensity_coeff, 0, 0, 0},
+                    { 0.88, 312.85 + index_coff, 0.935202 * intensity_coeff, 0, 0, 0} };
+
     }
     orig_peak = peakParams;
     int curveSize = int(curve.size());
@@ -353,7 +406,9 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     }
     FOM = current_FOM;
     peakParams = temp_params;
+    cout << type << " orig_fom: " << original_fom << " new_fom: " << FOM << endl;
     return iteration;
+    
 }
 
 int main(int argc, char* argv[]) {
@@ -515,6 +570,7 @@ int main(int argc, char* argv[]) {
         }
 
         double max_intensity = *max_element(data.second.begin(), data.second.end());
+        remove_tail(data.first, data.second, max_intensity);
         //background_substraction
         //vector<double> t = remove_back(data.first, data.second);
         vector<double> smooth_count = data.second;
@@ -620,6 +676,8 @@ int main(int argc, char* argv[]) {
         int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900, orig_peak_900);
         vector<int> iter_set{ iteration_300, iteration_400, iteration_900 };
         int max_iter = max_element(iter_set.begin(), iter_set.end()) - iter_set.begin();
+        vector<double> fom_set{ fom_300 ,fom_400,fom_900 };
+        int min_fom = min_element(fom_set.begin(), fom_set.end()) - fom_set.begin();
 
         int adopt = -1;
         double orig_fom = -1;
@@ -629,101 +687,146 @@ int main(int argc, char* argv[]) {
         //    peak_param = peak_100;
         //else if (min_fom == 1)
         //    peak_param = peak_200;
-        if (iter_set[0] == 500 && iter_set[1] == 500 && iter_set[2] == 500) {
-            vector<double> fom_set{ fom_300, fom_400, fom_900 };
-            int mix_iter = min_element(iter_set.begin(), iter_set.end()) - iter_set.begin();
-            if (mix_iter == 0) {
-                peak_param = peak_300;
-                adopt = 300;
-                orig_fom = original_fom_300;
-                cur_fom = fom_300;
-                iter = iteration_300;
-            }
-            else if (mix_iter == 1) {
-                peak_param = peak_400;
-                adopt = 400;
-                orig_fom = original_fom_400;
-                cur_fom = fom_400;
-                iter = iteration_400;
-            }
-            else {
-                peak_param = peak_900;
-                adopt = 900;
-                orig_fom = original_fom_900;
-                cur_fom = fom_900;
-                iter = iteration_900;
-            }
-        }
-        else if (iter_set[0] == 500 && iter_set[1] == 500) {
-            if (fom_300 < fom_400){
-                peak_param = peak_300;
-                adopt = 300;
-                orig_fom = original_fom_300;
-                cur_fom = fom_300;
-                iter = iteration_300;
-            }
-            else {
-                peak_param = peak_400;
-                adopt = 400;
-                orig_fom = original_fom_400;
-                cur_fom = fom_400;
-                iter = iteration_400;
-            }
-        }
-        else if (iter_set[0] == 500 && iter_set[2] == 500) {
-            if (fom_300 < fom_900) {
-                peak_param = peak_300;
-                adopt = 300;
-                orig_fom = original_fom_300;
-                cur_fom = fom_300;
-                iter = iteration_300;
-            }
-            else{
-                peak_param = peak_900;
-                adopt = 900;
-                orig_fom = original_fom_900;
-                cur_fom = fom_900;
-                iter = iteration_900;
-            }
-        }
-        else if (iter_set[1] == 500 && iter_set[2] == 500) {
-            if (fom_400 < fom_900) {
-                peak_param = peak_400;
-                adopt = 400;
-                orig_fom = original_fom_400;
-                cur_fom = fom_400;
-                iter = iteration_400;
-            }
-            else {
-                peak_param = peak_900;
-                adopt = 900;
-                orig_fom = original_fom_900;
-                cur_fom = fom_900;
-                iter = iteration_900;
-            }
-        }
-        else if (max_iter == 0) {
+        //if (max_iter == 0 && min_fom == 0) {
+        //    peak_param = peak_300;
+        //    adopt = 300;
+        //    orig_fom = original_fom_300;
+        //    cur_fom = fom_300;
+        //    iter = iteration_300;
+        //}
+        //else if (max_iter == 1 && min_fom == 1) {
+        //    peak_param = peak_400;
+        //    adopt = 400;
+        //    orig_fom = original_fom_400;
+        //    cur_fom = fom_400;
+        //    iter = iteration_400;
+        //}
+        ////else if (min_fom == 4)
+        ////    peak_param = peak_700;
+        //else if (max_iter == 2 && min_fom == 2) {
+        //    peak_param = peak_900;
+        //    adopt = 900;
+        //    orig_fom = original_fom_900;
+        //    cur_fom = fom_900;
+        //    iter = iteration_900;
+        //}
+        if(min_fom == 0) {
             peak_param = peak_300;
             adopt = 300;
             orig_fom = original_fom_300;
             cur_fom = fom_300;
             iter = iteration_300;
         }
-        else if (max_iter == 1) {
+        else if (min_fom == 1) {
             peak_param = peak_400;
             adopt = 400;
             orig_fom = original_fom_400;
             cur_fom = fom_400;
             iter = iteration_400;
         }
-        //else if (min_fom == 4)
-        //    peak_param = peak_700;
+        else if (min_fom == 2) {
+            peak_param = peak_900;
+            adopt = 900;
+            orig_fom = original_fom_900;
+            cur_fom = fom_900;
+            iter = iteration_900;
+        }
+        //else if (iter_set[0] == iter_set[1] && iter_set[0] == iter_set[2]) {
+        //    vector<double> fom_set{ fom_300, fom_400, fom_900 };
+        //    int mix_iter = min_element(iter_set.begin(), iter_set.end()) - iter_set.begin();
+        //    if (mix_iter == 0) {
+        //        peak_param = peak_300;
+        //        adopt = 300;
+        //        orig_fom = original_fom_300;
+        //        cur_fom = fom_300;
+        //        iter = iteration_300;
+        //    }
+        //    else if (mix_iter == 1) {
+        //        peak_param = peak_400;
+        //        adopt = 400;
+        //        orig_fom = original_fom_400;
+        //        cur_fom = fom_400;
+        //        iter = iteration_400;
+        //    }
+        //    else {
+        //        peak_param = peak_900;
+        //        adopt = 900;
+        //        orig_fom = original_fom_900;
+        //        cur_fom = fom_900;
+        //        iter = iteration_900;
+        //    }
+        //}
+        //else if (iter_set[0] == iter_set[1]) {
+        //    if (fom_300 < fom_400){
+        //        peak_param = peak_300;
+        //        adopt = 300;
+        //        orig_fom = original_fom_300;
+        //        cur_fom = fom_300;
+        //        iter = iteration_300;
+        //    }
+        //    else {
+        //        peak_param = peak_400;
+        //        adopt = 400;
+        //        orig_fom = original_fom_400;
+        //        cur_fom = fom_400;
+        //        iter = iteration_400;
+        //    }
+        //}
+        //else if (iter_set[0] == iter_set[2]) {
+        //    if (fom_300 < fom_900) {
+        //        peak_param = peak_300;
+        //        adopt = 300;
+        //        orig_fom = original_fom_300;
+        //        cur_fom = fom_300;
+        //        iter = iteration_300;
+        //    }
+        //    else{
+        //        peak_param = peak_900;
+        //        adopt = 900;
+        //        orig_fom = original_fom_900;
+        //        cur_fom = fom_900;
+        //        iter = iteration_900;
+        //    }
+        //}
+        //else if (iter_set[1] == iter_set[2]) {
+        //    if (fom_400 < fom_900) {
+        //        peak_param = peak_400;
+        //        adopt = 400;
+        //        orig_fom = original_fom_400;
+        //        cur_fom = fom_400;
+        //        iter = iteration_400;
+        //    }
+        //    else {
+        //        peak_param = peak_900;
+        //        adopt = 900;
+        //        orig_fom = original_fom_900;
+        //        cur_fom = fom_900;
+        //        iter = iteration_900;
+        //    }
+        //}
+        //else if (max_iter == 0) {
+        //    peak_param = peak_300;
+        //    adopt = 300;
+        //    orig_fom = original_fom_300;
+        //    cur_fom = fom_300;
+        //    iter = iteration_300;
+        //}
+        //else if (max_iter == 1) {
+        //    peak_param = peak_400;
+        //    adopt = 400;
+        //    orig_fom = original_fom_400;
+        //    cur_fom = fom_400;
+        //    iter = iteration_400;
+        //}
+        ////else if (min_fom == 4)
+        ////    peak_param = peak_700;
         else {
             peak_param = peak_900;
             adopt = 900;
             orig_fom = original_fom_900;
             cur_fom = fom_900;
             iter = iteration_900;
+            cout << "You shouldn't see this" << endl;
         }
             
         file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << endl;
@@ -761,10 +864,10 @@ int main(int argc, char* argv[]) {
             }
             file2 << gd_300[peak_300.size() - 1][i];
             file2 << ",\n";
-
+        
         }
         file2.close();
-
+        
         ofstream file3;
         path = output_dir + "/400_" + filename;
         file3.open(path);
@@ -791,17 +894,17 @@ int main(int argc, char* argv[]) {
             //file2 << orig_count[i] << ",";
             file3 << data.second[i] << ",";
             for (int j = 0; j < int(orig_peak_400.size()); j++) {
-                file2 << orig_400[j][i] << ",";
+                file3 << orig_400[j][i] << ",";
             }
             for (int j = 0; j < int(peak_400.size()) - 1; j++) {
-                file2 << gd_400[j][i] << ",";
+                file3 << gd_400[j][i] << ",";
             }
             file3 << gd_400[peak_400.size() - 1][i];
             file3 << ",\n";
-
+        
         }
         file3.close();
-
+        
         ofstream file4;
         path = output_dir + "/900_" + filename;
         file4.open(path);
@@ -835,7 +938,7 @@ int main(int argc, char* argv[]) {
             }
             file4 << gd_900[peak_900.size() - 1][i];
             file4 << ",\n";
-
+        
         }
         file4.close();
         //double area = 0.0;
