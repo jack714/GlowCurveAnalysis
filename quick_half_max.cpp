@@ -36,8 +36,8 @@ void find_index(vector<double>& temp, vector<vector<double>>& param) {
         }
         int left_index = index;
         int right_index = abs(left_index - max_index) + max_index;
-        if (right_index > static_cast<int>(temp.size()))
-            right_index = static_cast<int>(temp.size()) - 1;
+        if (right_index >= static_cast<int>(temp.size()) - 1)
+            right_index = static_cast<int>(temp.size()) - 3;
         param[i][3] = left_index;
         param[i][4] = max_index;
         param[i][5] = right_index;
