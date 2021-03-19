@@ -99,6 +99,14 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
     int d = 1;
     int main_hold = 0;
     double main_FOM = FOM;
+    vector<double> orig_energy(params.size());
+    vector<double> orig_height(params.size());
+    for (int i = 0; i < int(params.size()); i++) {
+        orig_energy[i] = params[i][0];
+    }
+    for (int i = 0; i < int(params.size()); i++) {
+        orig_height[i] = params[i][2];
+    }
     while(FOM > .01){
         main_FOM = FOM;
         if(main_hold > 3){
@@ -185,6 +193,26 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 //update the change to the original data
                 for(int x = 0; x < int(delta.size()); ++x){
                     t_params[x] += delta[x];
+                    if (param_num == 0 && x == 1) {
+                        if (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.02) {
+                            t_params[x] -= delta[x];
+                        }
+                    }
+                    if (param_num == 0 && x == 2) {
+                        if (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.25) {
+                            t_params[x] -= delta[x];
+                        }
+                    }
+                    if (param_num == 2) {
+                        if (x == 3) {
+                            if (abs((t_params[x] - orig_height[x]) / orig_height[x]) > 0.15) {
+                                t_params[x] -= delta[x];
+                            }
+                        }
+                        else if (((t_params[x] - orig_height[x]) / orig_height[x]) < -0.1) {
+                            t_params[x] -= delta[x];
+                        }
+                    }
                 }
                 double integral = 0.0;
                 //Evaluate the total distance error at the updated paramaters.

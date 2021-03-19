@@ -285,7 +285,15 @@ void output_details(string output_dir, string filename, vector<double>& temp, ve
     file6.close();
 }
 
-
+void output_counts(vector<double>& orig_counts, vector<double>& smoothed_count, vector<double>& temp, string filename) {
+    ofstream file1;
+    string path = "C:/Users/jack0/Desktop/" + filename + ".csv";
+    file1.open(path);
+    file1 << "temp, orig_count, current_count," << endl;
+    for (int i = 0; i < int(orig_counts.size()); i++) {
+        file1 << temp[i] << ", " << orig_counts[i] << ", " << smoothed_count[i] << "," << endl;
+    }
+}
 
 void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM, ofstream& f1, bool& one) {
     //cout << peakParams.size() << endl;
@@ -782,9 +790,9 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    ofstream file1;
-    string path = "C:/Users/jack0/Desktop/report.txt";
-    file1.open(path);
+    //ofstream file1;
+    //string path = "C:/Users/jack0/Desktop/report.txt";
+    //file1.open(path);
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
         //count to see which file is being processed
         int num = 0;
@@ -817,6 +825,7 @@ int main(int argc, char* argv[]) {
         if (window_size % 2 == 0) {
             window_size += 1;
         }
+
 
         //Smooth temperature raw data with Savitzky-Golay
         int window = length * 0.05;
@@ -865,7 +874,8 @@ int main(int argc, char* argv[]) {
             remove((output_dir + "/temp.csv").c_str());
             continue;
         }
-
+        vector<double> smoothed_count = data.second;
+        //output_counts(orig_count, smoothed_count, data.first, filename);
         //testing gradient descent on TLD 100
         //peakparams: activation energy, maxTemp, maxIntensity, TL, TM, TR
         //vector<vector<double>> peakParams;
@@ -888,7 +898,7 @@ int main(int argc, char* argv[]) {
         //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak in
         //peak_areas and accumulate same temperature's FOK values in all fits to sum
 
-        vector<vector<double>> peak_param;
+        
         //TLD 100
         //peak_param = { { 1.56, 143, 3 }, { 1.67, 183, 5 }, { 1.69, 211, 7 }, { 2.04, 237, 15 } };
         //TLD 200
@@ -901,7 +911,8 @@ int main(int argc, char* argv[]) {
         //peak_param = { { 1.02, 122.85, 0.38}, { 0.96, 149.85, 0.40}, { 1.05, 161.85, 0.65}, { 1.40, 188.85, 0.55}, { 1.42, 205.85, 0.25}, { 0.96, 249.85, 0.65}, { 0.88, 272.85, 3.25} };
 
         //double orig_fom = quick_fom(data.first, data.second, peak_param);
-
+        //uncomment
+        vector<vector<double>> peak_param;
         vector<vector<double>> peak_100;
         vector<vector<double>> orig_peak_100;
         double fom_100 = -1;
@@ -935,14 +946,14 @@ int main(int argc, char* argv[]) {
         vector<double> fom_set{ abs(fom_100), abs(fom_200), abs(fom_300), abs(fom_400), abs(fom_900) };
         int min_fom = min_element(fom_set.begin(), fom_set.end()) - fom_set.begin();
         vector<double> orig_fom_set{ abs(original_fom_100), abs(original_fom_200), abs(original_fom_300), abs(original_fom_400), abs(original_fom_900) };
-        int min_orig_fom = *min_element(orig_fom_set.begin(), orig_fom_set.end());
-
+        double min_orig_fom = *min_element(orig_fom_set.begin(), orig_fom_set.end());
+        
         
         int adopt = -1;
         double orig_fom = -1;
         int iter = -1;
         double cur_fom = -1;
-
+        
         if(min_fom == 0) {
             peak_param = peak_100;
             adopt = 100;
@@ -978,6 +989,7 @@ int main(int argc, char* argv[]) {
             cur_fom = fom_900;
             iter = iteration_900;
         }
+        //stop
 
         //dont uncomment
         //else if (iter_set[0] == iter_set[1] && iter_set[0] == iter_set[2]) {
@@ -1069,10 +1081,35 @@ int main(int argc, char* argv[]) {
         //}
         ////else if (min_fom == 4)
         ////    peak_param = peak_700;
-            
-        file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << min_orig_fom << endl;
+        
+        //file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << min_orig_fom << endl;
         //output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
+        First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
+        FOK_Model.glow_curve();
+        vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
+        ofstream file5;
+        string path = output_dir + "/100_" + filename;
+        file5.open(path);
+        //vector<vector<double>> LM_100(peak_100.size(), vector<double>(data.second.size(), 0));
+        //for (int i = 0; i < int(data.first.size()); ++i) {
+        //    double output = 0.0;
+        //    for (int x = 0; x < int(returnedPeaks.size() - 1); ++x) {
+        //        double out = quickFok(data.first[i], returnedPeaks[x]);
+        //        LM_100[x][i] = out;
+        //    }
+        //}
+        file5 << "temp, smoothed, first, sec, third, forth";
+        file5 << ",\n";
+        for (int i = 0; i < int(data.first.size()); i++) {
+            file5 << data.first[i] << ",";
+            file5 << smoothed_count[i] << ",";
+            for (int j = 0; j < int(peak_param.size()); j++) {
+                file5 << returnedPeaks[j][i] << ",";
+            }
+            file5 << "\n";
 
+        }
+        file5.close();
         //testing weird file differendose 10 100
         //vector<vector<double>> params = { {1.55636, 113.044,55.6956}, {1.66538, 152.789, 92.7178}, {1.68235, 180.784, 128.069}, {1.97056, 203.057, 278.436} };
         //ofstream file9;
