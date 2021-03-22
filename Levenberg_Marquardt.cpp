@@ -95,7 +95,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
     //create singlePeak vector that is same size as curve
     vector<double> singlePeak(curve.size(), 0.0);
     int curveSize = int(curve.size());
-    int curentCurve = int(params.size());
+    int peakSize = int(params.size());
     int d = 1;
     int main_hold = 0;
     double main_FOM = FOM;
@@ -133,7 +133,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 other_param2 = 1;
             }
             //2d vector to store each point's derivative under each peak curve
-            vector<vector<double>> Jf_T(curentCurve, vector<double>(curveSize,0.0));
+            vector<vector<double>> Jf_T(peakSize, vector<double>(curveSize,0.0));
             vector<double> error(curveSize,0.0);
             vector<vector<double>> H;
             double lambda = 0.01;
@@ -145,17 +145,17 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
             while(FOM > .02 && i < 300){
                 if(updateJ == 1){
                     //Evaluate the jacobian matrix at the current paramater.
-                    vector<double>t_parms(3, 0.0);
+                    vector<double>process_parms(3, 0.0);
                     double integral = 0.0;
                     for(int j = 0; j < curveSize; j++) {
                         double output = 0.0;
-                        for(int k = 0; k < curentCurve; ++k){
-                            t_parms[param_num] = temp_params[k];
-                            t_parms[other_param1] = params[k][other_param1];
-                            t_parms[other_param2] = params[k][other_param2];
-                            Jf_T[k][j] = Deriv2(temp_data[j],t_parms, param_num);
+                        for(int k = 0; k < peakSize; ++k){
+                            process_parms[param_num] = temp_params[k];
+                            process_parms[other_param1] = params[k][other_param1];
+                            process_parms[other_param2] = params[k][other_param2];
+                            Jf_T[k][j] = Deriv2(temp_data[j], process_parms, param_num);
                             //output accumulates the single point's fitted counts
-                            output += Func2(temp_data[j],t_parms);
+                            output += Func2(temp_data[j], process_parms);
                         }
                         temp_output[j] = output;
                         //error stores the difference in orginal count and the accumulated fitted count
@@ -178,8 +178,8 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
 
                 //apply the damping factor to the hessian matrix
                 //I is a diagonal matrix with diagonal equals lambda which is the damping vector
-                vector<vector<double>> I = Identity(curentCurve, lambda);
-                vector<vector<double>> H_lm(curentCurve, vector<double>(curentCurve,0.0));
+                vector<vector<double>> I = Identity(peakSize, lambda);
+                vector<vector<double>> H_lm(peakSize, vector<double>(peakSize,0.0));
                 for(int j = 0; j < int(H.size()); ++j){
                     for(int s = 0; s < int(H.size()); ++s){
                         H_lm[j][s] = H[j][s] + I[j][s];
@@ -221,7 +221,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 //for every point under every peak, with the new parameter recalculate count data
                 for(int j = 0; j < curveSize; j++){
                     double output = 0.0;
-                    for(int k = 0; k < curentCurve;++k){
+                    for(int k = 0; k < peakSize;++k){
                         t_param[param_num] = t_params[k];
                         t_param[other_param1] = params[k][other_param1];
                         t_param[other_param2] = params[k][other_param2];
