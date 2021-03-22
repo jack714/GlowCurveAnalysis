@@ -450,13 +450,16 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     double intensity_coeff;
     double index_coff;
     if (type == 100) {
-        change_range = { {0.1, 0.05, 0.2}, {0.15, 0.04, 0.2}, {0.16, 0.03, 0.2}, {0.4, 0.06, 0.5} };
+        //change_range = { {0.1, 0.05, 0.2}, {0.15, 0.04, 0.2}, {0.16, 0.03, 0.2}, {0.4, 0.06, 0.5} };
+        change_range = { {0.1, 0.05, 0.2}, {0.15, 0.04, 0.2}, {0.16, 0.03, 0.2}, {0.4, 0.06, 0.6} };
         intensity_coeff = 112 / (1 + exp(-0.015 * (max_intensity - 270)));
         //cout << max_intensity << endl;
         //cout << intensity_coeff << endl;
         index_coff = temp[max_index] - 237;
+        //if (abs(index_coff) > 30)
         if (abs(index_coff) > 30)
             index_coff = copysign(30.0, index_coff);
+        cout << intensity_coeff << endl;
         peakParams = { { 1.56, 143 + index_coff, 2 * intensity_coeff, 0, 0, 0 },
                     { 1.67, 183 + index_coff, 3.33 * intensity_coeff * 0.75, 0, 0, 0},
                     { 1.69, 211 + index_coff * 0.9, 4.6 * intensity_coeff * 0.8, 0, 0, 0},
@@ -1083,33 +1086,30 @@ int main(int argc, char* argv[]) {
         ////    peak_param = peak_700;
         
         //file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << min_orig_fom << endl;
-        //output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
-        First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
-        FOK_Model.glow_curve();
-        vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
-        ofstream file5;
-        string path = output_dir + "/100_" + filename;
-        file5.open(path);
-        //vector<vector<double>> LM_100(peak_100.size(), vector<double>(data.second.size(), 0));
-        //for (int i = 0; i < int(data.first.size()); ++i) {
-        //    double output = 0.0;
-        //    for (int x = 0; x < int(returnedPeaks.size() - 1); ++x) {
-        //        double out = quickFok(data.first[i], returnedPeaks[x]);
-        //        LM_100[x][i] = out;
-        //    }
-        //}
-        file5 << "temp, smoothed, first, sec, third, forth";
-        file5 << ",\n";
-        for (int i = 0; i < int(data.first.size()); i++) {
-            file5 << data.first[i] << ",";
-            file5 << smoothed_count[i] << ",";
-            for (int j = 0; j < int(peak_param.size()); j++) {
-                file5 << returnedPeaks[j][i] << ",";
-            }
-            file5 << "\n";
+        output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
 
-        }
-        file5.close();
+        // LM output
+        //First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
+        //FOK_Model.glow_curve();
+        //vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
+        //ofstream file5;
+        //string path = output_dir + "/100_" + filename;
+        //file5.open(path);
+        //file5 << "temp, smoothed, first, sec, third, forth";
+        //file5 << ",\n";
+        //for (int i = 0; i < int(data.first.size()); i++) {
+        //    file5 << data.first[i] << ",";
+        //    file5 << smoothed_count[i] << ",";
+        //    for (int j = 0; j < int(peak_param.size()); j++) {
+        //        file5 << returnedPeaks[j][i] << ",";
+        //    }
+        //    file5 << "\n";
+        //
+        //}
+        //file5.close();
+
+
+
         //testing weird file differendose 10 100
         //vector<vector<double>> params = { {1.55636, 113.044,55.6956}, {1.66538, 152.789, 92.7178}, {1.68235, 180.784, 128.069}, {1.97056, 203.057, 278.436} };
         //ofstream file9;
