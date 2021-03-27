@@ -68,10 +68,7 @@ double quick_fom(vector<double>& temp, vector<double>& count, vector<vector<doub
     return fom;
 }
 
-void calculate_constant(vector<double>& temp, vector<double>& count, vector<vector<double>>& peak_param, double curveArea, string filename, double max_intensity) {
-    ofstream output;
-    string path = "C:/Users/jack0/Desktop/report.txt";
-    output.open(path);
+void calculate_constant(vector<double>& temp, vector<double>& count, vector<vector<double>>& peak_param, double curveArea, string filename, double max_intensity, ofstream& output) {
     double orig_fom = quick_fom(temp, count, peak_param);
     double area = 0.0;
     for (int i = 0; i < int(temp.size()); ++i) {
@@ -98,7 +95,7 @@ void calculate_constant(vector<double>& temp, vector<double>& count, vector<vect
         iteration++;
     }
     double new_fom = quick_fom(temp, count, temp_param);
-    double final_cons = temp_param[0][2] / peak_param[0][2];
+    double final_cons = temp_param[6][2] / peak_param[6][2];
     output << filename << " ";
     output << "orig_fom: " << orig_fom << " new_fom: " << new_fom << " ratio: " << final_cons << " iterations: " << iteration << " max_intensity: " << max_intensity << endl;
 }
@@ -449,28 +446,37 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     vector<vector<double>> change_range;
     double intensity_coeff;
     double index_coff;
+    double change_range_coeff;
+    double best_fom = -1;
     if (type == 100) {
         //change_range = { {0.1, 0.05, 0.2}, {0.15, 0.04, 0.2}, {0.16, 0.03, 0.2}, {0.4, 0.06, 0.5} };
-        change_range = { {0.1, 0.05, 0.2}, {0.15, 0.04, 0.2}, {0.16, 0.03, 0.2}, {0.4, 0.06, 0.6} };
-        intensity_coeff = 112 / (1 + exp(-0.015 * (max_intensity - 270)));
+        change_range_coeff = 0.3;
+        change_range = { {0.1, 0.05, change_range_coeff}, {0.15, 0.04, change_range_coeff}, {0.16, 0.03, change_range_coeff}, {0.15, 0.06, change_range_coeff * 1.5} };
+        //intensity_coeff = 112 / (1 + exp(-0.015 * (max_intensity - 270)));
+        intensity_coeff = 0.0000000000024004 * pow(max_intensity, 5) - 0.0000000039415324 * (max_intensity, 4) + 0.0000019701875676 * pow(max_intensity , 3) 
+            - 0.0002755661950564 * pow(max_intensity , 2) + 0.0346203293289782 * max_intensity * 1.6 + 0.8496013003402870;
         //cout << max_intensity << endl;
         //cout << intensity_coeff << endl;
         index_coff = temp[max_index] - 237;
         //if (abs(index_coff) > 30)
         if (abs(index_coff) > 30)
             index_coff = copysign(30.0, index_coff);
-        cout << intensity_coeff << endl;
-        peakParams = { { 1.56, 143 + index_coff, 2 * intensity_coeff, 0, 0, 0 },
-                    { 1.67, 183 + index_coff, 3.33 * intensity_coeff * 0.75, 0, 0, 0},
-                    { 1.69, 211 + index_coff * 0.9, 4.6 * intensity_coeff * 0.8, 0, 0, 0},
-                    { 2.04, 237 + index_coff, 10 * intensity_coeff * 0.7, 0, 0, 0} };
+        
+        peakParams = { { 1.56, 143 + index_coff, 3 * intensity_coeff, 0, 0, 0 },
+                    { 1.67, 183 + index_coff, 5 * intensity_coeff, 0, 0, 0},
+                    { 1.69, 211 + index_coff * 0.9, 7 * intensity_coeff, 0, 0, 0},
+                    { 2.04, 237 + index_coff, 15 * intensity_coeff, 0, 0, 0} };
     }
     else if (type == 200) {
-        change_range = { {0.16, 0.1, 0.1}, {0.18, 0.1, 0.1}, {0.4, 0.1, 0.1}, {0.3, 0.1, 0.1}, {0.15, 0.1, 0.1}, {0.2, 0.1, 0.1}, {0.18, 0.1, 0.1}, {0.2, 0.1, 0.1}, {0.18, 0.1, 0.1} };
-        if (max_intensity < 30000)
-            intensity_coeff = 0.7707 / 2 * max_intensity;
-        else
-            intensity_coeff = 60000;
+        change_range_coeff = 0.2;
+        change_range = { {0.16, 0.1, change_range_coeff}, {0.18, 0.1, change_range_coeff}, {0.4, 0.1, change_range_coeff}, {0.3, 0.1, change_range_coeff}, 
+            {0.15, 0.1, change_range_coeff}, {0.2, 0.1, change_range_coeff}, {0.18, 0.1, change_range_coeff}, {0.2, 0.1, change_range_coeff}, {0.18, 0.1, change_range_coeff} };
+        intensity_coeff = -0.0000000001098401 * pow(max_intensity, 3) + 0.0000042069190798 * pow(max_intensity, 2) + 0.1610243655473620 * max_intensity;
+        intensity_coeff *= 4;
+        //if (max_intensity < 30000)
+        //    intensity_coeff = 0.7707 / 2 * max_intensity;
+        //else
+        //    intensity_coeff = 60000;
         //future task: make this non-linear
         index_coff = temp[max_index] - 172;
         if (abs(index_coff) > 50)
@@ -486,8 +492,12 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
                     { 1.41, 279 + index_coff, 0.7 * intensity_coeff, 0, 0, 0} };
     }
     else if (type == 300) {
-        change_range = { {0.3, 0.03, 0.1}, {0.23, 0.02, 0.1}, {0.4, 0.03, 0.1}, {0.37, 0.03, 0.1}, {0.24, 0.023, 0.1}, {0.2, 0.012, 0.1}, {0.3, 0.024, 0.1}, {0.24, 0.023, 0.1} };
-        intensity_coeff = 0.5328 * max_intensity - 25.089;
+        change_range_coeff = 0.2;
+        change_range = { {0.3, 0.03, change_range_coeff}, {0.23, 0.02, change_range_coeff}, {0.4, 0.03, change_range_coeff}, {0.37, 0.03, change_range_coeff}, 
+            {0.24, 0.023, change_range_coeff}, {0.2, 0.012, change_range_coeff}, {0.3, 0.024, change_range_coeff}, {0.24, 0.023, change_range_coeff} };
+        //intensity_coeff = 0.5328 * max_intensity - 25.089;
+        intensity_coeff = 0.03843697 * max_intensity * 3.1;
+        
         //peakParams = { {1.45, 93.85, 0.51 * intensity_coeff, 0, 0, 0},
         //            { 1.17, 111.85, 1.2 * intensity_coeff, 0, 0, 0},
         //            { 1.3, 132.85, 1.8 * intensity_coeff, 0, 0, 0},
@@ -499,25 +509,28 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         index_coff = temp[max_index] - 187.85;
         if (abs(index_coff) > 30)
             index_coff = copysign(30.0, index_coff);
-        peakParams = { {1.45, 93.85+ index_coff, 0.063926 * intensity_coeff * 2, 0, 0, 0},
-                    { 1.17, 111.85+ index_coff, 0.150415 * intensity_coeff * 2, 0, 0, 0},
-                    { 1.3, 132.85+ index_coff, 0.225622 * intensity_coeff * 2, 0, 0, 0},
-                    { 1.09, 160.85+ index_coff, 0.156682 * intensity_coeff * 2, 0, 0, 0},
-                    { 1.31, 187.85+ index_coff, 0.889954 * intensity_coeff * 2, 0, 0, 0},
-                    { 1.26, 215.85+ index_coff, 0.062673 * intensity_coeff * 2, 0, 0, 0},
-                    { 1.43, 264.85+ index_coff, 0.231889 * intensity_coeff * 2, 0, 0, 0},
-                    { 1.31, 288.85+ index_coff, 0.219355 * intensity_coeff * 2, 0, 0, 0} };
+        peakParams = { {1.45, 93.85+ index_coff, 0.51 * intensity_coeff, 0, 0, 0},
+                    { 1.17, 111.85+ index_coff, 1.2 * intensity_coeff, 0, 0, 0},
+                    { 1.3, 132.85+ index_coff, 1.8 * intensity_coeff, 0, 0, 0},
+                    { 1.09, 160.85+ index_coff, 1.25 * intensity_coeff, 0, 0, 0},
+                    { 1.31, 187.85+ index_coff, 7.1 * intensity_coeff, 0, 0, 0},
+                    { 1.26, 215.85+ index_coff, 0.5 * intensity_coeff, 0, 0, 0},
+                    { 1.43, 264.85+ index_coff, 1.85 * intensity_coeff, 0, 0, 0},
+                    { 1.31, 288.85+ index_coff, 1.75 * intensity_coeff, 0, 0, 0} };
     }
     else if (type == 400) {
-        change_range = { {0.15, 0.014, 0.1}, {0.21, 0.015, 0.1}, {0.18, 0.013, 0.1} };
-        intensity_coeff = 0.1083 * max_intensity + 42.252;
+        change_range_coeff = 0.2;
+        change_range = { {0.15, 0.014, change_range_coeff}, {0.21, 0.015, change_range_coeff}, {0.18, 0.013, change_range_coeff} };
+        //intensity_coeff = 0.1083 * max_intensity + 42.252;
+        intensity_coeff = -0.0000008588151781 * pow(max_intensity, 2) + 0.0794295053328556 * max_intensity + 5.0114296095283100;
+        intensity_coeff *= 1.15;
         index_coff = temp[max_index] - 293.85;
         if (abs(index_coff) > 30)
             index_coff = copysign(30.0, index_coff);
         double coeff = 1;
-        peakParams = { {1.42, 266.85 + index_coff * coeff, 4 * intensity_coeff * 0.9, 0, 0, 0},
-                    { 1.32, 293.85 + index_coff * coeff, 6.2 * intensity_coeff * 0.9, 0, 0, 0},
-                    { 1.36, 319.85 + index_coff * coeff, 4.8 * intensity_coeff * 0.9, 0, 0, 0} };
+        peakParams = { {1.42, 266.85 + index_coff * coeff, 4 * intensity_coeff, 0, 0, 0},
+                    { 1.32, 293.85 + index_coff * coeff, 6.2 * intensity_coeff, 0, 0, 0},
+                    { 1.36, 319.85 + index_coff * coeff, 4.8 * intensity_coeff, 0, 0, 0} };
         //peakParams = { {1.42, 266.85, 4 * intensity_coeff, 0, 0, 0},
         //        { 1.32, 293.85, 6.2 * intensity_coeff, 0, 0, 0},
         //        { 1.36, 319.85, 4.8 * intensity_coeff, 0, 0, 0} };
@@ -526,8 +539,12 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     else if (type == 700)
         change_range = { {0.15, 0.03, 0.05}, {0.15, 0.017, 0.05}, {0.14, 0.02, 0.05}, {0.06, 0.013, 0.05} };
     else {
-        change_range = { {0.12, 0.035, 0.5}, {0.17, 0.016, 0.5}, {0.24, 0.08, 0.5}, {0.14, 0.026, 0.5}, {0.155, 0.012, 0.5}, {0.1, 0.02, 0.1}, {0.25, 0.053, 0.1} };
-        intensity_coeff = 0.8437 * max_intensity + 74.519;
+        change_range_coeff = 0.2;
+        change_range = { {0.12, 0.035, change_range_coeff}, {0.17, 0.016, change_range_coeff}, {0.24, 0.08, change_range_coeff}, {0.14, 0.026, change_range_coeff},
+            {0.155, 0.012, change_range_coeff}, {0.1, 0.02, change_range_coeff}, {0.25, 0.053, change_range_coeff} };
+        //intensity_coeff = 0.8437 * max_intensity + 74.519;
+        intensity_coeff = 0.09725311 * max_intensity + 11.33725723;
+        intensity_coeff *= 2.43;
         index_coff = temp[max_index] - 272.85;
         if (abs(index_coff) > 50)
             index_coff = copysign(50.0, index_coff);
@@ -539,13 +556,13 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         //            { 0.96, 249.85, 0.65 * intensity_coeff, 0, 0, 0},
         //            { 0.88, 272.85, 3.25 * intensity_coeff, 0, 0, 0} };
         double coeff = 1.2;
-        peakParams = { { 1.02, 122.85 + index_coff * 0.7, 0.109347 * intensity_coeff * coeff, 0, 0, 0},
-                    { 0.96, 149.85 + index_coff * 0.75, 0.115102 * intensity_coeff * coeff, 0, 0, 0},
-                    { 1.05, 161.85 + index_coff * 0.8, 0.18704 * intensity_coeff * coeff, 0, 0, 0},
-                    { 1.40, 188.85 + index_coff * 0.85, 0.158265 * intensity_coeff * coeff, 0, 0, 0},
-                    { 1.42, 205.85 + index_coff * 0.9, 0.071939 * intensity_coeff, 0, 0, 0},
-                    { 0.96, 249.85 + index_coff * 0.95, 0.18704 * intensity_coeff, 0, 0, 0},
-                    { 0.88, 272.85 + index_coff, 0.935202 * intensity_coeff, 0, 0, 0} };
+        peakParams = { { 1.02, 122.85 + index_coff * 0.7, 0.38 * intensity_coeff, 0, 0, 0},
+                    { 0.96, 149.85 + index_coff * 0.75, 0.40 * intensity_coeff, 0, 0, 0},
+                    { 1.05, 161.85 + index_coff * 0.8, 0.65 * intensity_coeff, 0, 0, 0},
+                    { 1.40, 188.85 + index_coff * 0.85, 0.55 * intensity_coeff, 0, 0, 0},
+                    { 1.42, 205.85 + index_coff * 0.9, 0.25 * intensity_coeff, 0, 0, 0},
+                    { 0.96, 249.85 + index_coff * 0.95, 0.65 * intensity_coeff, 0, 0, 0},
+                    { 0.88, 272.85 + index_coff, 3.25 * intensity_coeff, 0, 0, 0} };
 
     }
     orig_peak = peakParams;
@@ -793,9 +810,12 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    //ofstream file1;
+    ofstream file1;
+    string path = "C:/Users/jack0/Desktop/report.txt";
+    file1.open(path);
+    //ofstream output;
     //string path = "C:/Users/jack0/Desktop/report.txt";
-    //file1.open(path);
+    //output.open(path);
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
         //count to see which file is being processed
         int num = 0;
@@ -901,7 +921,7 @@ int main(int argc, char* argv[]) {
         //calculate every temperature's FOK data in each peak fit, accumulate peak areas for each peak in
         //peak_areas and accumulate same temperature's FOK values in all fits to sum
 
-        
+        vector<vector<double>> peak_param;
         //TLD 100
         //peak_param = { { 1.56, 143, 3 }, { 1.67, 183, 5 }, { 1.69, 211, 7 }, { 2.04, 237, 15 } };
         //TLD 200
@@ -915,7 +935,7 @@ int main(int argc, char* argv[]) {
 
         //double orig_fom = quick_fom(data.first, data.second, peak_param);
         //uncomment
-        vector<vector<double>> peak_param;
+        
         vector<vector<double>> peak_100;
         vector<vector<double>> orig_peak_100;
         double fom_100 = -1;
@@ -1085,8 +1105,9 @@ int main(int argc, char* argv[]) {
         ////else if (min_fom == 4)
         ////    peak_param = peak_700;
         
-        //file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << min_orig_fom << endl;
-        output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
+        file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << min_orig_fom << endl;
+
+        //output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
 
         // LM output
         //First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
@@ -1137,7 +1158,10 @@ int main(int argc, char* argv[]) {
         //
         //}
         //file9.close();
-        //calculate_constant(data.first, data.second, peak_param, curveArea, filename, max_intensity);
+
+        //calculate_constant(data.first, data.second, peak_param, curveArea, filename, max_intensity, output);
+
+
         //vector<vector<double>> GDParams = peakParams;
         //vector<vector<double>> GDcurve;
         //double fom = 1;
