@@ -450,11 +450,11 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     double best_fom = -1;
     if (type == 100) {
         //change_range = { {0.1, 0.05, 0.2}, {0.15, 0.04, 0.2}, {0.16, 0.03, 0.2}, {0.4, 0.06, 0.5} };
-        change_range_coeff = 0.3;
+        change_range_coeff = 0.4;
         change_range = { {0.1, 0.05, change_range_coeff}, {0.15, 0.04, change_range_coeff}, {0.16, 0.03, change_range_coeff}, {0.15, 0.06, change_range_coeff * 1.5} };
         //intensity_coeff = 112 / (1 + exp(-0.015 * (max_intensity - 270)));
-        intensity_coeff = 0.0000000000024004 * pow(max_intensity, 5) - 0.0000000039415324 * (max_intensity, 4) + 0.0000019701875676 * pow(max_intensity , 3) 
-            - 0.0002755661950564 * pow(max_intensity , 2) + 0.0346203293289782 * max_intensity * 1.6 + 0.8496013003402870;
+        intensity_coeff = 0.0000000000024004 * pow(max_intensity, 5) - 0.0000000039415324 * (max_intensity, 4) + 0.0000019701875676 * pow(max_intensity , 3) * 0.98 
+            - 0.0002755661950564 * pow(max_intensity , 2) * 1.08 + 0.0346203293289782 * max_intensity * 1.5 + 0.8496013003402870 * 0.8;
         //cout << max_intensity << endl;
         //cout << intensity_coeff << endl;
         index_coff = temp[max_index] - 237;
@@ -811,7 +811,7 @@ int main(int argc, char* argv[]) {
         }
     }
     ofstream file1;
-    string path = "C:/Users/jack0/Desktop/report.txt";
+    string path = "C:/Users/jack0/Desktop/report.csv";
     file1.open(path);
     //ofstream output;
     //string path = "C:/Users/jack0/Desktop/report.txt";
@@ -870,7 +870,13 @@ int main(int argc, char* argv[]) {
         vector<double> orig_count = data.second;
         //REMOVE_SPIKE call
         spike_elim(data.first, data.second, 3, 1.2);
-
+        //for (int i = 0; i < int(data.first.size()); i++) {
+        //    file1 << data.first[i] << ",";
+        //    file1 << data.second[i] << ",";
+        //    file1 << endl;
+        //
+        //}
+        //file1.close();
         //copy two times the count data and run Savitzky-Golay with order 4 and 5, then take the average
         vector<double> orig_count1 = data.second;
         vector<double> orig_count2 = orig_count1;
@@ -879,11 +885,12 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < static_cast<int>(orig_count1.size()); i++) {
             data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
         }
-
+        
         double max_intensity = *max_element(data.second.begin(), data.second.end());
         //remove_tail(data.first, data.second, max_intensity);
         //background_substraction
         //vector<double> t = remove_back(data.first, data.second);
+        
         vector<double> smooth_count = data.second;
 
         //calculate the curve area by adding the count data

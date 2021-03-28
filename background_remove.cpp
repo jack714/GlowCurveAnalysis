@@ -103,7 +103,7 @@ vector<double> remove_back(vector<double>& x, vector<double>& y) {
     }
     swap(x, xTemp);
     swap(y, yTemp);
-    //cout << slope << " " << c;
+    cout << slope << " " << c;
     //cout << xTemp[rightPoint];
     return firstDir;
 }
