@@ -948,6 +948,8 @@ int main(int argc, char* argv[]) {
         double fom_100 = -1;
         double original_fom_100 = 0;
         int iteration_100 = gd_types(data.first, data.second, peak_100, fom_100, 100, max_intensity, original_fom_100, orig_peak_100);
+        if (isnan(fom_100))
+            fom_100 = 100;
         vector<vector<double>> peak_200;
         vector<vector<double>> orig_peak_200;
         double fom_200 = -1;
