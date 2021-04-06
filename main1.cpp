@@ -450,11 +450,13 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     double best_fom = -1;
     if (type == 100) {
         //change_range = { {0.1, 0.05, 0.2}, {0.15, 0.04, 0.2}, {0.16, 0.03, 0.2}, {0.4, 0.06, 0.5} };
-        change_range_coeff = 0.4;
+        change_range_coeff = 0.5;
         change_range = { {0.1, 0.05, change_range_coeff}, {0.15, 0.04, change_range_coeff}, {0.16, 0.03, change_range_coeff}, {0.15, 0.06, change_range_coeff * 1.5} };
         //intensity_coeff = 112 / (1 + exp(-0.015 * (max_intensity - 270)));
-        intensity_coeff = 0.0000000000024004 * pow(max_intensity, 5) - 0.0000000039415324 * (max_intensity, 4) + 0.0000019701875676 * pow(max_intensity , 3) * 0.98 
-            - 0.0002755661950564 * pow(max_intensity , 2) * 1.08 + 0.0346203293289782 * max_intensity * 1.5 + 0.8496013003402870 * 0.8;
+        //intensity_coeff = 0.0000000000024004 * pow(max_intensity, 5) - 0.0000000039415324 * (max_intensity, 4) + 0.0000019701875676 * pow(max_intensity , 3) * 0.98 
+        //    - 0.0002755661950564 * pow(max_intensity , 2) * 1.08 + 0.0346203293289782 * max_intensity * 1.5 + 0.8496013003402870 * 0.8;
+        intensity_coeff = 0.0000000000024004 * pow(max_intensity, 5) - 0.0000000039415324 * (max_intensity, 4) + 0.0000019701875676 * pow(max_intensity, 3)
+            - 0.0002755661950564 * pow(max_intensity, 2) * 1.3 + 0.0346203293289782 * max_intensity * 1.3 + 0.8496013003402870;
         //cout << max_intensity << endl;
         //cout << intensity_coeff << endl;
         index_coff = temp[max_index] - 237;
@@ -811,7 +813,7 @@ int main(int argc, char* argv[]) {
         }
     }
     ofstream file1;
-    string path = "C:/Users/jack0/Desktop/report.csv";
+    string path = "C:/Users/jack0/Desktop/report.txt";
     file1.open(path);
     //ofstream output;
     //string path = "C:/Users/jack0/Desktop/report.txt";
