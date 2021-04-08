@@ -57,13 +57,13 @@ double First_Order_Kinetics::glow_curve(){
         integral += output;
     }
     //if the area under a peak is less than 200 then discard that peak data
-    for(int i = 0; i < int(peak_areas.size());++i ){
-        if(peak_areas[i] < 200.0){
-            peak_areas.erase(peak_areas.begin()+i);
-            peakParams.erase(peakParams.begin()+i);
-            --i;
-        }
-    }
+    //for(int i = 0; i < int(peak_areas.size());++i ){
+    //    if(peak_areas[i] < 200.0){
+    //        peak_areas.erase(peak_areas.begin()+i);
+    //        peakParams.erase(peakParams.begin()+i);
+    //        --i;
+    //    }
+    //}
     glow_curves.push_back(sum);
     //output the area under each peak
     for(int i = 0; i < int(peakParams.size()); ++i){
@@ -199,7 +199,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                         }
                     }
                     if (param_num == 0 && x == 2) {
-                        if (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.25) {
+                        if (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.06) {
                             t_params[x] -= delta[x];
                         }
                     }
@@ -209,7 +209,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                                 t_params[x] -= delta[x];
                             }
                         }
-                        else if (((t_params[x] - orig_height[x]) / orig_height[x]) < -0.1) {
+                        else if (x == 2 && ((t_params[x] - orig_height[x]) / orig_height[x]) < -0.1) {
                             t_params[x] -= delta[x];
                         }
                     }
