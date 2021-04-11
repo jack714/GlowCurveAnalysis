@@ -453,19 +453,31 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         change_range_coeff = 0.4;
         change_range = { {0.1, 0.05, change_range_coeff}, {0.15, 0.04, change_range_coeff}, {0.16, 0.03, change_range_coeff}, {0.15, 0.06, change_range_coeff * 1.5} };
         //intensity_coeff = 112 / (1 + exp(-0.015 * (max_intensity - 270)));
-        intensity_coeff = 0.0000000000024004 * pow(max_intensity, 5) - 0.0000000039415324 * (max_intensity, 4) + 0.0000019701875676 * pow(max_intensity , 3) * 0.98 
-            - 0.0002755661950564 * pow(max_intensity , 2) * 1.08 + 0.0346203293289782 * max_intensity * 1.5 + 0.8496013003402870 * 0.8;
+        intensity_coeff = 0.0000000000024004 * pow(max_intensity, 5) - 0.0000000039415324 * (max_intensity, 4) + 0.0000019701875676 * pow(max_intensity, 3) * 0.98
+            - 0.0002755661950564 * pow(max_intensity, 2) * 1.08 + 0.0346203293289782 * max_intensity * 1.5 + 0.8496013003402870 * 0.8;
         //cout << max_intensity << endl;
         //cout << intensity_coeff << endl;
         index_coff = temp[max_index] - 237;
         //if (abs(index_coff) > 30)
         if (abs(index_coff) > 30)
             index_coff = copysign(30.0, index_coff);
-        
+
         peakParams = { { 1.56, 143 + index_coff, 3 * intensity_coeff, 0, 0, 0 },
                     { 1.67, 183 + index_coff, 5 * intensity_coeff, 0, 0, 0},
                     { 1.69, 211 + index_coff * 0.9, 7 * intensity_coeff, 0, 0, 0},
                     { 2.04, 237 + index_coff, 15 * intensity_coeff, 0, 0, 0} };
+    }
+    else if (type == 101) {
+        change_range_coeff = 0.2;
+        change_range = { {0.1, 0.05, change_range_coeff}, {0.1, 0.05, change_range_coeff}, {0.1, 0.05, change_range_coeff}, {0.1, 0.05, change_range_coeff * 1.5},
+            {0.1, 0.05, change_range_coeff}, {0.1, 0.05, change_range_coeff}, {0.1, 0.05, change_range_coeff} };
+        double intensity = 5;
+        peakParams = { { 1.9, 110, intensity, 0, 0, 0 },
+                    { 1.44, 162, intensity, 0, 0, 0},
+                    { 2.24, 210, intensity, 0, 0, 0},
+                    { 2.25, 232, intensity, 0, 0, 0},
+                    { 2.10, 242, intensity, 0, 0, 0},
+                    { 2.00, 263, intensity, 0, 0, 0} };
     }
     else if (type == 200) {
         change_range_coeff = 0.2;
@@ -954,6 +966,11 @@ int main(int argc, char* argv[]) {
         int iteration_100 = gd_types(data.first, data.second, peak_100, fom_100, 100, max_intensity, original_fom_100, orig_peak_100);
         if (isnan(fom_100))
             fom_100 = 100;
+        vector<vector<double>> peak_101;
+        vector<vector<double>> orig_peak_101;
+        double fom_101 = -1;
+        double original_fom_101 = 0;
+        int iteration_101 = gd_types(data.first, data.second, peak_101, fom_101, 101, max_intensity, original_fom_101, orig_peak_101);
         vector<vector<double>> peak_200;
         vector<vector<double>> orig_peak_200;
         double fom_200 = -1;
@@ -977,11 +994,11 @@ int main(int argc, char* argv[]) {
         double fom_900 = -1;
         double original_fom_900 = 0;
         int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900, orig_peak_900);
-        vector<int> iter_set{ iteration_100, iteration_200, iteration_300, iteration_400, iteration_900 };
+        vector<int> iter_set{ iteration_100, iteration_101, iteration_200, iteration_300, iteration_400, iteration_900 };
         int max_iter = max_element(iter_set.begin(), iter_set.end()) - iter_set.begin();
-        vector<double> fom_set{ abs(fom_100), abs(fom_200), abs(fom_300), abs(fom_400), abs(fom_900) };
+        vector<double> fom_set{ abs(fom_100), abs(fom_101), abs(fom_200), abs(fom_300), abs(fom_400), abs(fom_900) };
         int min_fom = min_element(fom_set.begin(), fom_set.end()) - fom_set.begin();
-        vector<double> orig_fom_set{ abs(original_fom_100), abs(original_fom_200), abs(original_fom_300), abs(original_fom_400), abs(original_fom_900) };
+        vector<double> orig_fom_set{ abs(original_fom_100), abs(original_fom_101), abs(original_fom_200), abs(original_fom_300), abs(original_fom_400), abs(original_fom_900) };
         double min_orig_fom = *min_element(orig_fom_set.begin(), orig_fom_set.end());
         
         
@@ -998,20 +1015,27 @@ int main(int argc, char* argv[]) {
             iter = iteration_100;
         }
         else if (min_fom == 1) {
+            peak_param = peak_101;
+            adopt = 101;
+            orig_fom = original_fom_101;
+            cur_fom = fom_101;
+            iter = iteration_101;
+        }
+        else if (min_fom == 2) {
             peak_param = peak_200;
             adopt = 200;
             orig_fom = original_fom_200;
             cur_fom = fom_200;
             iter = iteration_200;
         }
-        else if (min_fom == 2) {
+        else if (min_fom == 3) {
             peak_param = peak_300;
             adopt = 300;
             orig_fom = original_fom_300;
             cur_fom = fom_300;
             iter = iteration_300;
         }
-        else if (min_fom == 3) {
+        else if (min_fom == 4) {
             peak_param = peak_400;
             adopt = 400;
             orig_fom = original_fom_400;
@@ -1120,7 +1144,7 @@ int main(int argc, char* argv[]) {
         
         file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << min_orig_fom << endl;
 
-        //output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
+        output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
 
         // LM output
         //First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_100);
