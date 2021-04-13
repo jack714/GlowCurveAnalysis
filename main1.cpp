@@ -1144,27 +1144,27 @@ int main(int argc, char* argv[]) {
         
         file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << min_orig_fom << endl;
 
-        output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
+        //output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
 
         // LM output
-        //First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_100);
-        //FOK_Model.glow_curve();
-        //vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
-        //ofstream file5;
-        //string path = output_dir + "/100_" + filename;
-        //file5.open(path);
-        //file5 << "temp, smoothed, first, sec, third, forth";
-        //file5 << ",\n";
-        //for (int i = 0; i < int(data.first.size()); i++) {
-        //    file5 << data.first[i] << ",";
-        //    file5 << smoothed_count[i] << ",";
-        //    for (int j = 0; j < int(peak_100.size()); j++) {
-        //        file5 << returnedPeaks[j][i] << ",";
-        //    }
-        //    file5 << "\n";
-        //
-        //}
-        //file5.close();
+        First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
+        FOK_Model.glow_curve();
+        vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
+        ofstream file5;
+        string path = output_dir + filename;
+        file5.open(path);
+        file5 << "temp, smoothed, first, sec, third, forth";
+        file5 << ",\n";
+        for (int i = 0; i < int(data.first.size()); i++) {
+            file5 << data.first[i] << ",";
+            file5 << smoothed_count[i] << ",";
+            for (int j = 0; j < int(peak_param.size()); j++) {
+                file5 << returnedPeaks[j][i] << ",";
+            }
+            file5 << "\n";
+        
+        }
+        file5.close();
 
 
 
