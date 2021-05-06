@@ -64,7 +64,7 @@ double First_Order_Kinetics::glow_curve(){
     //        --i;
     //    }
     //}
-    glow_curves.push_back(sum);
+    //glow_curves.push_back(sum);
     //output the area under each peak
     for(int i = 0; i < int(peakParams.size()); ++i){
         cout << "----- Area Under Curve #" << i+1 << " :" << peak_areas[i] << " -----" << endl;

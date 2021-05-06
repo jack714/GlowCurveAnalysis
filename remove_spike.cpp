@@ -7,7 +7,7 @@
 
 #include "remove_spike.hpp"
 
-void spike_elim(vector<double> & x, vector<double> & y, int span, double c) {
+void spike_elim(vector<double>& x, vector<double>& y, int span, double c) {
     vector<int> alter;
     //process all data points and store the left point of the left boundary point to the vector alter
     for (int i = 0; i < static_cast<int>(x.size()) - span; i++) {
@@ -15,10 +15,11 @@ void spike_elim(vector<double> & x, vector<double> & y, int span, double c) {
         elim_helper(y, span, c, i, process);
         if (process != -1 && process + span < static_cast<int>(y.size()) - 1) {
             alter.push_back(process);
-            if (process + span < static_cast<int>(y.size()) - span)
+            if (process + span < static_cast<int>(y.size()) - span) {
                 for (int j = 1; j < span; j++) {
                     alter.push_back(process + j);
                 }
+            }
         }
     }
     //if alter is not empty then continue to further process

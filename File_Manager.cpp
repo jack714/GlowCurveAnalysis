@@ -28,7 +28,7 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     }
     //get rid of the title content, this also get rid of the first line of data
     while(true){
-        if(line.find("Barcode") == std::string::npos)
+        if(line.find("barcode") == std::string::npos)
             getline(file, line,'\n');
         else{
             getline(file, line,'\n');
@@ -75,10 +75,10 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
         while (getline(ss, line, ',')) {
             count++;
             //if there's a column for barcode, this would get executed and barcodeNum would record the barcode
-            //if (line.find('N') != std::string::npos) {
-            //    line.erase(0, 1);
-            //    barcodeNum = stoi(line);
-            //}
+            if (line.find('N') != std::string::npos) {
+                line.erase(0, 1);
+                barcodeNum = stoi(line);
+            }
         }
         //construct an csv_iterator object from csv_iterator.cpp to read in data from temp
         auto i = csv_iterator<std::string>(file);
@@ -102,10 +102,10 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
         while (getline(ss, line, '\t')) {
             count++;
             //if there's a column for barcode, this would get executed and barcodeNum would record the barcode
-            //if (line.find('N') != std::string::npos) {
-            //    line.erase(0, 1);
-            //    barcodeNum = stoi(line);
-            //}
+            if (line.find('N') != std::string::npos) {
+                line.erase(0, 1);
+                barcodeNum = stoi(line);
+            }
         }
         //construct a xls_iterator object from xls_iterator.cpp to read in data from temp.xls
         auto i = xls_iterator<std::string>(file);

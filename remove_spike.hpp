@@ -9,7 +9,7 @@
 #define remove_spike_hpp
 
 #include <vector>
-
+#include <iostream>
 using namespace std;
 
 //remove the spike in raw data
