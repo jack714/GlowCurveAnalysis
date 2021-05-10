@@ -193,6 +193,12 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 //update the change to the original data
                 for(int x = 0; x < int(delta.size()); ++x){
                     t_params[x] += delta[x];
+                    if (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.5) {
+                        t_params[x] -= delta[x];
+                    }
+                    if (abs((t_params[x] - orig_height[x]) / orig_height[x]) > 0.5) {
+                        t_params[x] -= delta[x];
+                    }
                     //if (param_num == 0 && x == 1) {
                     //    if (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.02) {
                     //        t_params[x] -= delta[x];

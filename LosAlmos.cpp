@@ -541,7 +541,7 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
                     { 1.36, 319.85 + index_coff * coeff, 4.8 * intensity_coeff, 0, 0, 0} };
 
     }
-    //else if (type == 600) {
+    //else if (type == 600) { 
     //
     //}
     //else if (type == 700)
@@ -1176,6 +1176,8 @@ int main(int argc, char* argv[]) {
             }
             cout << endl;
         }
+
+
         //testing weird file differendose 10 100
         //vector<vector<double>> params = { {1.55636, 113.044,55.6956}, {1.66538, 152.789, 92.7178}, {1.68235, 180.784, 128.069}, {1.97056, 203.057, 278.436} };
         ofstream file9;
@@ -1198,7 +1200,7 @@ int main(int argc, char* argv[]) {
             for (int j = 0; j < int(peak_param.size()) - 1; j++) {
                 file9 << integral[j][i] << ",";
             }
-
+        
             file9 << integral[peak_param.size() - 1][i];
             file9 << ",\n";
         
