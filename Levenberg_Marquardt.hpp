@@ -14,6 +14,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <cmath>
+#include <fstream>
 #include <stdio.h>
 #include "quick_half_max.hpp"
 
@@ -27,7 +28,7 @@ private:
 public:
     First_Order_Kinetics(std::pair<std::vector<double>,std::vector<double>>, std::vector<std::vector<double>>);
     //double activation_energy(int TL_index,int TM_index,int TR_index);
-    double glow_curve();
+    double glow_curve(std::ofstream& file, std::vector<std::vector<double>>& constrain);
     std::vector<double> initial_guess(std::vector<double> &curve,int i);
 //    double Func(const double input, const std::vector<double> params);
     double Func2(const double input, const std::vector<double> params);
@@ -45,7 +46,7 @@ public:
     std::vector<std::vector<double>> Identity(int num, double lambda);
     std::vector<double> vec_matrix_multi(std::vector<std::vector<double>> const &A,std::vector<double> const &B);
     void LevenbergMarquardt2(const std::vector<double> &outputs, std::vector<double> &params);
-    void LevenbergMarquardt(const std::vector<double> &outputs, std::vector<std::vector<double>> &params, double &FOM);
+    void LevenbergMarquardt(const std::vector<double> &outputs, std::vector<std::vector<double>> &params, double &FOM, std::vector<std::vector<double>>& constrain);
     void adjoint(std::vector<std::vector<double>> &A,std::vector<std::vector<double>> &adj);
     std::vector<std::vector<double>> jacobian(const std::vector<std::vector<double>> &inputs, std::vector<double> params);
     std::vector<std::vector<double>> return_glow_curve(){

@@ -19,14 +19,14 @@ First_Order_Kinetics::First_Order_Kinetics(std::pair<std::vector<double>,std::ve
 
 /*---------------------------------Main Deconvolution---------------------------------------*/
 //calculate FOM and the area under each curve fit
-double First_Order_Kinetics::glow_curve(){
+double First_Order_Kinetics::glow_curve(ofstream& file, vector<vector<double>>& constrain){
     double FOM = 1.0;
     vector<double> sum(count_data.size(), 0.0);
     double integral = 0.0;
     cout << ".";
     cout.flush();
     //call LevenbergMarquardt from this file
-    LevenbergMarquardt(count_data, peakParams, FOM);
+    LevenbergMarquardt(count_data, peakParams, FOM, constrain);
     //gradient_Descent(count_data, peakParams, FOM);
     //LevenbergMarquardt(count_data, peakParams, FOM);
     cout<<".";
@@ -71,6 +71,14 @@ double First_Order_Kinetics::glow_curve(){
     }
     curve_areas = peak_areas;
     totalArea = integral;
+    file << FOM << ",";
+    for (vector<double> v : peakParams) {
+        file << v[0] << "," << v[1] << "," << v[2] << ",";
+    }
+    for (double d : peak_areas) {
+        file << d << ",";
+    }
+    file << endl;
     return FOM;
 };
 
@@ -91,7 +99,7 @@ double First_Order_Kinetics::Func2(const double input, const vector<double> para
 
 //-------------------------Levenburg Marquardt METHOD----------------------------------------//
 // use Levenberg-Marquardt method to further fit the curve and calculate figure of merit for the curve fitting
-void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vector<vector<double>> &params, double &FOM){
+void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vector<vector<double>> &params, double &FOM, vector<vector<double>>& constrain){
     //create singlePeak vector that is same size as curve
     vector<double> singlePeak(curve.size(), 0.0);
     int curveSize = int(curve.size());
@@ -100,9 +108,13 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
     int main_hold = 0;
     double main_FOM = FOM;
     vector<double> orig_energy(params.size());
+    vector<double> orig_temp(params.size());
     vector<double> orig_height(params.size());
     for (int i = 0; i < int(params.size()); i++) {
         orig_energy[i] = params[i][0];
+    }
+    for (int i = 0; i < int(params.size()); i++) {
+        orig_temp[i] = params[i][1];
     }
     for (int i = 0; i < int(params.size()); i++) {
         orig_height[i] = params[i][2];
@@ -193,12 +205,24 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 //update the change to the original data
                 for(int x = 0; x < int(delta.size()); ++x){
                     t_params[x] += delta[x];
-                    if (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.5) {
+                    //if (param_num == 0 && (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.17)) {
+                    //    t_params[x] -= delta[x];
+                    //}
+                    //if (param_num == 0 && x == 1 && (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.5)) {
+                    //    t_params[x] -= delta[x];
+                    //}
+                    //if (param_num == 2 && (abs((t_params[x] - orig_height[x]) / orig_height[x]) > 0.4)) {
+                    //    t_params[x] -= delta[x];
+                    //}
+
+                    if(param_num == 0 && constrain[0][x] != 0 && (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > constrain[0][x]))
                         t_params[x] -= delta[x];
-                    }
-                    if (abs((t_params[x] - orig_height[x]) / orig_height[x]) > 0.5) {
+                    if (param_num == 1 && constrain[1][x] != 0 && (abs((t_params[x] - orig_temp[x]) / orig_temp[x]) > constrain[1][x]))
                         t_params[x] -= delta[x];
-                    }
+                    if (param_num == 2 && constrain[2][x] != 0 && (abs((t_params[x] - orig_height[x]) / orig_height[x]) > constrain[2][x]))
+                        t_params[x] -= delta[x];
+
+
                     //if (param_num == 0 && x == 1) {
                     //    if (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > 0.02) {
                     //        t_params[x] -= delta[x];

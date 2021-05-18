@@ -448,6 +448,7 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     double index_coff;
     double change_range_coeff;
     double best_fom = -1;
+    double low_temp = temp[0];
     if (type == 100) {
         //change_range = { {0.1, 0.05, 0.2}, {0.15, 0.04, 0.2}, {0.16, 0.03, 0.2}, {0.4, 0.06, 0.5} };
         change_range_coeff = 0.4;
@@ -527,14 +528,15 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     //                { 1.31, 288.85+ index_coff, 1.75 * intensity_coeff, 0, 0, 0} };
     //}
     else if (type == 400) {
-        change_range_coeff = 0.2;
+        //change_range_coeff = 0.2;
+        change_range_coeff = 0.3;
         change_range = { {0.15, 0.014, change_range_coeff}, {0.21, 0.015, change_range_coeff}, {0.18, 0.013, change_range_coeff} };
         //intensity_coeff = 0.1083 * max_intensity + 42.252;
         intensity_coeff = -0.0000008588151781 * pow(max_intensity, 2) + 0.0794295053328556 * max_intensity + 5.0114296095283100;
         intensity_coeff *= 1.15;
         index_coff = temp[max_index] - 293.85;
-        if (abs(index_coff) > 30)
-            index_coff = copysign(30.0, index_coff);
+        if (abs(index_coff) > 50)
+            index_coff = copysign(50.0, index_coff);
         double coeff = 1;
         peakParams = { {1.42, 266.85 + index_coff * coeff, 4 * intensity_coeff, 0, 0, 0},
                     { 1.32, 293.85 + index_coff * coeff, 6.2 * intensity_coeff, 0, 0, 0},
@@ -708,6 +710,9 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         //cout.flush();
         iteration++;
     }
+    if (low_temp > 150 && type == 100) {
+        current_FOM = 2;
+    }
     FOM = current_FOM;
     peakParams = temp_params;
     //if (type == 100) {
@@ -817,6 +822,9 @@ int main(int argc, char* argv[]) {
     //ofstream output;
     //string path = "C:/Users/jack0/Desktop/report.txt";
     //output.open(path);
+    ofstream file9;
+    string outpath = output_dir + "/statistic.csv";
+    file9.open(outpath);
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
         //count to see which file is being processed
         int num = 0;
@@ -891,7 +899,7 @@ int main(int argc, char* argv[]) {
         //
         //}
         //file1.close();
-        
+        spike_elim(data.first, data.second, 5, 1.05);
         double max_intensity = *max_element(data.second.begin(), data.second.end());
         //remove_tail(data.first, data.second, max_intensity);
         //background_substraction
@@ -1150,24 +1158,33 @@ int main(int argc, char* argv[]) {
         //output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
 
         // LM output
-        //First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
-        //FOK_Model.glow_curve();
-        //vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
-        //ofstream file5;
-        //string path = output_dir + "/" + filename;
-        //file5.open(path);
-        //file5 << "temp, smoothed, first, sec, third, forth";
-        //file5 << ",\n";
-        //for (int i = 0; i < int(data.first.size()); i++) {
-        //    file5 << data.first[i] << ",";
-        //    file5 << smoothed_count[i] << ",";
-        //    for (int j = 0; j < int(peak_param.size()); j++) {
-        //        file5 << returnedPeaks[j][i] << ",";
-        //    }
-        //    file5 << "\n";
+        First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
+        file9 << filename << ",";
+        vector<vector<double>> constrain = {
+            {0.17, 0.17, 0.17},
+            {0,0,0},
+            {0.4,0.4,0.4}
+        };
+        double res = FOK_Model.glow_curve(file9, constrain);
+        //if (res != -1) {
+        //    vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
+        //    ofstream file5;
+        //    string path = output_dir + "/" + filename;
+        //    file5.open(path);
+        //    file5 << "temp, smoothed, first, sec, third, forth";
+        //    file5 << ",\n";
+        //    for (int i = 0; i < int(data.first.size()); i++) {
+        //        file5 << data.first[i] << ",";
+        //        file5 << smoothed_count[i] << ",";
+        //        for (int j = 0; j < int(peak_param.size()); j++) {
+        //            file5 << returnedPeaks[j][i] << ",";
+        //        }
+        //        file5 << "\n";
         //
+        //    }
+        //    file5.close();
         //}
-        //file5.close();
+        
 
 
         for(int i = 0; i < static_cast<int>(peak_param.size()); i++) {
@@ -1180,32 +1197,31 @@ int main(int argc, char* argv[]) {
 
         //testing weird file differendose 10 100
         //vector<vector<double>> params = { {1.55636, 113.044,55.6956}, {1.66538, 152.789, 92.7178}, {1.68235, 180.784, 128.069}, {1.97056, 203.057, 278.436} };
-        ofstream file9;
-        //string place = "C:/Users/jack0/Desktop/graph.txt";
-        string path = output_dir + "/" + filename;
-        file9.open(path);
-        vector<vector<double>> integral(peak_param.size(), vector<double>(data.second.size(), 0));
-        for (int i = 0; i < int(data.first.size()); ++i) {
-            double output = 0.0;
-            for (int x = 0; x < int(peak_param.size()); ++x) {
-                double out = quickFok(data.second[i], peak_param[x]);
-                integral[x][i] = out;
-            }
-        }
-        file9 << "temp, after removal, first, sec, third, forth";
-        file9 << ",\n";
-        for (int i = 0; i < int(data.first.size()); i++) {
-            file9 << data.first[i] << ",";
-            file9 << data.second[i] << ",";
-            for (int j = 0; j < int(peak_param.size()) - 1; j++) {
-                file9 << integral[j][i] << ",";
-            }
-        
-            file9 << integral[peak_param.size() - 1][i];
-            file9 << ",\n";
-        
-        }
-        file9.close();
+        //ofstream file9;
+        //string path = output_dir + "/" + filename;
+        //file9.open(path);
+        //vector<vector<double>> integral(peak_param.size(), vector<double>(data.second.size(), 0));
+        //for (int i = 0; i < int(data.first.size()); ++i) {
+        //    double output = 0.0;
+        //    for (int x = 0; x < int(peak_param.size()); ++x) {
+        //        double out = quickFok(data.second[i], peak_param[x]);
+        //        integral[x][i] = out;
+        //    }
+        //}
+        //file9 << "temp, after removal, first, sec, third, forth";
+        //file9 << ",\n";
+        //for (int i = 0; i < int(data.first.size()); i++) {
+        //    file9 << data.first[i] << ",";
+        //    file9 << data.second[i] << ",";
+        //    for (int j = 0; j < int(peak_param.size()) - 1; j++) {
+        //        file9 << integral[j][i] << ",";
+        //    }
+        //
+        //    file9 << integral[peak_param.size() - 1][i];
+        //    file9 << ",\n";
+        //
+        //}
+        //file9.close();
 
         //calculate_constant(data.first, data.second, peak_param, curveArea, filename, max_intensity, output);
 
