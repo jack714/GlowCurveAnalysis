@@ -71,14 +71,14 @@ double First_Order_Kinetics::glow_curve(ofstream& file, vector<vector<double>>& 
     }
     curve_areas = peak_areas;
     totalArea = integral;
-    file << FOM << ",";
-    for (vector<double> v : peakParams) {
-        file << v[0] << "," << v[1] << "," << v[2] << ",";
-    }
-    for (double d : peak_areas) {
-        file << d << ",";
-    }
-    file << endl;
+    //file << FOM << ",";
+    //for (vector<double> v : peakParams) {
+    //    file << v[0] << "," << v[1] << "," << v[2] << ",";
+    //}
+    //for (double d : peak_areas) {
+    //    file << d << ",";
+    //}
+    //file << endl;
     return FOM;
 };
 
@@ -100,6 +100,7 @@ double First_Order_Kinetics::Func2(const double input, const vector<double> para
 //-------------------------Levenburg Marquardt METHOD----------------------------------------//
 // use Levenberg-Marquardt method to further fit the curve and calculate figure of merit for the curve fitting
 void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vector<vector<double>> &params, double &FOM, vector<vector<double>>& constrain){
+    auto start = chrono::high_resolution_clock::now();
     //create singlePeak vector that is same size as curve
     vector<double> singlePeak(curve.size(), 0.0);
     int curveSize = int(curve.size());
@@ -155,6 +156,12 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
             int inner_hold = 0;
             //the FOM gets better or it stops at 300 iteration
             while(FOM > .02 && i < 300){
+                auto stop = chrono::high_resolution_clock::now();
+                auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
+                if (duration.count() > 240000) {
+                    main_hold = 4;
+                    break;
+                }
                 if(updateJ == 1){
                     //Evaluate the jacobian matrix at the current paramater.
                     vector<double>process_parms(3, 0.0);
@@ -215,12 +222,12 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     //    t_params[x] -= delta[x];
                     //}
 
-                    if(param_num == 0 && constrain[0][x] != 0 && (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > constrain[0][x]))
-                        t_params[x] -= delta[x];
-                    if (param_num == 1 && constrain[1][x] != 0 && (abs((t_params[x] - orig_temp[x]) / orig_temp[x]) > constrain[1][x]))
-                        t_params[x] -= delta[x];
-                    if (param_num == 2 && constrain[2][x] != 0 && (abs((t_params[x] - orig_height[x]) / orig_height[x]) > constrain[2][x]))
-                        t_params[x] -= delta[x];
+                    //if(param_num == 0 && constrain[0][x] != 0 && (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > constrain[0][x]))
+                    //    t_params[x] -= delta[x];
+                    //if (param_num == 1 && constrain[1][x] != 0 && (abs((t_params[x] - orig_temp[x]) / orig_temp[x]) > constrain[1][x]))
+                    //    t_params[x] -= delta[x];
+                    //if (param_num == 2 && constrain[2][x] != 0 && (abs((t_params[x] - orig_height[x]) / orig_height[x]) > constrain[2][x]))
+                    //    t_params[x] -= delta[x];
 
 
                     //if (param_num == 0 && x == 1) {

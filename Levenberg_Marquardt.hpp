@@ -17,6 +17,7 @@
 #include <fstream>
 #include <stdio.h>
 #include "quick_half_max.hpp"
+#include <chrono>
 
 class First_Order_Kinetics{
 private:

@@ -22,6 +22,7 @@
 #include "remove_spike.hpp"
 #include "Savitzky_Golay.hpp"
 #include "background_remove.hpp"
+#include <chrono>
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
@@ -711,7 +712,7 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         iteration++;
     }
     if (low_temp > 150 && type == 100) {
-        current_FOM = 2;
+        current_FOM = 100;
     }
     FOM = current_FOM;
     peakParams = temp_params;
@@ -857,7 +858,8 @@ int main(int argc, char* argv[]) {
         if (window_size % 2 == 0) {
             window_size += 1;
         }
-
+        //file1 << filename << ",";
+        //auto start = chrono::high_resolution_clock::now();
 
         //Smooth temperature raw data with Savitzky-Golay
         int window = length * 0.05;
@@ -880,8 +882,8 @@ int main(int argc, char* argv[]) {
         
         vector<double> orig_count = data.second;
         //REMOVE_SPIKE call
-        spike_elim(data.first, data.second, 3, 1.2);
-        //spike_elim(data.first, data.second, 3, 1.05);
+        //spike_elim(data.first, data.second, 3, 1.2);
+        spike_elim(data.first, data.second, 3, 1.05);
         
         //copy two times the count data and run Savitzky-Golay with order 4 and 5, then take the average
         vector<double> orig_count1 = data.second;
@@ -899,7 +901,7 @@ int main(int argc, char* argv[]) {
         //
         //}
         //file1.close();
-        spike_elim(data.first, data.second, 5, 1.05);
+        //spike_elim(data.first, data.second, 5, 1.05);
         double max_intensity = *max_element(data.second.begin(), data.second.end());
         //remove_tail(data.first, data.second, max_intensity);
         //background_substraction
@@ -919,6 +921,7 @@ int main(int argc, char* argv[]) {
             continue;
         }
         vector<double> smoothed_count = data.second;
+        
         //output_counts(orig_count, smoothed_count, data.first, filename);
         //testing gradient descent on TLD 100
         //peakparams: activation energy, maxTemp, maxIntensity, TL, TM, TR
@@ -1153,40 +1156,53 @@ int main(int argc, char* argv[]) {
         ////else if (min_fom == 4)
         ////    peak_param = peak_700;
         
+
+        //auto stop = chrono::high_resolution_clock::now();
+        //auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
+        //file1 << duration.count() << ",";
+
         //file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << min_orig_fom << endl;
 
         //output_details(output_dir, filename, data.first, data.second, peak_300, orig_peak_300, peak_400, orig_peak_400, peak_900, orig_peak_900, peak_100, orig_peak_100, peak_200, orig_peak_200);
 
         // LM output
+        //auto start1 = chrono::high_resolution_clock::now();
         First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
         file9 << filename << ",";
         vector<vector<double>> constrain = {
-            {0.17, 0.17, 0.17},
-            {0,0,0},
-            {0.4,0.4,0.4}
+            {0.17, 0.17, 0.17, 0.17},
+            {0,0,0, 0},
+            {0.4,0.4,0.4, 0.4}
         };
         double res = FOK_Model.glow_curve(file9, constrain);
-        //if (res != -1) {
-        //    vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
-        //    ofstream file5;
-        //    string path = output_dir + "/" + filename;
-        //    file5.open(path);
-        //    file5 << "temp, smoothed, first, sec, third, forth";
-        //    file5 << ",\n";
-        //    for (int i = 0; i < int(data.first.size()); i++) {
-        //        file5 << data.first[i] << ",";
-        //        file5 << smoothed_count[i] << ",";
-        //        for (int j = 0; j < int(peak_param.size()); j++) {
-        //            file5 << returnedPeaks[j][i] << ",";
-        //        }
-        //        file5 << "\n";
-        //
-        //    }
-        //    file5.close();
-        //}
+        if (res != -1) {
+            vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
+            ofstream file5;
+            string path = output_dir + "/" + filename;
+            file5.open(path);
+            file5 << "temp, smoothed, first, sec, third, forth";
+            file5 << ",\n";
+            for (int i = 0; i < int(data.first.size()); i++) {
+                file5 << data.first[i] << ",";
+                file5 << smoothed_count[i] << ",";
+                for (int j = 0; j < int(peak_param.size()); j++) {
+                    file5 << returnedPeaks[j][i] << ",";
+                }
+                file5 << "\n";
+        
+            }
+            file5.close();
+        }
         
 
-
+        //auto stop1 = chrono::high_resolution_clock::now();
+        //auto duration1 = chrono::duration_cast<chrono::milliseconds>(stop1 - start1);
+        //if (res == -1) {
+        //    file1 << duration1.count() << "," << "failed" << endl;
+        //}
+        //else {
+        //    file1 << duration1.count() << "," << endl;
+        //}
         for(int i = 0; i < static_cast<int>(peak_param.size()); i++) {
             for (int j = 0; j < static_cast<int>(peak_param[0].size()); j++) {
                 cout << peak_param[i][j] << " ";
