@@ -23,6 +23,7 @@
 #include "Savitzky_Golay.hpp"
 #include "background_remove.hpp"
 #include <chrono>
+#include <numeric>
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
@@ -83,7 +84,7 @@ void calculate_constant(vector<double>& temp, vector<double>& count, vector<vect
     while (area < 0.97 * curveArea || area > 1.03 * curveArea) {
         if (iteration > 1000)
             break;
-        cons = 20;
+        cons = 40;
         cons *= (1 - (area / curveArea));
         for (auto& v : temp_param)
             v[2] += cons;
@@ -96,7 +97,7 @@ void calculate_constant(vector<double>& temp, vector<double>& count, vector<vect
         iteration++;
     }
     double new_fom = quick_fom(temp, count, temp_param);
-    double final_cons = temp_param[6][2] / peak_param[6][2];
+    double final_cons = temp_param[1][2] / peak_param[1][2];
     output << filename << " ";
     output << "orig_fom: " << orig_fom << " new_fom: " << new_fom << " ratio: " << final_cons << " iterations: " << iteration << " max_intensity: " << max_intensity << endl;
 }
@@ -532,9 +533,10 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         //change_range_coeff = 0.2;
         change_range_coeff = 0.3;
         change_range = { {0.15, 0.014, change_range_coeff}, {0.21, 0.015, change_range_coeff}, {0.18, 0.013, change_range_coeff} };
-        //intensity_coeff = 0.1083 * max_intensity + 42.252;
-        intensity_coeff = -0.0000008588151781 * pow(max_intensity, 2) + 0.0794295053328556 * max_intensity + 5.0114296095283100;
-        intensity_coeff *= 1.15;
+        intensity_coeff = 0.1083 * max_intensity + 42.252;
+        double multiplier = 0.000000000000005977990 * pow(max_intensity, 3) - 0.000000000395942970492 * pow(max_intensity, 2) + 0.000012257960562972300 * max_intensity + 0.845066550004287000000;
+        intensity_coeff *= multiplier;
+        //intensity_coeff *= 1.15;
         index_coff = temp[max_index] - 293.85;
         if (abs(index_coff) > 50)
             index_coff = copysign(50.0, index_coff);
@@ -882,8 +884,8 @@ int main(int argc, char* argv[]) {
         
         vector<double> orig_count = data.second;
         //REMOVE_SPIKE call
-        //spike_elim(data.first, data.second, 3, 1.2);
         spike_elim(data.first, data.second, 3, 1.05);
+        //spike_elim(data.first, data.second, 3, 1.05);
         
         //copy two times the count data and run Savitzky-Golay with order 4 and 5, then take the average
         vector<double> orig_count1 = data.second;
@@ -902,6 +904,18 @@ int main(int argc, char* argv[]) {
         //}
         //file1.close();
         //spike_elim(data.first, data.second, 5, 1.05);
+
+        //double orig_integral = 0.0;
+        //for (double d : orig_count)
+        //    orig_integral += d;
+        //double test_fom = 0.0;
+        //for (int f = 0; f < int(data.second.size()); ++f) {
+        //    test_fom += abs(data.second[f] - orig_count[f]) / orig_integral;
+        //}
+        //cout << "FOM is: " << test_fom << endl;
+
+
+
         double max_intensity = *max_element(data.second.begin(), data.second.end());
         //remove_tail(data.first, data.second, max_intensity);
         //background_substraction
@@ -1171,7 +1185,7 @@ int main(int argc, char* argv[]) {
         file9 << filename << ",";
         vector<vector<double>> constrain = {
             {0.17, 0.17, 0.17, 0.17},
-            {0,0,0, 0},
+            {0.05,0.05,0.05, 0},
             {0.4,0.4,0.4, 0.4}
         };
         double res = FOK_Model.glow_curve(file9, constrain);
@@ -1180,7 +1194,7 @@ int main(int argc, char* argv[]) {
             ofstream file5;
             string path = output_dir + "/" + filename;
             file5.open(path);
-            file5 << "temp, smoothed, first, sec, third, forth";
+            file5 << "temp, smoothed, first, sec, third, orig";
             file5 << ",\n";
             for (int i = 0; i < int(data.first.size()); i++) {
                 file5 << data.first[i] << ",";
@@ -1188,6 +1202,7 @@ int main(int argc, char* argv[]) {
                 for (int j = 0; j < int(peak_param.size()); j++) {
                     file5 << returnedPeaks[j][i] << ",";
                 }
+                file5 << orig_count[i];
                 file5 << "\n";
         
             }
