@@ -35,3 +35,4 @@ double quickFok(const double input, const std::vector<double> params) {
     I_t = Im * exp(1.0 + (energy / (k * T)) * ((T - Tm) / Tm) - ((T * T) / (Tm * Tm)) * exp((energy / (k * T)) * ((T - Tm) / Tm)) * (1.0 - ((2.0 * k * T) / energy)) - dm);
     return I_t;
 }
+

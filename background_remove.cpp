@@ -15,8 +15,10 @@ vector<double> remove_back(vector<double>& x, vector<double>& y) {
     firstDeriv(x, y, firstDir);
     //secDeriv(x, y, secDir);
     //derivative change at the left and right to idenify the start of actual data
+    //old gca double left = 0.02;
     double left = 0.02;
     //double left = -.003;
+    //old gca double right = -0.009;
     double right = -0.009;
     //double right = 0.001;
     int leftPoint = 0;
@@ -51,15 +53,15 @@ vector<double> remove_back(vector<double>& x, vector<double>& y) {
     int middle = leftPoint / 2;
     double firstCount = 0.0;
     double secCount = 0.0;
-    for (int i = 0; i < middle; i++)
+    for (int i = 0; i < leftPoint; i++)
         firstCount += y[i];
-    firstCount /= middle;
-    for (int i = middle; i < leftPoint; i++)
+    firstCount /= (leftPoint+1);
+    for (int i = rightPoint; i < static_cast<int>(y.size()); i++)
         secCount += y[i];
-    secCount /= middle;
+    secCount /= (static_cast<int>(y.size())-rightPoint+1);
     //take the mid temperature over the two half range
-    double firstTemp = x[leftPoint / 4];
-    double secTemp = x[leftPoint / 4 * 3];
+    double firstTemp = x[leftPoint/2];
+    double secTemp = x[(static_cast<int>(y.size()) + rightPoint + 1) / 2];
     //cout << firstTemp << " " << secTemp << endl;
     //cout << firstCount << " " << secCount << endl;
     //approximate a line from the two
@@ -93,16 +95,19 @@ vector<double> remove_back(vector<double>& x, vector<double>& y) {
         //cout << leftTemp << " " << leftCount << endl;
         //cout << rightTemp << " " << rightCount << endl;
     }
-    for (int i = 0; i < size; i++) 
+    for (int i = 0; i < size; i++) {
         y[i] -= slope * x[i] + c;
-    vector<double> xTemp;
-    vector<double> yTemp;
-    for (int i = leftPoint; i < rightPoint; i++) {
-        xTemp.push_back(x[i]);
-        yTemp.push_back(y[i]);
+        if (y[i] < 0)
+            y[i] = 0;
     }
-    swap(x, xTemp);
-    swap(y, yTemp);
+    //vector<double> xTemp;
+    //vector<double> yTemp;
+    //for (int i = leftPoint; i < rightPoint; i++) {
+    //    xTemp.push_back(x[i]);
+    //    yTemp.push_back(y[i]);
+    //}
+    //swap(x, xTemp);
+    //swap(y, yTemp);
     cout << slope << " " << c;
     //cout << xTemp[rightPoint];
     return firstDir;

@@ -79,6 +79,7 @@ double First_Order_Kinetics::glow_curve(ofstream& file, vector<vector<double>>& 
         file << d << ",";
     }
     file << endl;
+    //cout << peakParams[0][0] << " " << peakParams[1][0] << " " << peakParams[2][0] << endl;
     return FOM;
 };
 
@@ -222,8 +223,10 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     //    t_params[x] -= delta[x];
                     //}
 
-                    if(param_num == 0 && constrain[0][x] != 0 && (abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > constrain[0][x]))
+                    if(param_num == 0 && constrain[0][x] != 0 && abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > constrain[0][x])
                         t_params[x] -= delta[x];
+                    //if (param_num == 0 && constrain[0][x] != 0 && ((t_params[x] - orig_energy[x]) / orig_energy[x]) < -1.0 * constrain[0][x] * 1.2)
+                    //    t_params[x] -= delta[x];
                     if (param_num == 1 && constrain[1][x] != 0 && (abs((t_params[x] - orig_temp[x]) / orig_temp[x]) > constrain[1][x]))
                         t_params[x] -= delta[x];
                     if (param_num == 2 && constrain[2][x] != 0 && (abs((t_params[x] - orig_height[x]) / orig_height[x]) > constrain[2][x]))
