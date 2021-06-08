@@ -26,6 +26,7 @@ void bg_subtract(std::vector<double>& x, std::vector<double>& y) {
 		y[j] -= avg_start;
 		// if negative set to 0
 		if (y[j] < 0)
+
 			y[j] = 0.0;
 	}
 	/*
