@@ -229,6 +229,8 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     //    t_params[x] -= delta[x];
                     if (param_num == 1 && constrain[1][x] != 0 && (abs((t_params[x] - orig_temp[x]) / orig_temp[x]) > constrain[1][x]))
                         t_params[x] -= delta[x];
+                    //if (param_num == 1 && constrain[1][x] != 0)
+                    //    t_params[x] -= delta[x];
                     if (param_num == 2 && constrain[2][x] != 0 && (abs((t_params[x] - orig_height[x]) / orig_height[x]) > constrain[2][x]))
                         t_params[x] -= delta[x];
 

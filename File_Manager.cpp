@@ -28,7 +28,7 @@ pair<std::vector<double>,std::vector<double>> File_Manager::read(){
     }
     //get rid of the title content, this also get rid of the first line of data
     while(true){
-        if(line.find("barcode") == std::string::npos)
+        if(line.find("Barcode") == std::string::npos)
             getline(file, line,'\n');
         else{
             getline(file, line,'\n');

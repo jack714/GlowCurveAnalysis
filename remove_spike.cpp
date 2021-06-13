@@ -47,11 +47,11 @@ void spike_elim(vector<double>& x, vector<double>& y, int span, double c) {
         }
         iteration++;
     }
-    for (int i = 0; i < static_cast<int>(x.size()) - span; i++) {
+    for (int i = 0; i < static_cast<int>(x.size()) - 5; i++) {
         int process = -1;
         elim_helper2(y, 3, c, i, process);
     }
-    for (int i = 0; i < static_cast<int>(x.size()) - span; i++) {
+    for (int i = 0; i < static_cast<int>(x.size()) - 5; i++) {
         int process = -1;
         elim_helper2(y, 5, c, i, process);
     }
