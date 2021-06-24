@@ -121,13 +121,32 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
     for (int i = 0; i < int(params.size()); i++) {
         orig_height[i] = params[i][2];
     }
+    int count_temp = 0;
+    int count_energy = 0;
+    int count_counts = 0;
+
+    int index = 0;
+    double jacobin = 0.0;
+    double hessian = 0.0;
+    double get_h_lm = 0.0;
+    double get_delta = 0.0;
+    double analysis = 0.0;
+
     while(FOM > .01){
+        if (count_energy >= 3 && count_temp >= 3 && count_counts >= 3)
+            break;
         main_FOM = FOM;
         if(main_hold > 3){
             break;
         }
         //param_num is used to indicate which value (energy, temp, count) will be modifed in the L-M process
         for(int param_num = 0; param_num < 3 ; ++param_num){
+            if (param_num == 0 && count_energy >= 3)
+                continue;
+            if (param_num == 1 && count_temp >= 3)
+                continue;
+            if (param_num == 2 && count_counts >= 3)
+                continue;
             vector<double> temp_params;
             vector<double> temp_output(curve.size(), 0.0);
             //push ith value in params to temp_params
@@ -157,13 +176,17 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
             int inner_hold = 0;
             //the FOM gets better or it stops at 300 iteration
             while(FOM > .02 && i < 300){
+            //while (FOM > .02 && i < 5) {
+                cout.flush();
+                
                 auto stop = chrono::high_resolution_clock::now();
                 auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
-                if (duration.count() > 240000) {
-                    main_hold = 4;
-                    break;
-                }
+                //if (duration.count() > 240000) {
+                //    main_hold = 4;
+                //    break;
+                //}
                 if(updateJ == 1){
+                    auto start1 = chrono::high_resolution_clock::now();
                     //Evaluate the jacobian matrix at the current paramater.
                     vector<double>process_parms(3, 0.0);
                     double integral = 0.0;
@@ -182,11 +205,21 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                         error[j] = curve[j] - output;
                         integral += output;
                     }
+                    //for (int i = 0; i < 9; i++) {
+                    //    for(int j = 0; j < 9; j++) {
+                    //        cout << Jf_T[i][j] << " ";
+                    //    }
+                    //    cout << endl;
+                    //}
+                    auto stop1 = chrono::high_resolution_clock::now();
+                    auto duration1 = chrono::duration_cast<chrono::milliseconds>(stop1 - start1);
+                    jacobin += duration1.count();
                     //this is where the figure of merit is calculated before each step
                     FOM = 0.0;
                     for(int z = 0; z < int(curve.size()); ++z){
                         FOM += abs(curve[z] - temp_output[z])/integral;
                     }
+                    auto start2 = chrono::high_resolution_clock::now();
                     //Calculate the hessian matrix
                     vector<vector<double>> Jf(Jf_T[0].size(), vector<double>(Jf_T.size(),0.0));
                     //Jf is transpose of Jf_T
@@ -194,8 +227,11 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     //multiplication of the jacobian matrix and its transpose
                     H = multiply(Jf_T,Jf);
                     //e = dotProduct(error, error);
+                    auto stop2 = chrono::high_resolution_clock::now();
+                    auto duration2 = chrono::duration_cast<chrono::milliseconds>(stop2 - start2);
+                    hessian += duration2.count();
                 }
-
+                auto start3 = chrono::high_resolution_clock::now();
                 //apply the damping factor to the hessian matrix
                 //I is a diagonal matrix with diagonal equals lambda which is the damping vector
                 vector<vector<double>> I = Identity(peakSize, lambda);
@@ -205,11 +241,27 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                         H_lm[j][s] = H[j][s] + I[j][s];
                     }
                 }
-                invert(H_lm, true);
+                //for (int i = 0; i < 9; i++) {
+                //    for (int j = 0; j < 9; j++) {
+                //        cout << H_lm[i][j] << " ";
+                //    }
+                //    cout << endl;
+                //}
+                //cout << endl;
+                vector<vector<double>> a(H_lm.size(), vector<double>(H_lm.size(), 0));
+                cholsl(H_lm.size(), H_lm, a);
+                H_lm = a;
+                auto stop3 = chrono::high_resolution_clock::now();
+                auto duration3 = chrono::duration_cast<chrono::milliseconds>(stop3 - start3);
+                get_h_lm += duration3.count();
                 //multiply jacobian matrix with error matrix
+                auto start4 = chrono::high_resolution_clock::now();
                 vector<double> Jf_error = vec_matrix_multi(Jf_T, error);
                 vector<double> delta = vec_matrix_multi(H_lm, Jf_error);
                 vector<double> t_params = temp_params;
+                auto stop4 = chrono::high_resolution_clock::now();
+                auto duration4 = chrono::duration_cast<chrono::milliseconds>(stop4 - start4);
+                get_delta += duration4.count();
                 //update the change to the original data
                 for(int x = 0; x < int(delta.size()); ++x){
                     t_params[x] += delta[x];
@@ -223,16 +275,22 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     //    t_params[x] -= delta[x];
                     //}
 
-                    if(param_num == 0 && constrain[0][x] != 0 && abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > constrain[0][x])
+                    if (param_num == 0 && constrain[0][x] != 0 && abs((t_params[x] - orig_energy[x]) / orig_energy[x]) > constrain[0][x]) {
                         t_params[x] -= delta[x];
+                        count_energy++;
+                    }
                     //if (param_num == 0 && constrain[0][x] != 0 && ((t_params[x] - orig_energy[x]) / orig_energy[x]) < -1.0 * constrain[0][x] * 1.2)
                     //    t_params[x] -= delta[x];
-                    if (param_num == 1 && constrain[1][x] != 0 && (abs((t_params[x] - orig_temp[x]) / orig_temp[x]) > constrain[1][x]))
+                    if (param_num == 1 && constrain[1][x] != 0 && (abs((t_params[x] - orig_temp[x]) / orig_temp[x]) > constrain[1][x])) {
                         t_params[x] -= delta[x];
+                        count_temp++;
+                    }
                     //if (param_num == 1 && constrain[1][x] != 0)
                     //    t_params[x] -= delta[x];
-                    if (param_num == 2 && constrain[2][x] != 0 && (abs((t_params[x] - orig_height[x]) / orig_height[x]) > constrain[2][x]))
+                    if (param_num == 2 && constrain[2][x] != 0 && (abs((t_params[x] - orig_height[x]) / orig_height[x]) > constrain[2][x])) {
                         t_params[x] -= delta[x];
+                        count_counts++;
+                    }
 
 
                     //if (param_num == 0 && x == 1) {
@@ -256,6 +314,7 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                     //    }
                     //}
                 }
+                auto start5 = chrono::high_resolution_clock::now();
                 double integral = 0.0;
                 //Evaluate the total distance error at the updated paramaters.
                 vector<double> temp_error(curveSize,0.0);
@@ -301,7 +360,11 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
                 }
                 if(inner_hold > 25) 
                     i = 500;
+                auto stop5 = chrono::high_resolution_clock::now();
+                auto duration5 = chrono::duration_cast<chrono::milliseconds>(stop5 - start5);
+                analysis += duration5.count();
                 ++i;
+                index++;
             }
             //update params to contain new fitted data in temp_params
             for(int i = 0; i < int(temp_params.size());++i){
@@ -317,6 +380,12 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
         cout<<".";
         cout.flush();
     }
+    cout << index << endl;
+    cout << "jacobian: " << jacobin << endl;
+    cout << "hessian: " << hessian << endl;
+    cout << "h_lm: " << get_h_lm << endl;
+    cout << "delta: " << get_delta << endl;
+    cout << "rest: " << analysis << endl;
 }
 
 //populate decon_sig_deriv for the sum of the deconvolute curve

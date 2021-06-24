@@ -106,10 +106,53 @@ double calculate_700(vector<double>& temp, vector<double>& count, double curveAr
         if (count[i] == max_intensity)
             max_index = i;
     }
-    vector<vector<double>> peak_param = { { 1.56, 220, 3 , 0, 0, 0 },
-                    { 1.67, 225, 5, 0, 0, 0},
-                    { 1.69, 230, 7, 0, 0, 0},
-                    { 2.04, 240, 15, 0, 0, 0} };
+    double final_cons = max_intensity / 15;
+    //vector<vector<double>> peak_param = { { 1.5, temp[max_index] - 125, 0.5, 0, 0, 0 },
+    //                                      { 1.7, temp[max_index] - 50, 0.5, 0, 0, 0},
+    //                                      { 2.7, temp[max_index], 15, 0, 0, 0},
+    //                                      { 5.5, temp[max_index] + 10, 0.5, 0, 0, 0} };
+    //double orig_fom = quick_fom(temp, count, peak_param);
+    //double area = 0.0;
+    //for (int i = 0; i < int(temp.size()); ++i) {
+    //    for (int x = 0; x < int(peak_param.size()); ++x) {
+    //        area += quickFok(temp[i], peak_param[x]);
+    //    }
+    //}
+    //int cons = 1;
+    //int iteration = 0;
+    //vector<vector<double>> temp_param = peak_param;
+    //while (area < 0.97 * curveArea || area > 1.03 * curveArea) {
+    //    if (iteration > 1000)
+    //        break;
+    //    cons = 40;
+    //    cons *= (1 - (area / curveArea));
+    //    for (auto& v : temp_param)
+    //        v[2] += cons;
+    //    area = 0.0;
+    //    for (int i = 0; i < int(temp.size()); ++i) {
+    //        for (int x = 0; x < int(peak_param.size()); ++x) {
+    //            area += quickFok(temp[i], temp_param[x]);
+    //        }
+    //    }
+    //    iteration++;
+    //}
+    //double new_fom = quick_fom(temp, count, temp_param);
+    //double final_cons = temp_param[1][2] / peak_param[1][2];
+    return final_cons;
+}
+double calculate_900(vector<double>& temp, vector<double>& count, double curveArea, double max_intensity) {
+    int max_index = -1;
+    for (int i = 0; i < int(count.size()); i++) {
+        if (count[i] == max_intensity)
+            max_index = i;
+    }
+    vector<vector<double>> peak_param = { { 1.02, temp[max_index]-130, 0.38, 0, 0, 0},
+                                        { 0.96, temp[max_index]-110, 0.40, 0, 0, 0},
+                                        { 1.05, temp[max_index]-93, 0.65, 0, 0, 0},
+                                        { 1.40, temp[max_index]-67, 0.55, 0, 0, 0},
+                                        { 1.42, temp[max_index]-53, 0.25, 0, 0, 0},
+                                        { 0.96, temp[max_index]-10, 0.65, 0, 0, 0},
+                                        { 0.88, temp[max_index]+5, 3.25, 0, 0, 0} };
     double orig_fom = quick_fom(temp, count, peak_param);
     double area = 0.0;
     for (int i = 0; i < int(temp.size()); ++i) {
@@ -483,6 +526,7 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         if (curve[i] == max_intensity)
             max_index = i;
     }
+    cout << temp[max_index] << endl;
     vector<vector<double>> change_range;
     double intensity_coeff;
     double index_coff;
@@ -548,9 +592,9 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
                     { 1.01, 183 + index_coff, 1.5 * intensity_coeff, 0, 0, 0},
                     { 1.53, 178 + index_coff, 0.25 * intensity_coeff, 0, 0, 0},
                     { 1.00, 195 + index_coff, 0.6 * intensity_coeff, 0, 0, 0},
-                    { 0.93, 238 + index_coff, 1.1 * intensity_coeff * 0.8, 0, 0, 0},
+                    { 0.93, 238 + index_coff, 1.1 * intensity_coeff * 0.8, 0, 0, 0}, 
                     { 1.38, 244 + index_coff, 0.4 * intensity_coeff, 0, 0, 0},
-                    { 1.41, 255 + index_coff, 0.7 * intensity_coeff * 0.8, 0, 0, 0} };
+                    { 1.41, 250 + index_coff, 0.6 * intensity_coeff * 0.8, 0, 0, 0} };
         if (peakParams[7][1] > temp[temp.size() - 1] || peakParams[8][1] > temp[temp.size() - 1]) {
             FOM = 1;
             return 1000;
@@ -595,10 +639,10 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     else if (type == 700) {
         index_coff = temp[max_index] - 237;
         change_range = { {0.15, 0.03, 0.05}, {0.15, 0.017, 0.05}, {0.14, 0.02, 0.05}, {0.06, 0.013, 0.05} };
-        peakParams = { { 1.56, 225+ index_coff, 3 * intensity_const, 0, 0, 0 },
-                    { 1.67, 230+ index_coff, 5 * intensity_const, 0, 0, 0},
-                    { 1.69, 235+ index_coff, 7 * intensity_const, 0, 0, 0},
-                    { 2.04, 240+ index_coff, 15 * intensity_const, 0, 0, 0} };
+        peakParams = { { 1.5, temp[max_index] - 125, 0.5 * intensity_const, 0, 0, 0 },
+                    { 1.7, temp[max_index] - 50, 0.5 * intensity_const, 0, 0, 0},
+                    { 2.7, temp[max_index], 15.5 * intensity_const, 0, 0, 0},
+                    { 5.5, temp[max_index] + 10, 0.5 * intensity_const, 0, 0, 0} };
     }
 
     else {
@@ -608,18 +652,24 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         //intensity_coeff = 0.8437 * max_intensity + 74.519;
         intensity_coeff = 0.09725311 * max_intensity + 11.33725723;
         intensity_coeff *= 2.43;
-        index_coff = temp[max_index] - 272.85;
-        if (abs(index_coff) > 50)
-            index_coff = copysign(50.0, index_coff);
-        double coeff = 1.2;
-        peakParams = { { 1.02, 122.85 + index_coff * 0.7, 0.38 * intensity_coeff, 0, 0, 0},
-                    { 0.96, 149.85 + index_coff * 0.75, 0.40 * intensity_coeff, 0, 0, 0},
-                    { 1.05, 161.85 + index_coff * 0.8, 0.65 * intensity_coeff, 0, 0, 0},
-                    { 1.40, 188.85 + index_coff * 0.85, 0.55 * intensity_coeff, 0, 0, 0},
-                    { 1.42, 205.85 + index_coff * 0.9, 0.25 * intensity_coeff, 0, 0, 0},
-                    { 0.96, 249.85 + index_coff * 0.95, 0.65 * intensity_coeff, 0, 0, 0},
-                    { 0.88, 272.85 + index_coff, 3.25 * intensity_coeff, 0, 0, 0} };
-    
+        //index_coff = temp[max_index] - 272.85;
+        //if (abs(index_coff) > 50)
+        //    index_coff = copysign(50.0, index_coff);
+        //double coeff = 1.2;
+        //peakParams = { { 1.02, 122.85 + index_coff * 0.7, 0.38 * intensity_const, 0, 0, 0},
+        //            { 0.96, 149.85 + index_coff * 0.75, 0.40 * intensity_const, 0, 0, 0},
+        //            { 1.05, 161.85 + index_coff * 0.8, 0.65 * intensity_const, 0, 0, 0},
+        //            { 1.40, 188.85 + index_coff * 0.85, 0.55 * intensity_const, 0, 0, 0},
+        //            { 1.42, 205.85 + index_coff * 0.9, 0.25 * intensity_const, 0, 0, 0},
+        //            { 0.96, 249.85 + index_coff * 0.95, 0.65 * intensity_const, 0, 0, 0},
+        //            { 0.88, 272.85 + index_coff, 3.25 * intensity_const, 0, 0, 0} };
+        peakParams = { { 1.02, temp[max_index] - 130, 0.38 * intensity_coeff, 0, 0, 0},
+                     { 0.96, temp[max_index] - 110, 0.40 * intensity_coeff, 0, 0, 0},
+                     { 1.05, temp[max_index] - 93, 0.65 * intensity_coeff, 0, 0, 0},
+                     { 1.40, temp[max_index] - 67, 0.55 * intensity_coeff, 0, 0, 0},
+                     { 1.42, temp[max_index] - 53, 0.25 * intensity_coeff, 0, 0, 0},
+                     { 0.96, temp[max_index] - 10, 0.65 * intensity_coeff, 0, 0, 0},
+                     { 0.88, temp[max_index] + 5, 3.25 * intensity_coeff, 0, 0, 0} };
     }
     orig_peak = peakParams;
     int curveSize = int(curve.size());
@@ -770,6 +820,9 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     //        cout << "orig_energy: " << peakParams[i][0] << " orig_temp: " << peakParams[i][1] << " orig_count: " << peakParams[i][2] << endl;
     //}
     cout << type << " orig_fom: " << original_fom << " new_fom: " << FOM << endl;
+    for (int i = 0; i < static_cast<int>(peakParams.size()); i++) {
+        cout << peakParams[i][0] << " " << peakParams[i][1] << " " << peakParams[i][2] << endl;
+    }
     return iteration;
     
 }
@@ -973,6 +1026,9 @@ int main(int argc, char* argv[]) {
         }
         vector<double> smoothed_count = data.second;
         //double intensity_const = calculate_700(data.first, data.second, curveArea, max_intensity);
+        //double intensity_const = calculate_900(data.first, data.second, curveArea, max_intensity);
+
+
         //output_counts(orig_count, smoothed_count, data.first, filename);
         //testing gradient descent on TLD 100
         //peakparams: activation energy, maxTemp, maxIntensity, TL, TM, TR
@@ -1025,26 +1081,28 @@ int main(int argc, char* argv[]) {
         //double fom_101 = -1;
         //double original_fom_101 = 0;
         //int iteration_101 = gd_types(data.first, data.second, peak_101, fom_101, 101, max_intensity, original_fom_101, orig_peak_101);
-        vector<vector<double>> peak_200;
-        vector<vector<double>> orig_peak_200;
-        double fom_200 = -1;
-        double original_fom_200 = 0;
-        int iteration_200 = gd_types(data.first, data.second, peak_200, fom_200, 200, max_intensity, original_fom_200, orig_peak_200, 1.0);
-        peak_param = peak_200;
-        if (iteration_200 == 1000) {
-            files.erase(files.begin() + i);
-            i--;
-            cout << "file not considered" << endl;
-            //remove((dir + "/temp.csv").c_str());
-            remove((output_dir + "/temp.csv").c_str());
-            continue;
-        }
+
+        //vector<vector<double>> peak_200;
+        //vector<vector<double>> orig_peak_200;
+        //double fom_200 = -1;
+        //double original_fom_200 = 0;
+        //int iteration_200 = gd_types(data.first, data.second, peak_200, fom_200, 200, max_intensity, original_fom_200, orig_peak_200, 1.0);
+        //
+        //if (iteration_200 == 1000) {
+        //    files.erase(files.begin() + i);
+        //    i--;
+        //    cout << "file not considered" << endl;
+        //    //remove((dir + "/temp.csv").c_str());
+        //    remove((output_dir + "/temp.csv").c_str());
+        //    continue;
+        //}
         
         //vector<vector<double>> peak_300;
         //vector<vector<double>> orig_peak_300;
         //double fom_300 = -1;
         //double original_fom_300 = 0;
-        //int iteration_300 = gd_types(data.first, data.second, peak_300, fom_300, 300, max_intensity, original_fom_300, orig_peak_300);
+        //int iteration_300 = gd_types(data.first, data.second, peak_300, fom_300, 300, max_intensity, original_fom_300, orig_peak_300, 1.0);
+        
         
         //vector<vector<double>> peak_400;
         //double fom_400 = -1;
@@ -1061,11 +1119,13 @@ int main(int argc, char* argv[]) {
         
         
         //uncomment
-        //vector<vector<double>> peak_900;
-        //vector<vector<double>> orig_peak_900;
-        //double fom_900 = -1;
-        //double original_fom_900 = 0;
-        //int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900, orig_peak_900);
+        vector<vector<double>> peak_900;
+        vector<vector<double>> orig_peak_900;
+        double fom_900 = -1;
+        double original_fom_900 = 0;
+        int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900, orig_peak_900, 1.0);
+        peak_param = peak_900;
+        
         
         
         //vector<int> iter_set{ iteration_100, iteration_101, iteration_200, iteration_300, iteration_400, iteration_900 };
@@ -1237,27 +1297,27 @@ int main(int argc, char* argv[]) {
         file9 << filename << ",";
         vector<vector<double>> constrain = {
             {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0, 0},
-            {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0},
+            {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.1, 0.1, 0.05, 0},
             {0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3}
         }; 
         double res = FOK_Model.glow_curve(file9, constrain);
 
-        vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
-        ofstream file5;
-        string path = output_dir + "/" + filename;
-        file5.open(path);
-        file5 << "temp, smoothed, first, sec, third";
-        file5 << ",\n";
-        for (int i = 0; i < int(data.first.size()); i++) {
-            file5 << data.first[i] << ",";
-            file5 << smoothed_count[i] << ",";
-            for (int j = 0; j < int(peak_param.size()); j++) {
-                file5 << returnedPeaks[j][i] << ",";
-            }
-            file5 << "\n";
-        
-        }
-        file5.close();
+        //vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
+        //ofstream file5;
+        //string path = output_dir + "/" + filename;
+        //file5.open(path);
+        //file5 << "temp, smoothed, first, sec, third";
+        //file5 << ",\n";
+        //for (int i = 0; i < int(data.first.size()); i++) {
+        //    file5 << data.first[i] << ",";
+        //    file5 << smoothed_count[i] << ",";
+        //    for (int j = 0; j < int(peak_param.size()); j++) {
+        //        file5 << returnedPeaks[j][i] << ",";
+        //    }
+        //    file5 << "\n";
+        //
+        //}
+        //file5.close();
         //auto stop1 = chrono::high_resolution_clock::now();
         //auto duration1 = chrono::duration_cast<chrono::milliseconds>(stop1 - start1);
         //if (res == -1) {

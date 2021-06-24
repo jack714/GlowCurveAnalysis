@@ -71,6 +71,9 @@ public:
 
     //Gradient Descent method
     void gradient_Descent(const std::vector<double>& curve, std::vector<std::vector<double>>& peakParams, double& FOM);
+    void cholsl(int n, std::vector<std::vector<double>>& A, std::vector<std::vector<double>>& a);
+    void choldcsl(int n, std::vector<std::vector<double>>& A, std::vector<std::vector<double>>& a);
+    void choldc1(int n, std::vector<std::vector<double>>& a, std::vector<double>& p);
 };
 
 #endif

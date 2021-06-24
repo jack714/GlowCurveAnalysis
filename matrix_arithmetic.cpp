@@ -67,6 +67,77 @@ vector<double> First_Order_Kinetics::vec_matrix_multi(vector<vector<double>> con
     }
     return output;
 }
+
+void First_Order_Kinetics::cholsl(int n, vector<vector<double>>& A, vector<vector<double>>& a) {
+    int i, j, k;
+    choldcsl(n, A, a);
+    for (i = 0; i < n; i++) {
+        for (j = i + 1; j < n; j++) {
+            a[i][j] = 0.0;
+        }
+    }
+    for (i = 0; i < n; i++) {
+        a[i][i] *= a[i][i];
+        for (k = i + 1; k < n; k++) {
+            a[i][i] += a[k][i] * a[k][i];
+        }
+        for (j = i + 1; j < n; j++) {
+            for (k = j; k < n; k++) {
+                a[i][j] += a[k][i] * a[k][j];
+            }
+        }
+    }
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < i; j++) {
+            a[i][j] = a[j][i];
+        }
+    }
+}
+
+void First_Order_Kinetics::choldcsl(int n, vector<vector<double>>& A, vector<vector<double>>& a) {
+    int i, j, k; double sum;
+    vector<double> p(n, 0);
+    for (i = 0; i < n; i++)
+        for (j = 0; j < n; j++)
+            a[i][j] = A[i][j];
+    choldc1(n, a, p);
+    for (i = 0; i < n; i++) {
+        a[i][i] = 1 / p[i];
+        for (j = i + 1; j < n; j++) {
+            sum = 0;
+            for (k = i; k < j; k++) {
+                sum -= a[j][k] * a[k][i];
+            }
+            a[j][i] = sum / p[j];
+        }
+    }
+}
+
+
+void First_Order_Kinetics::choldc1(int n, vector<vector<double>>& a, vector<double>& p) {
+    int i, j, k;
+    double sum;
+
+    for (i = 0; i < n; i++) {
+        for (j = i; j < n; j++) {
+            sum = a[i][j];
+            for (k = i - 1; k >= 0; k--) {
+                sum -= a[i][k] * a[j][k];
+            }
+            if (i == j) {
+                if (sum <= 0) {
+                    printf(" a is not positive definite!\n");
+                }
+                p[i] = sqrt(sum);
+            }
+            else {
+                a[j][i] = sum / p[i];
+            }
+        }
+    }
+}
+
+
 //Function to invert a matrix, with option for negtive inverse.
 void First_Order_Kinetics::invert(vector<vector<double>> &A, bool neg){
     if(A.size() == 2){
