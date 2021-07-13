@@ -546,10 +546,10 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         if (abs(index_coff) > 30)
             index_coff = copysign(30.0, index_coff);
 
-        peakParams = { { 1.56, 143 + index_coff, 3 * intensity_coeff, 0, 0, 0 },
-                    { 1.67, 183 + index_coff, 5 * intensity_coeff, 0, 0, 0},
-                    { 1.69, 211 + index_coff * 0.9, 7 * intensity_coeff, 0, 0, 0},
-                    { 2.04, 237 + index_coff, 15 * intensity_coeff, 0, 0, 0} };
+        peakParams = { { 1.56, 143 + index_coff, max_intensity / 5, 0, 0, 0 },
+                    { 1.67, 183 + index_coff, max_intensity / 3, 0, 0, 0},
+                    { 1.69, 211 + index_coff * 0.9, max_intensity / 2, 0, 0, 0},
+                    { 2.04, 237 + index_coff, max_intensity, 0, 0, 0} };
     }
     else if (type == 101) {
         change_range_coeff = 0.2;
@@ -617,6 +617,10 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
                     { 1.26, 215.85+ index_coff, 0.5 * intensity_coeff, 0, 0, 0},
                     { 1.43, 264.85+ index_coff, 1.85 * intensity_coeff, 0, 0, 0},
                     { 1.31, 288.85+ index_coff, 1.75 * intensity_coeff, 0, 0, 0} };
+        if (peakParams[6][1] > temp[temp.size() - 1]) {
+            FOM = 1;
+            return 1000;
+        }
     }
     else if (type == 400) {
         change_range_coeff = 0.2;
@@ -628,9 +632,13 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         if (abs(index_coff) > 30)
             index_coff = copysign(30.0, index_coff);
         double coeff = 1;
-        peakParams = { {1.42, 266.85 + index_coff * coeff, 4 * intensity_coeff, 0, 0, 0},
-                    { 1.32, 293.85 + index_coff * coeff, 6.2 * intensity_coeff, 0, 0, 0},
-                    { 1.36, 319.85 + index_coff * coeff, 4.8 * intensity_coeff, 0, 0, 0} };
+        peakParams = { {1.42, 266.85 + index_coff * coeff, max_intensity / 1.55, 0, 0, 0},
+                    { 1.32, 293.85 + index_coff * coeff, max_intensity, 0, 0, 0},
+                    { 1.36, 319.85 + index_coff * coeff, max_intensity / 1.3, 0, 0, 0} };
+        if (peakParams[2][1] > temp[temp.size() - 1]) {
+            FOM = 1;
+            return 1000;
+        }
 
     }
     //else if (type == 600) {
@@ -643,6 +651,10 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
                     { 1.7, temp[max_index] - 50, 0.5 * intensity_const, 0, 0, 0},
                     { 2.7, temp[max_index], 15.5 * intensity_const, 0, 0, 0},
                     { 5.5, temp[max_index] + 10, 0.5 * intensity_const, 0, 0, 0} };
+        if (peakParams[2][1] > temp[temp.size() - 1]) {
+            FOM = 1;
+            return 1000;
+        }
     }
 
     else {
@@ -656,20 +668,24 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         //if (abs(index_coff) > 50)
         //    index_coff = copysign(50.0, index_coff);
         //double coeff = 1.2;
-        //peakParams = { { 1.02, 122.85 + index_coff * 0.7, 0.38 * intensity_const, 0, 0, 0},
-        //            { 0.96, 149.85 + index_coff * 0.75, 0.40 * intensity_const, 0, 0, 0},
-        //            { 1.05, 161.85 + index_coff * 0.8, 0.65 * intensity_const, 0, 0, 0},
-        //            { 1.40, 188.85 + index_coff * 0.85, 0.55 * intensity_const, 0, 0, 0},
-        //            { 1.42, 205.85 + index_coff * 0.9, 0.25 * intensity_const, 0, 0, 0},
-        //            { 0.96, 249.85 + index_coff * 0.95, 0.65 * intensity_const, 0, 0, 0},
-        //            { 0.88, 272.85 + index_coff, 3.25 * intensity_const, 0, 0, 0} };
-        peakParams = { { 1.02, temp[max_index] - 130, 0.38 * intensity_coeff, 0, 0, 0},
-                     { 0.96, temp[max_index] - 110, 0.40 * intensity_coeff, 0, 0, 0},
-                     { 1.05, temp[max_index] - 93, 0.65 * intensity_coeff, 0, 0, 0},
-                     { 1.40, temp[max_index] - 67, 0.55 * intensity_coeff, 0, 0, 0},
-                     { 1.42, temp[max_index] - 53, 0.25 * intensity_coeff, 0, 0, 0},
-                     { 0.96, temp[max_index] - 10, 0.65 * intensity_coeff, 0, 0, 0},
-                     { 0.88, temp[max_index] + 5, 3.25 * intensity_coeff, 0, 0, 0} };
+        peakParams = { { 1.02, temp[max_index] - 130, max_intensity / 8.55, 0, 0, 0},
+                     { 0.96, temp[max_index] - 110, max_intensity / 8.125, 0, 0, 0},
+                     { 1.05, temp[max_index] - 93, max_intensity / 5, 0, 0, 0},
+                     { 1.40, temp[max_index] - 67, max_intensity / 5.91, 0, 0, 0},
+                     { 1.42, temp[max_index] - 53, max_intensity / 13, 0, 0, 0},
+                     { 0.96, temp[max_index] - 10, max_intensity / 5, 0, 0, 0},
+                     { 0.88, temp[max_index] + 5, max_intensity, 0, 0, 0} };
+        //peakParams = { { 1.02, temp[max_index] - 130, 0.38 * intensity_coeff, 0, 0, 0},
+        //             { 0.96, temp[max_index] - 110, 0.40 * intensity_coeff, 0, 0, 0},
+        //             { 1.05, temp[max_index] - 93, 0.65 * intensity_coeff, 0, 0, 0},
+        //             { 1.40, temp[max_index] - 67, 0.55 * intensity_coeff, 0, 0, 0},
+        //             { 1.42, temp[max_index] - 53, 0.25 * intensity_coeff, 0, 0, 0},
+        //             { 0.96, temp[max_index] - 10, 0.65 * intensity_coeff, 0, 0, 0},
+        //             { 0.88, temp[max_index] + 5, 3.25 * intensity_coeff, 0, 0, 0} };
+        if (peakParams[6][1] > temp[temp.size() - 1]) {
+            FOM = 1;
+            return 1000;
+        }
     }
     orig_peak = peakParams;
     int curveSize = int(curve.size());
@@ -919,9 +935,9 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    //ofstream file1;
-    //string path = "C:/Users/jack0/Desktop/report.csv";
-    //file1.open(path);
+    ofstream file1;
+    string path = "C:/Users/jack0/Desktop/report.csv";
+    file1.open(path);
     //ofstream output;
     //string path = "C:/Users/jack0/Desktop/report.txt";
     //output.open(path);
@@ -987,7 +1003,13 @@ int main(int argc, char* argv[]) {
         //REMOVE_SPIKE call
         spike_elim(data.first, data.second, 3, 1.2);
         //spike_elim(data.first, data.second, 3, 1.05);
+        for (int i = 0; i < int(data.first.size()); i++) {
+            file1 << data.first[i] << ",";
+            file1 << data.second[i] << ",";
+            file1 << endl;
         
+        }
+        file1.close();
         //copy two times the count data and run Savitzky-Golay with order 4 and 5, then take the average
         vector<double> orig_count1 = data.second;
         vector<double> orig_count2 = orig_count1;
@@ -997,21 +1019,27 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < static_cast<int>(orig_count1.size()); i++) {
             data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
         }
-        //for (int i = 0; i < int(data.first.size()); i++) {
-        //    file1 << data.first[i] << ",";
-        //    file1 << data.second[i] << ",";
-        //    file1 << endl;
-        //
-        //}
-        //file1.close();
         
-        double max_intensity = *max_element(data.second.begin(), data.second.end());
+        
+        
+        
+        
+        
+        
+        //FOK graph
+        //vector<double> param = { 1.7, 50, 2 };
+        //for (double i = 0.0; i < 200.0; i += 0.2) {
+        //    file1 << quickFok(i, param);
+        //    file1 << endl;
+        //}
+        
         
         //remove_tail(data.first, data.second, max_intensity);
         //background_substraction
         //vector<double> t = remove_back(data.first, data.second);
         
         vector<double> smooth_count = data.second;
+        double max_intensity = *max_element(data.second.begin(), data.second.end());
 
         //calculate the curve area by adding the count data
         const double curveArea = accumulate(data.second.begin(), data.second.end(), 0.0);
@@ -1025,6 +1053,8 @@ int main(int argc, char* argv[]) {
             continue;
         }
         vector<double> smoothed_count = data.second;
+
+
         //double intensity_const = calculate_700(data.first, data.second, curveArea, max_intensity);
         //double intensity_const = calculate_900(data.first, data.second, curveArea, max_intensity);
 
@@ -1068,13 +1098,15 @@ int main(int argc, char* argv[]) {
         //double orig_fom = quick_fom(data.first, data.second, peak_param);
         //uncomment
         
-        //vector<vector<double>> peak_100;
-        //vector<vector<double>> orig_peak_100;
-        //double fom_100 = -1;
-        //double original_fom_100 = 0;
-        //int iteration_100 = gd_types(data.first, data.second, peak_100, fom_100, 100, max_intensity, original_fom_100, orig_peak_100);
-        //if (isnan(fom_100))
-        //    fom_100 = 100;
+        vector<vector<double>> peak_100;
+        vector<vector<double>> orig_peak_100;
+        double fom_100 = -1;
+        double original_fom_100 = 0;
+        int iteration_100 = gd_types(data.first, data.second, peak_100, fom_100, 100, max_intensity, original_fom_100, orig_peak_100, 1.0);
+        if (isnan(fom_100))
+            fom_100 = 100;
+        peak_param = peak_100;
+        
         
         //vector<vector<double>> peak_101;
         //vector<vector<double>> orig_peak_101;
@@ -1087,7 +1119,8 @@ int main(int argc, char* argv[]) {
         //double fom_200 = -1;
         //double original_fom_200 = 0;
         //int iteration_200 = gd_types(data.first, data.second, peak_200, fom_200, 200, max_intensity, original_fom_200, orig_peak_200, 1.0);
-        //
+        
+        
         //if (iteration_200 == 1000) {
         //    files.erase(files.begin() + i);
         //    i--;
@@ -1102,36 +1135,41 @@ int main(int argc, char* argv[]) {
         //double fom_300 = -1;
         //double original_fom_300 = 0;
         //int iteration_300 = gd_types(data.first, data.second, peak_300, fom_300, 300, max_intensity, original_fom_300, orig_peak_300, 1.0);
-        
-        
+        //
+        //
+        //
         //vector<vector<double>> peak_400;
         //double fom_400 = -1;
         //double original_fom_400 = 0;
         //vector<vector<double>> orig_peak_400;
-        //int iteration_400 = gd_types(data.first, data.second, peak_400, fom_400, 400, max_intensity, original_fom_400, orig_peak_400);
-        
-
+        //int iteration_400 = gd_types(data.first, data.second, peak_400, fom_400, 400, max_intensity, original_fom_400, orig_peak_400,1.0);
+        //
+        //
+        //
         //vector<vector<double>> peak_700;
         //vector<vector<double>> orig_peak_700;
         //double fom_700 = -1;
         //double original_fom_700 = 0;
         //int iteration_700 = gd_types(data.first, data.second, peak_700, fom_700, 700, max_intensity, original_fom_700, orig_peak_700, intensity_const);
+        //
+        //
+        //
+        //vector<vector<double>> peak_900;
+        //vector<vector<double>> orig_peak_900;
+        //double fom_900 = -1;
+        //double original_fom_900 = 0;
+        //int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900, orig_peak_900, 1.0);
         
         
-        //uncomment
-        vector<vector<double>> peak_900;
-        vector<vector<double>> orig_peak_900;
-        double fom_900 = -1;
-        double original_fom_900 = 0;
-        int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900, orig_peak_900, 1.0);
-        peak_param = peak_900;
         
         
         
-        //vector<int> iter_set{ iteration_100, iteration_101, iteration_200, iteration_300, iteration_400, iteration_900 };
+        //vector<int> iter_set{ iteration_100, iteration_200, iteration_300, iteration_400, iteration_700, iteration_900 };
         //int max_iter = max_element(iter_set.begin(), iter_set.end()) - iter_set.begin();
-        //vector<double> fom_set{ abs(fom_100), abs(fom_101), abs(fom_200), abs(fom_300), abs(fom_400), abs(fom_900) };
+
+        //vector<double> fom_set{ abs(fom_100), abs(fom_200), abs(fom_300), abs(fom_400), abs(fom_700), abs(fom_900) };
         //int min_fom = min_element(fom_set.begin(), fom_set.end()) - fom_set.begin();
+
         //vector<double> orig_fom_set{ abs(original_fom_100), abs(original_fom_101), abs(original_fom_200), abs(original_fom_300), abs(original_fom_400), abs(original_fom_900) };
         //double min_orig_fom = *min_element(orig_fom_set.begin(), orig_fom_set.end());
         //
@@ -1140,7 +1178,7 @@ int main(int argc, char* argv[]) {
         //double orig_fom = -1;
         //int iter = -1;
         //double cur_fom = -1;
-        //
+        ////
         //if(min_fom == 0) {
         //    peak_param = peak_100;
         //    adopt = 100;
@@ -1148,40 +1186,33 @@ int main(int argc, char* argv[]) {
         //    cur_fom = fom_100;
         //    iter = iteration_100;
         //}
-        //else {
-        //    peak_param = peak_400;
-        //    adopt = 400;
-        //    orig_fom = original_fom_400;
-        //    cur_fom = fom_400;
-        //    iter = iteration_400;
-        //}
         //else if (min_fom == 1) {
-        //    peak_param = peak_101;
-        //    adopt = 101;
-        //    orig_fom = original_fom_101;
-        //    cur_fom = fom_101;
-        //    iter = iteration_101;
-        //}
-        //else if (min_fom == 2) {
         //    peak_param = peak_200;
         //    adopt = 200;
         //    orig_fom = original_fom_200;
         //    cur_fom = fom_200;
         //    iter = iteration_200;
         //}
-        //else if (min_fom == 3) {
+        //else if (min_fom == 2) {
         //    peak_param = peak_300;
         //    adopt = 300;
         //    orig_fom = original_fom_300;
         //    cur_fom = fom_300;
         //    iter = iteration_300;
         //}
-        //else if (min_fom == 4) {
+        //else if (min_fom == 3) {
         //    peak_param = peak_400;
         //    adopt = 400;
         //    orig_fom = original_fom_400;
         //    cur_fom = fom_400;
         //    iter = iteration_400;
+        //}
+        //else if (min_fom == 4) {
+        //    peak_param = peak_700;
+        //    adopt = 700;
+        //    orig_fom = original_fom_700;
+        //    cur_fom = fom_700;
+        //    iter = iteration_700;
         //}
         //else {
         //    peak_param = peak_900;
@@ -1283,7 +1314,7 @@ int main(int argc, char* argv[]) {
         ////else if (min_fom == 4)
         ////    peak_param = peak_700;
         
-        //file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << min_orig_fom << endl;
+        //file1 << filename << " final type: " << adopt << " orig_fom: " << orig_fom << " new_fom: " << cur_fom << " iterations: " << iter << " orig_min_fom: " << orig_fom << endl;
 
         //auto stop = chrono::high_resolution_clock::now();
         //auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
@@ -1293,15 +1324,16 @@ int main(int argc, char* argv[]) {
 
         //auto start1 = chrono::high_resolution_clock::now();
         // LM output
-        First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
-        file9 << filename << ",";
-        vector<vector<double>> constrain = {
-            {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0, 0},
-            {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.1, 0.1, 0.05, 0},
-            {0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3}
-        }; 
-        double res = FOK_Model.glow_curve(file9, constrain);
-
+        //First_Order_Kinetics FOK_Model = *new First_Order_Kinetics(data, peak_param);
+        //file9 << filename << ",";
+        ////////TLD 700 first temp 0.2
+        //vector<vector<double>> constrain = {
+        //    {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0, 0},
+        //    {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.1, 0.1, 0.05, 0},
+        //    {0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3}
+        //}; 
+        //double res = FOK_Model.glow_curve(file9, constrain);
+        //
         //vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
         //ofstream file5;
         //string path = output_dir + "/" + filename;
@@ -1336,14 +1368,14 @@ int main(int argc, char* argv[]) {
         //testing weird file differendose 10 100
         //vector<vector<double>> params = { {1.55636, 113.044,55.6956}, {1.66538, 152.789, 92.7178}, {1.68235, 180.784, 128.069}, {1.97056, 203.057, 278.436} };
         //ofstream file9;
-        //string place = "C:/Users/jack0/Desktop/graph.txt";
-        //string path = output_dir + "/" + filename;
-        //file9.open(path);
-        //vector<vector<double>> integral(peak_param.size(), vector<double>(data.second.size(), 0));
+        //string place = "C:/Users/jack0/Desktop/300.csv";
+        ////string path = output_dir + "/" + filename;
+        //file9.open(place);
+        //vector<vector<double>> integral(peak_300.size(), vector<double>(data.second.size(), 0));
         //for (int i = 0; i < int(data.first.size()); ++i) {
         //    double output = 0.0;
-        //    for (int x = 0; x < int(peak_param.size()); ++x) {
-        //        double out = quickFok(data.second[i], peak_param[x]);
+        //    for (int x = 0; x < int(peak_300.size()); ++x) {
+        //        double out = quickFok(data.first[i], peak_300[x]);
         //        integral[x][i] = out;
         //    }
         //}
@@ -1352,15 +1384,42 @@ int main(int argc, char* argv[]) {
         //for (int i = 0; i < int(data.first.size()); i++) {
         //    file9 << data.first[i] << ",";
         //    file9 << data.second[i] << ",";
-        //    for (int j = 0; j < int(peak_param.size()) - 1; j++) {
+        //    for (int j = 0; j < int(peak_300.size()) - 1; j++) {
         //        file9 << integral[j][i] << ",";
         //    }
         //
-        //    file9 << integral[peak_param.size() - 1][i];
+        //    file9 << integral[peak_300.size() - 1][i];
         //    file9 << ",\n";
-        //
+        //    
         //}
         //file9.close();
+
+        //ofstream file8;
+        //string p = "C:/Users/jack0/Desktop/100.csv";
+        ////string path = output_dir + "/" + filename;
+        //file8.open(p);
+        //vector<vector<double>> integral2(peak_100.size(), vector<double>(data.second.size(), 0));
+        //for (int i = 0; i < int(data.first.size()); ++i) {
+        //    double output = 0.0;
+        //    for (int x = 0; x < int(peak_100.size()); ++x) {
+        //        double out = quickFok(data.first[i], peak_100[x]);
+        //        integral2[x][i] = out;
+        //    }
+        //}
+        //file8 << "temp, after removal, first, sec, third, forth";
+        //file8 << ",\n";
+        //for (int i = 0; i < int(data.first.size()); i++) {
+        //    file8 << data.first[i] << ",";
+        //    file8 << data.second[i] << ",";
+        //    for (int j = 0; j < int(peak_100.size()) - 1; j++) {
+        //        file8 << integral2[j][i] << ",";
+        //    }
+        //
+        //    file8 << integral2[peak_100.size() - 1][i];
+        //    file8 << ",\n";
+        //
+        //}
+        //file8.close();
 
         //calculate_constant(data.first, data.second, peak_param, curveArea, filename, max_intensity, output);
 

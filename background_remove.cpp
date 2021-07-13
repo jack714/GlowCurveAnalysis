@@ -21,30 +21,18 @@ vector<double> remove_back(vector<double>& x, vector<double>& y) {
     //old gca double right = -0.009;
     double right = -0.009;
     //double right = 0.001;
-    int leftPoint = 0;
-    int rightPoint = 0;
+    int leftPoint = 2;
+    int rightPoint = int(x.size()) - 2;
     //find the index of the point where the derivative satisfies left cap
-    for (int i = 0; i < static_cast<int>(firstDir.size()); i++) {
-        if (firstDir[i] >= left) {
-            leftPoint = i;
-            break;
-        }
-    }
-    //for (int i = 0; i < static_cast<int>(secDir.size()); i++) {
-    //    if (secDir[i] >= left) {
+    //for (int i = 0; i < static_cast<int>(firstDir.size()); i++) {
+    //    if (firstDir[i] >= left) {
     //        leftPoint = i;
     //        break;
     //    }
     //}
     //find the index of the point where the derivative satisfies right cap
-    for (int i = static_cast<int>(firstDir.size()) - 1; i >= 0; i--) {
-        if (firstDir[i] <= right) {
-            rightPoint = i;
-            break;
-        }
-    }
-    //for (int i = static_cast<int>(secDir.size()) - 1; i >= 0; i--) {
-    //    if (secDir[i] >= right) {
+    //for (int i = static_cast<int>(firstDir.size()) - 1; i >= 0; i--) {
+    //    if (firstDir[i] <= right) {
     //        rightPoint = i;
     //        break;
     //    }
@@ -80,21 +68,21 @@ vector<double> remove_back(vector<double>& x, vector<double>& y) {
     }
     //cout << slope << " " << c << endl;
     int size = static_cast<int>(x.size());
-    if (!check) {
-        //cout << "yes!" << endl;
-        double leftCount = (firstCount + secCount) / 2;
-        double leftTemp = x[middle];
-        double rightCount = 0.0;
-        double rightTemp = 0.0;
-        for (int i = rightPoint; i < size; i++)
-            rightCount += y[i];
-        rightCount /= (size - rightPoint);
-        rightTemp = x[rightPoint + (size - rightPoint) / 2];
-        slope = (rightCount - leftCount) / (rightTemp - leftTemp);
-        c = leftCount - slope * leftTemp;
-        //cout << leftTemp << " " << leftCount << endl;
-        //cout << rightTemp << " " << rightCount << endl;
-    }
+    //if (!check) {
+    //    //cout << "yes!" << endl;
+    //    double leftCount = (firstCount + secCount) / 2;
+    //    double leftTemp = x[middle];
+    //    double rightCount = 0.0;
+    //    double rightTemp = 0.0;
+    //    for (int i = rightPoint; i < size; i++)
+    //        rightCount += y[i];
+    //    rightCount /= (size - rightPoint);
+    //    rightTemp = x[rightPoint + (size - rightPoint) / 2];
+    //    slope = (rightCount - leftCount) / (rightTemp - leftTemp);
+    //    c = leftCount - slope * leftTemp;
+    //    //cout << leftTemp << " " << leftCount << endl;
+    //    //cout << rightTemp << " " << rightCount << endl;
+    //}
     for (int i = 0; i < size; i++) {
         y[i] -= slope * x[i] + c;
         if (y[i] < 0)
@@ -108,7 +96,7 @@ vector<double> remove_back(vector<double>& x, vector<double>& y) {
     //}
     //swap(x, xTemp);
     //swap(y, yTemp);
-    cout << slope << " " << c;
+    //cout << slope << " " << c;
     //cout << xTemp[rightPoint];
     return firstDir;
 }
