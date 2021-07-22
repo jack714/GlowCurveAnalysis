@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     fs::create_directories(test);
     fs::create_directories(train);
     fs::create_directories(verify);
-    //choose train set, size is 200
+    //choose train set, size is 80
     set<int> s;
     int size = files.size();
     for (int i = 0; i < 80; i++) {
