@@ -1048,7 +1048,7 @@ int main(int argc, char* argv[]) {
             iter = iteration_900;
         }
         //stop
-
+        peak_param = peak_400;
 
         //auto stop = chrono::high_resolution_clock::now();
         //auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
@@ -1067,7 +1067,7 @@ int main(int argc, char* argv[]) {
             {0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3 }
         }; 
         double res = FOK_Model.glow_curve(file9, constrain);
-        //
+        // 
         //output glow peaks
         //vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
         //ofstream file5;
