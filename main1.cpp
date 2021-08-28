@@ -807,7 +807,7 @@ int main(int argc, char* argv[]) {
     string path = "C:/Users/jack0/Desktop/report.csv";
     file1.open(path);
     //ofstream output;
-    //string path = "C:/Users/jack0/Desktop/report.txt";
+    //string path = "C:/Users/jack0/Desktop/graph.txt";
     //output.open(path);
     ofstream file9;
     string outpath = output_dir + "/statistic.csv";
@@ -853,6 +853,10 @@ int main(int argc, char* argv[]) {
         if (window % 2 == 0) {
             window += 1;
         }
+        
+        vector<double> origin_temp = data.first;
+        vector<double> origin_count = data.second;
+
         vector<double> temp_orig1 = data.first;
         vector<double> temp_orig2 = temp_orig1;
 
@@ -865,17 +869,11 @@ int main(int argc, char* argv[]) {
             data.first[i] = temp_orig2[i];
         }
         
-        vector<double> orig_count = data.second;
         //REMOVE_SPIKE call
         spike_elim(data.first, data.second, 3, 1.2);
+        vector<double> orig_count = data.second;
         //spike_elim(data.first, data.second, 3, 1.05);
-        for (int i = 0; i < int(data.first.size()); i++) {
-            file1 << data.first[i] << ",";
-            file1 << data.second[i] << ",";
-            file1 << endl;
         
-        }
-        file1.close();
         //copy two times the count data and run Savitzky-Golay with order 4 and 5, then take the average
         vector<double> orig_count1 = data.second;
         vector<double> orig_count2 = orig_count1;
@@ -885,7 +883,16 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < static_cast<int>(orig_count1.size()); i++) {
             data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
         }
-        
+        for (int i = 0; i < int(data.first.size()); i++) {
+            file1 << origin_temp[i] << ",";
+            file1 << origin_count[i] << ",";
+            file1 << data.first[i] << ",";
+            file1 << orig_count[i] << ",";
+            file1 << data.second[i] << ",";
+            file1 << endl;
+
+        }
+        file1.close();
         
 
         //remove_tail(data.first, data.second, max_intensity);
