@@ -420,7 +420,7 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         if (curve[i] == max_intensity)
             max_index = i;
     }
-    cout << temp[max_index] << endl;
+    //cout << temp[max_index] << endl;
     vector<vector<double>> change_range;
     double intensity_coeff;
     double index_coff;
@@ -883,16 +883,16 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < static_cast<int>(orig_count1.size()); i++) {
             data.second[i] = (orig_count1[i] + orig_count2[i]) / 2;
         }
-        for (int i = 0; i < int(data.first.size()); i++) {
-            file1 << origin_temp[i] << ",";
-            file1 << origin_count[i] << ",";
-            file1 << data.first[i] << ",";
-            file1 << orig_count[i] << ",";
-            file1 << data.second[i] << ",";
-            file1 << endl;
-
-        }
-        file1.close();
+        //for (int i = 0; i < int(data.first.size()); i++) {
+        //    file1 << origin_temp[i] << ",";
+        //    file1 << origin_count[i] << ",";
+        //    file1 << data.first[i] << ",";
+        //    file1 << orig_count[i] << ",";
+        //    file1 << data.second[i] << ",";
+        //    file1 << endl;
+        //
+        //}
+        //file1.close();
         
 
         //remove_tail(data.first, data.second, max_intensity);
@@ -1055,7 +1055,7 @@ int main(int argc, char* argv[]) {
             iter = iteration_900;
         }
         //stop
-        peak_param = peak_400;
+        //peak_param = peak_400;
 
         //auto stop = chrono::high_resolution_clock::now();
         //auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
@@ -1076,22 +1076,22 @@ int main(int argc, char* argv[]) {
         double res = FOK_Model.glow_curve(file9, constrain);
         // 
         //output glow peaks
-        //vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
-        //ofstream file5;
-        //string path = output_dir + "/" + filename;
-        //file5.open(path);
-        //file5 << "temp, smoothed, first, sec, third";
-        //file5 << ",\n";
-        //for (int i = 0; i < int(data.first.size()); i++) {
-        //    file5 << data.first[i] << ",";
-        //    file5 << smoothed_count[i] << ",";
-        //    for (int j = 0; j < int(peak_param.size()); j++) {
-        //        file5 << returnedPeaks[j][i] << ",";
-        //    }
-        //    file5 << "\n";
-        //
-        //}
-        //file5.close();
+        vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
+        ofstream file5;
+        string path = output_dir + "/" + filename;
+        file5.open(path);
+        file5 << "temp, smoothed, first, sec, third";
+        file5 << ",\n";
+        for (int i = 0; i < int(data.first.size()); i++) {
+            file5 << data.first[i] << ",";
+            file5 << smoothed_count[i] << ",";
+            for (int j = 0; j < int(peak_param.size()); j++) {
+                file5 << returnedPeaks[j][i] << ",";
+            }
+            file5 << "\n";
+        
+        }
+        file5.close();
         //auto stop1 = chrono::high_resolution_clock::now();
         //auto duration1 = chrono::duration_cast<chrono::milliseconds>(stop1 - start1);
         //if (res == -1) {
