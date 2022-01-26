@@ -470,10 +470,10 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
                     { 0.93, temp[max_index] + 55, max_intensity * 0.73, 0, 0, 0},
                     { 1.38, temp[max_index] + 61, max_intensity * 0.27, 0, 0, 0},
                     { 1.41, temp[max_index] + 67, max_intensity * 0.4, 0, 0, 0} };
-        if (out_bounds(peakParams, temp)) {
-            FOM = 1;
-            return 1000;
-        }
+        //if (out_bounds(peakParams, temp)) {
+        //    FOM = 1;
+        //    return 1000;
+        //}
     }
     else if (type == 300) {
         change_range_coeff = 0.2;
@@ -499,10 +499,10 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
         peakParams = { {1.42, temp[max_index] - 27, max_intensity / 1.55, 0, 0, 0},
                     { 1.32, temp[max_index], max_intensity, 0, 0, 0},
                     { 1.36, temp[max_index] + 26, max_intensity / 1.3, 0, 0, 0} };
-        if (out_bounds(peakParams, temp)) {
-            FOM = 1;
-            return 1000;
-        }
+        //if (out_bounds(peakParams, temp)) {
+        //    FOM = 1;
+        //    return 1000;
+        //}
     }
     else if (type == 700) {
         index_coff = temp[max_index] - 237;
@@ -942,13 +942,13 @@ int main(int argc, char* argv[]) {
         // uncomment
         vector<vector<double>> peak_param;
         
-        vector<vector<double>> peak_100;
-        vector<vector<double>> orig_peak_100;
-        double fom_100 = -1;
-        double original_fom_100 = 0;
-        int iteration_100 = gd_types(data.first, data.second, peak_100, fom_100, 100, max_intensity, original_fom_100, orig_peak_100);
-        if (isnan(fom_100))
-            fom_100 = 100;
+        //vector<vector<double>> peak_100;
+        //vector<vector<double>> orig_peak_100;
+        //double fom_100 = -1;
+        //double original_fom_100 = 0;
+        //int iteration_100 = gd_types(data.first, data.second, peak_100, fom_100, 100, max_intensity, original_fom_100, orig_peak_100);
+        //if (isnan(fom_100))
+        //    fom_100 = 100;
         //peak_param = peak_100;
         
         
@@ -958,13 +958,13 @@ int main(int argc, char* argv[]) {
         //double original_fom_101 = 0;
         //int iteration_101 = gd_types(data.first, data.second, peak_101, fom_101, 101, max_intensity, original_fom_101, orig_peak_101);
 
-        vector<vector<double>> peak_200;
-        vector<vector<double>> orig_peak_200;
-        double fom_200 = -1;
-        double original_fom_200 = 0;
-        int iteration_200 = gd_types(data.first, data.second, peak_200, fom_200, 200, max_intensity, original_fom_200, orig_peak_200);
-        
-        
+        //vector<vector<double>> peak_200;
+        //vector<vector<double>> orig_peak_200;
+        //double fom_200 = -1;
+        //double original_fom_200 = 0;
+        //int iteration_200 = gd_types(data.first, data.second, peak_200, fom_200, 200, max_intensity, original_fom_200, orig_peak_200);
+        //
+        //
         //if (iteration_200 == 1000) {
         //    files.erase(files.begin() + i);
         //    i--;
@@ -974,27 +974,27 @@ int main(int argc, char* argv[]) {
         //    continue;
         //}
         
-        vector<vector<double>> peak_300;
-        vector<vector<double>> orig_peak_300;
-        double fom_300 = -1;
-        double original_fom_300 = 0;
-        int iteration_300 = gd_types(data.first, data.second, peak_300, fom_300, 300, max_intensity, original_fom_300, orig_peak_300);
+        //vector<vector<double>> peak_300;
+        //vector<vector<double>> orig_peak_300;
+        //double fom_300 = -1;
+        //double original_fom_300 = 0;
+        //int iteration_300 = gd_types(data.first, data.second, peak_300, fom_300, 300, max_intensity, original_fom_300, orig_peak_300);
         
         
         
-        vector<vector<double>> peak_400;
-        double fom_400 = -1;
-        double original_fom_400 = 0;
-        vector<vector<double>> orig_peak_400;
-        int iteration_400 = gd_types(data.first, data.second, peak_400, fom_400, 400, max_intensity, original_fom_400, orig_peak_400);
+        //vector<vector<double>> peak_400;
+        //double fom_400 = -1;
+        //double original_fom_400 = 0;
+        //vector<vector<double>> orig_peak_400;
+        //int iteration_400 = gd_types(data.first, data.second, peak_400, fom_400, 400, max_intensity, original_fom_400, orig_peak_400);
         
         
         
-        vector<vector<double>> peak_700;
-        vector<vector<double>> orig_peak_700;
-        double fom_700 = -1;
-        double original_fom_700 = 0;
-        int iteration_700 = gd_types(data.first, data.second, peak_700, fom_700, 700, max_intensity, original_fom_700, orig_peak_700);
+        //vector<vector<double>> peak_700;
+        //vector<vector<double>> orig_peak_700;
+        //double fom_700 = -1;
+        //double original_fom_700 = 0;
+        //int iteration_700 = gd_types(data.first, data.second, peak_700, fom_700, 700, max_intensity, original_fom_700, orig_peak_700);
         
         
         
@@ -1003,59 +1003,59 @@ int main(int argc, char* argv[]) {
         double fom_900 = -1;
         double original_fom_900 = 0;
         int iteration_900 = gd_types(data.first, data.second, peak_900, fom_900, 900, max_intensity, original_fom_900, orig_peak_900);
-
-        vector<double> fom_set{ abs(fom_100), abs(fom_200), abs(fom_300), abs(fom_400), abs(fom_700), abs(fom_900) };
-        int min_fom = min_element(fom_set.begin(), fom_set.end()) - fom_set.begin();
         //
-        int adopt = -1;
-        double orig_fom = -1;
-        int iter = -1;
-        double cur_fom = -1;
-
-        if(min_fom == 0) {
-            peak_param = peak_100;
-            adopt = 100;
-            orig_fom = original_fom_100;
-            cur_fom = fom_100;
-            iter = iteration_100;
-        }
-        else if (min_fom == 1) {
-            peak_param = peak_200;
-            adopt = 200;
-            orig_fom = original_fom_200;
-            cur_fom = fom_200;
-            iter = iteration_200;
-        }
-        else if (min_fom == 2) {
-            peak_param = peak_300;
-            adopt = 300;
-            orig_fom = original_fom_300;
-            cur_fom = fom_300;
-            iter = iteration_300;
-        }
-        else if (min_fom == 3) {
-            peak_param = peak_400;
-            adopt = 400;
-            orig_fom = original_fom_400;
-            cur_fom = fom_400;
-            iter = iteration_400;
-        }
-        else if (min_fom == 4) {
-            peak_param = peak_700;
-            adopt = 700;
-            orig_fom = original_fom_700;
-            cur_fom = fom_700;
-            iter = iteration_700;
-        }
-        else {
-            peak_param = peak_900;
-            adopt = 900;
-            orig_fom = original_fom_900;
-            cur_fom = fom_900;
-            iter = iteration_900;
-        }
+        //vector<double> fom_set{ abs(fom_100), abs(fom_200), abs(fom_300), abs(fom_400), abs(fom_700), abs(fom_900) };
+        //int min_fom = min_element(fom_set.begin(), fom_set.end()) - fom_set.begin();
+        //
+        //int adopt = -1;
+        //double orig_fom = -1;
+        //int iter = -1;
+        //double cur_fom = -1;
+        //
+        //if(min_fom == 0) {
+        //    peak_param = peak_100;
+        //    adopt = 100;
+        //    orig_fom = original_fom_100;
+        //    cur_fom = fom_100;
+        //    iter = iteration_100;
+        //}
+        //else if (min_fom == 1) {
+        //    peak_param = peak_200;
+        //    adopt = 200;
+        //    orig_fom = original_fom_200;
+        //    cur_fom = fom_200;
+        //    iter = iteration_200;
+        //}
+        //else if (min_fom == 2) {
+        //    peak_param = peak_300;
+        //    adopt = 300;
+        //    orig_fom = original_fom_300;
+        //    cur_fom = fom_300;
+        //    iter = iteration_300;
+        //}
+        //else if (min_fom == 3) {
+        //    peak_param = peak_400;
+        //    adopt = 400;
+        //    orig_fom = original_fom_400;
+        //    cur_fom = fom_400;
+        //    iter = iteration_400;
+        //}
+        //else if (min_fom == 4) {
+        //    peak_param = peak_700;
+        //    adopt = 700;
+        //    orig_fom = original_fom_700;
+        //    cur_fom = fom_700;
+        //    iter = iteration_700;
+        //}
+        //else {
+        //    peak_param = peak_900;
+        //    adopt = 900;
+        //    orig_fom = original_fom_900;
+        //    cur_fom = fom_900;
+        //    iter = iteration_900;
+        //}
         //stop
-        //peak_param = peak_400;
+        peak_param = peak_900;
 
         //auto stop = chrono::high_resolution_clock::now();
         //auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
@@ -1074,24 +1074,28 @@ int main(int argc, char* argv[]) {
             {0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3 }
         }; 
         double res = FOK_Model.glow_curve(file9, constrain);
+        if (res >= 1) {
+            files.erase(files.begin() + i);
+            continue;
+        }
         // 
         //output glow peaks
-        vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
-        ofstream file5;
-        string path = output_dir + "/" + filename;
-        file5.open(path);
-        file5 << "temp, smoothed, first, sec, third";
-        file5 << ",\n";
-        for (int i = 0; i < int(data.first.size()); i++) {
-            file5 << data.first[i] << ",";
-            file5 << smoothed_count[i] << ",";
-            for (int j = 0; j < int(peak_param.size()); j++) {
-                file5 << returnedPeaks[j][i] << ",";
-            }
-            file5 << "\n";
-        
-        }
-        file5.close();
+        //vector<vector<double>> returnedPeaks = FOK_Model.return_glow_curve();
+        //ofstream file5;
+        //string path = output_dir + "/" + filename;
+        //file5.open(path);
+        //file5 << "temp, smoothed, first, sec, third";
+        //file5 << ",\n";
+        //for (int i = 0; i < int(data.first.size()); i++) {
+        //    file5 << data.first[i] << ",";
+        //    file5 << smoothed_count[i] << ",";
+        //    for (int j = 0; j < int(peak_param.size()); j++) {
+        //        file5 << returnedPeaks[j][i] << ",";
+        //    }
+        //    file5 << "\n";
+        //
+        //}
+        //file5.close();
         //auto stop1 = chrono::high_resolution_clock::now();
         //auto duration1 = chrono::duration_cast<chrono::milliseconds>(stop1 - start1);
         //if (res == -1) {

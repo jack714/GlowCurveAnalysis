@@ -1,0 +1,6 @@
+number of steps: 475
+jacobian 3735
+hessian 224
+get_h_lm 11244170
+get_delta 0
+analysis 1436

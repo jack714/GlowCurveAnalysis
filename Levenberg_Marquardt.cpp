@@ -380,12 +380,12 @@ void First_Order_Kinetics::LevenbergMarquardt(const vector<double> &curve, vecto
         cout<<".";
         cout.flush();
     }
-    cout << index << endl;
-    cout << "jacobian: " << jacobin << endl;
-    cout << "hessian: " << hessian << endl;
-    cout << "h_lm: " << get_h_lm << endl;
-    cout << "delta: " << get_delta << endl;
-    cout << "rest: " << analysis << endl;
+    //cout << index << endl;
+    //cout << "jacobian: " << jacobin << endl;
+    //cout << "hessian: " << hessian << endl;
+    //cout << "h_lm: " << get_h_lm << endl;
+    //cout << "delta: " << get_delta << endl;
+    //cout << "rest: " << analysis << endl;
 }
 
 //populate decon_sig_deriv for the sum of the deconvolute curve
