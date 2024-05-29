@@ -34,6 +34,7 @@
 
 using namespace std;
 
+// calculate energy according to the FOK function
 double func(const double input, const vector<double> params) {
     double T = 0.0;
     double I_t = 0.0;
@@ -50,10 +51,12 @@ double func(const double input, const vector<double> params) {
     return I_t;
 }
 
+// calculate the current figure of merit
 double quick_fom(vector<double>& temp, vector<double>& count, vector<vector<double>>& peak_param) {
     vector<double> total_curve(temp.size());
     double orig_integral = 0.0;
     vector<double> total_fit(count.size());
+    // for every point use FOK equation to get fitted value 
     for (int d = 0; d < int(count.size()); d++) {
         double fit = 0.0;
         for (int e = 0; e < int(peak_param.size()); e++) {
@@ -63,12 +66,14 @@ double quick_fom(vector<double>& temp, vector<double>& count, vector<vector<doub
         total_fit[d] = fit;
     }
     double fom = 0.0;
+    // get the sum of difference as FOM
     for (int f = 0; f < int(count.size()); ++f) {
         fom += abs(count[f] - total_fit[f]) / orig_integral;
     }
     return fom;
 }
 
+// according to each TLD type, output the temperature, energy, each peak original area and GD area
 void output_details(string output_dir, string filename, vector<double>& temp, vector<double> count, vector<vector<double>>& peak_300, vector<vector<double>>& orig_peak_300,
     vector<vector<double>>& peak_400, vector<vector<double>>& orig_peak_400, vector<vector<double>>& peak_900, vector<vector<double>>& orig_peak_900,
     vector<vector<double>>& peak_100, vector<vector<double>>& orig_peak_100, vector<vector<double>>& peak_200, vector<vector<double>>& orig_peak_200) {
@@ -251,6 +256,7 @@ void output_details(string output_dir, string filename, vector<double>& temp, ve
     file6.close();
 }
 
+// output the intensity counts after smoothing
 void output_counts(vector<double>& orig_counts, vector<double>& smoothed_count, vector<double>& temp, string filename) {
     ofstream file1;
     string path = "C:/Users/jack0/Desktop/" + filename + ".csv";
@@ -261,6 +267,7 @@ void output_counts(vector<double>& orig_counts, vector<double>& smoothed_count, 
     }
 }
 
+// gradient descent function for specific TLD type without data initialization
 void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM, ofstream& f1, bool& one) {
     //cout << peakParams.size() << endl;
     //temperary vector to store peak data
@@ -383,6 +390,7 @@ void gd(const vector<double>& temp, const vector<double>& curve, vector<vector<d
     f1 << " new fom: " << FOM << " " << iteration << " times" << endl;
 }
 
+// remove the tail from each side to get rid of noises
 void remove_tail(vector<double>& temp, vector<double>& curve, double intensity) {
     //find index of max point
     int max_index = -1;
@@ -405,6 +413,7 @@ void remove_tail(vector<double>& temp, vector<double>& curve, double intensity) 
     curve.resize(cut);
 }
 
+// check if any peak parameters is out of bounds for temperature
 bool out_bounds(vector<vector<double>>& peakParams, vector<double> temp) {
     for (int i = 0; i < peakParams.size(); i++) {
         if (peakParams[i][1] > temp[temp.size() - 1])
@@ -413,6 +422,7 @@ bool out_bounds(vector<vector<double>>& peakParams, vector<double> temp) {
     return false;
 }
 
+// gradient descent with specific initialization for each type
 int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vector<double>>& peakParams, double& FOM, int type, double max_intensity, double& original_fom, vector<vector<double>>& orig_peak) {
     //find index of max point
     int max_index = -1;
@@ -685,6 +695,7 @@ int gd_types(const vector<double>& temp, const vector<double>& curve, vector<vec
     
 }
 
+// change atypical file names to standard name
 void reformat_name(string filename, string output_dir, pair<vector<double>, vector<double>>& data) {
     //find the heating rate / experiment name
     size_t mid, last;

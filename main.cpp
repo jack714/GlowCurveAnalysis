@@ -7,7 +7,7 @@
 //
 
 #include <iostream>
-#include <getopt.h>
+//#include <getopt.h>
 #include <string>
 #include <fstream>
 #include <stdio.h>
